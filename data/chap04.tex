@@ -1,345 +1,410 @@
-% !TeX root = ../sustechthesis-example.tex
+% % !TeX root = ../sustechthesis-example.tex
 
-\chapter[镱离子量子计算]{镱离子量子计算\label{section:yb_computation}}
-
+\chapter[用于离子阱系统的高Q螺线管谐振腔的仿真、优化与建模]{用于离子阱系统的螺线管谐振腔的仿真、优化与建模\label{section:helical}}
 % \textcolor{red}{
-% 这部分讲解镱离子的基本情况以及镱离子用来做量子计算的各种基本操作原理... 
+% 这部分将对之前谐振腔的研究进行整理和总结...
+% 除去真空环境相关的部分外，离子阱主要有两核心部分组成：螺线圈谐振腔及刀片阱。
 % }
-目前所有实现的用于离子量子计算的离子都属于\emph{类氢离子(Hydrogen-like ions)}， 比如$Be^+$（NIST\cite[]{Monroe_Meekhof_King_Itano_Wineland_2002,Lin_Gaebler_Reiter_Tan_Bowler_Wan_Keith_Knill_Glancy_Coakley_et_al_2016}），$Mg^+$（NIST\cite[]{Barrett_Schaetz_DeMarco_Britton_Chiaverini_Itano_Jelenkovic_Jost_Langer_Leibfried_et_al_2003, Wan_Kienzler_Erickson_Mayer_Tan_Wu_Vasconcelos_Glancy_Knill_Wineland_et_al_2019}），$Ca^+$（Univer-sity of Innsbruck\cite[]{Lanyon_Hempel_Nigg_Müller_Gerritsma_Zähringer_Schindler_Barreiro_Rambach_Kirchmair_et_al_2011,Monz_Nigg_Martinez_Brandl_Schindler_Rines_Wang_Chuang_Blatt_2016}, University of Oxford\cite[]{Ballance_Harty_Linke_Sepiol_Lucas_2016,Schäfer_Ballance_Thirumalai_Stephenson_Ballance_Steane_Lucas_2018}），$Ba^+$（Washington University\cite[]{Dietrich_2009,Dietrich_Kurz_Noel_Shu_Blinov_2010},UCLA\cite[]{Hucul_Christensen_Hudson_Campbell_2017}），$Yb^+$（University of Maryland\cite[]{Olmschenk_Younge_Moehring_Matsukevich_Maunz_Monroe_2007,Debnath_Linke_Figgatt_Landsman_Wright_Monroe_2016}, University of Sussex\cite[]{Weidt_Randall_Webster_Lake_Webb_Cohen_Navickas_Lekitsch_Retzker_Hensinger_2016}）。
-类氢离子具有最简单的能量结构，处理起来相对其它类型的离子要简单很多。它们具有的内态$^2S_{1/2}$到$^2P_{1/2}$之间的闭环光学跃迁，能方便地实现激光冷却、高保真初始化和内态读出操作\cite[]{Harty_Allcock_Ballance_Guidoni_Janacek_Linke_Stacey_Lucas_2014}，这对于量子计算的实现至关重要。要挑选出合适的类氢离子，还有一些其它的参数需要被考虑，如离子的质量、循环跃迁的波长、核自旋的值和$^2D$能级的亚稳态的寿命等\cite[]{Bruzewicz_Chiaverini_McConnell_Sage_2019}。
+如图\ref{fig:quantum_computing_ion_trap_system}显示的，谐振腔是组成离子阱量子计算系统的重要部分，也是一种十分重要的量子测控器件。在第\ref{section:ion_trap_motion}节中，介绍了离子在离子阱中的囚禁方式和运动，其中囚禁的基础就是生成合适的囚禁势场。在离子阱量子计算实验中通常采用Paul阱来产生这种势场，它也是最具代表性的一类离子阱，利用交替电流(Alternating-Current, AC)电场来动态囚禁带电原子或粒子。上述交流场的频率总是落在射频(RF)范围内，而相应的电压可以达到几百伏。通常，将这种高压射频信号直接应用于Paul阱的电极是具有挑战性的，因为阱本身可以被视为纯电容器件。因此，信号发生器和阱之间的阻抗失配使得功率注入效率低下。
+
+解决上述困难的标准方法是使用螺线管谐振腔来作为信号发生器和离子阱之间的“桥梁”。一个设计合适的螺线管谐振腔既能够实现阻抗匹配的要求也能够放大施加到阱电极上的电场。同时，它还充当带通滤波器来阻断潜在的电子噪声，提高离子量子门的保真度。因此，螺线管谐振腔是离子阱系统中最关键的角色之一，对于特定频率需求范围的谐振腔来说其最关键的参数指标是它的Q值。本章中将研究用于离子阱量子计算系统的高Q谐振腔的仿真、设计与优化，以降低噪声提高整个系统的稳定性和量子门的保真度\cite[]{van_Dijk_Kawakami_Schouten_Veldhorst_Vandersypen_Babaie_Charbon_Sebastiano_2019}。
+
+% \textcolor{red}{谐振腔与量子门保真度之间的关系说明……}
 
 
-要实现用离子实现量子门，尤其是用脉冲激光实现离子量子比特门，首先需要选择合适的离子体系，并且需要对选定离子的能级结构和量子态控制原理和方法有着充分的了解。出于历史和现实的原因，我们实验室选择$Yb^+$离子作为实现量子计算的物理平台。在接下的几节中，我将阐述用镱离子实现量子计算的一些重要的概念，如镱离子的能级结构和比特编码方式、镱离子的态初始化、镱离子的探测、镱离子的操控等。
 
-\section[镱离子的能级结构和和比特编码方式]{镱离子的能级结构和和比特编码方式}
-在第\ref{section:introduction}章介绍中我们介绍过实现量子计算对物理平台的要求，最基本的要求是要能找到合适的量子系统来编码量子比特，即$\ket{0}$、$\ket{1}$。离子的内态是十分稳定并且易于操控的，因此一般选择离子的两个内部状态来编码量子信息并执行计算。对于我们现在系统中采用的$^{171}Yb^+$离子来说，用来编码量子比特的是有着$1/2$自旋的处于$^2S_{1/2}$基态的超精细能级\cite[]{Olmschenk_Younge_Moehring_Matsukevich_Maunz_Monroe_2007}。如图\ref{fig:energy_structure}所示，$\ket{0}$和$\ket{1}$分别被编码到了基态的相应状态，具体来说是分别是$\ket{0}=\ket{F=0,m_F=0}$和$\ket{1}=\ket{F=1,m_F=0}$，当$B=0$两个能级的能量差为$12.64$GHz。
+\section[离子阱系统中的螺线管谐振腔]{离子阱系统中的螺线管谐振腔}
+
+% 如前面在第\ref{section:ion_trap_quantum_computation_system}章中所介绍的，
+
+
+除去真空环境相关的部分外，离子阱主要有两核心部分组成：螺线圈谐振腔及刀片阱。关于刀片阱的完整设计和制作流程可以参见Myunghun Kim等人\cite[]{Kim_Kim_Hong_Lee_Moon_Lee_Kim_Ha_Sim_Lee_2022}的文章，在此不多赘述。对于螺线管谐振腔，它通常具有两个基本特性，即谐振频率$f_0$和品质因子$Q$。它们的值主要由谐振腔本身的几何设计决定，如图\ref{fig:helical_structure_2d}所示。
+对螺线管谐振腔设计的主要目标是找到合适的几何参数，使得谐振频率$f_0$与期望值相匹配，并最大化品质因子$Q$。设计谐振器的一种方法是由其简化的LC电路模型指导，并利用如Macalpine等人\cite[]{Macalpine_Schildknecht_1959}、Deng K.等人\cite[]{Deng_Sun_Yuan_Xu_Zhang_Lu_Luo_2014}给出的经验公式从几何参数估计相应的电容、电感和电阻。
+然而，为了使用上述给出的经验公式，某些几何参数之间的比率必须限定于给定的区间，而且估计的$f_0$和$Q$往往与实际值有较大偏差。
+近来，一种基于商业软件的有限元(Finite Element, FE)仿真的设计方法开始被广泛使用。Laura Pedrosa-Rodriguez等人\cite[]{Pedrosa_Rodriguez_Outerelo_Gomez_Alcala_de_Vicente_Diaz_Otero_2018}运用解析和数值仿真的方式设计了一种稳定、高电压、高品质因数和低噪声的螺旋管谐振腔，对比结果表明用计算软件对实测样机进行仿真的精度高于解析方程。Joydip Nandi等人\cite[]{Nandi_Sikdar_Reza_Misra_Das_Ray_2020}使用FE的方法设计了一个20MHz的螺旋谐振腔，并通过改变其尺寸和材料对Q值进行了优化。与经验估计方法相比，使用FE方法模拟谐振腔在属性评估方面提供了更高的准确性及灵活性，是一种十分高效且低成本的谐振腔研究设计方法。
 
 \begin{figure}
     \centering
-    \caption[镱离子的能级结构和比特编码方式]{镱离子的能级结构和比特编码方式\label{fig:energy_structure}}
-    \includegraphics[width=1.0\linewidth]{energy_structure}
+    \caption[谐振腔结构平面示意图]{谐振腔结构平面示意图。$H$：耦合线圈底部到主线圈底部的距离；$B$：屏蔽壳侧壁长度；$D$：屏蔽壳内筒直径；$\tau$：主线圈螺距；$d_0$：主线圈线粗；$d$：主线圈直径；$b$：主线圈总长度；$l_{out}$：输出线长度；$D_1$：输出口内直径。\label{fig:helical_structure_2d}}
+    \includegraphics[width=0.5\linewidth]{helical/helical_structure_2d}
 \end{figure}
 
-通过在阱外向阱中离子施加的约$6$高斯的静磁场会使离子产生约$11$Hz的二阶\emph{Zeeman}能级劈裂。从$\ket{1}$态向$^2P_{1/2}$能级跃迁回路的驱动波长在$369.526$nm附近，这个波段的激光有成熟的商业激光系统供应，同时对光纤传输也很友好。略有遗憾的是这个$\ket{1}{^2P}_{1/2}$跃迁回路并不是完全闭合的，因为存在从$^2P_{1/2}$到$^2D_{3/2}$的微弱态泄露，分支比约为$0.5$\%\cite[]{Olmschenk_Younge_Moehring_Matsukevich_Maunz_Monroe_2007}。不过这个可以通过使用一个带$3.07$GHz边带的$935$nm波长的激光来将泄露的态再回泵浦到整个回路中。另外，背景撞击可能导致离子跑到$^2F_{7/2}$使离子“熄灭”，这个可以通过一个$638$nm波长的激光器来克服，重新将离子“点亮”。值得注意的是，这个任务除了$638$nm波长的激光器可以完成外，$760$nm\cite[]{Huntemann_Okhapkin_Lipphardt_Weyers_Tamm_Peik_2012}、$355$nm\cite[]{Senko_2014}。另外，由于从$^2F_{7/2}$到$^3F[1/2]_{3/2}$的跃迁大部分共振在$375.856$nm波长上，因此$375$nm波长的激光也可以完成。
+\section[螺线管谐振腔的仿真模型]{螺线管谐振腔的仿真模型}
 
-\section[镱离子的电离和囚禁]{镱离子的电离和囚禁}
-为了能够研究离子的特性我们首先需要将离子电离并稳定地囚禁住。
-离子的囚禁采用的是
-% 如第\ref{section:ion_classical_motion}节中介绍的
-动态囚禁的方式，离子的电离一般是通过激光电离的方式实现的。对于$Yb^+$离子来说，电离的方式是采用的是\emph{两步电离法(two-step ionization)}\cite[]{Olmschenk_Younge_Moehring_Matsukevich_Maunz_Monroe_2007}，这种方法可以避免紫外激光的使用。
-首先，我们使用$398.991$nm波长的激光将镱原子重$^1S_0$能级激发到$^1P_1$能级；然后再使用一个低于$394.088$nm波长的激光将最外层电子激发到连续态区域中去，比如通常采用的$369.526$nm波长激光，或者$355$nm波长、$375$nm波长。在实践中，镱原子一般填充在原子炉中并被放置在真空室中。需要激发时就通过施加恒定电流加热原子，使原子从原子炉中热喷射出来的，其中会有一小部分穿过离子阱的中心。$398.911$nm和$369.525$nm波长的激光束在离子阱中心与原子炉中喷射出的原子重叠。于是，该区域的原子就可以被电离，并在高效冷却后被离子阱动态囚禁。由于同位素位移，我们可以通过微调$398.911$nm激光的波长来选择性地电离镱离子不同的同位素。为了抑制多普勒频移的影响，激光器的路径最好垂直于原子流。
+常用的商业化FE仿真工具有ANSYS HFSS、Comsol等，接下来的仿真中我们采用的ANSYS HFSS来研究影响谐振腔$f_0$和$Q$值的各种因素。在HFSS中，有两种方法可以分析3D结构，本征模模式(Eigen-mode)和驱动模式(Driven-mode)。
+本征模模式通过分析计算电磁场模式，直接给出谐振频率$f_0$和品质因子$Q$的结果；而驱动模式是通过设置输入和输出微波端口，分析和计算\emph{散射参数(Scattering Parameter, SP)}，与实验更具可比性。
+这两种模式都可以用来模拟螺线管谐振腔，但本征模法更常用于谐振器设计，驱动模态在一般仿真中更为频繁。因为驱动模式得到的结果可以直接与实际实验结果做比对，在接下来的仿真研究中我们默认使用这种方法来进行仿真（特别说明的情况除外）。
+请注意，由于阻抗匹配网络损耗\cite[]{Gandolfi_Niedermayr_Kumph_Brownnutt_Blatt_2012}，驱动模态中品质因子$Q$的结果大约是本征模结果的一半。
+
+我们在仿真软件中构建了与实际谐振器相同的一个3D模型。模型结构示意图如图\ref{fig:helical_structure_2d}所示，HFSS中建立的3D模型视图如图\ref{fig:helical_HFSS_3d}所示。
+在这个3D模型中，除了主线圈和铜壳结构外，它还包括耦合线圈、输出导线$l_{out}$和连接器馈通结构，3D模型的所有实体结构均为紫铜材料。
+主线圈与铜屏蔽壳侧壁接触(gnd)；在耦合线圈和主线圈设置两个集总端口，耦合线圈作为输入端口，主线圈作为输出端口，如图\ref{fig:helical_HFSS_3d}中黄色的圆片所示。通过调整耦合线圈到主线圈的距离可以实现阻抗匹配，阻抗匹配的目标是使得S参数反射最小，仿真中采用的标准是$S_{11}<-40$dB。仿真结果的后处理与实际实验完全相同，中心频率$f_0$和$Q$因子可以从$S$参数导出。
 
 \begin{figure}
     \centering
-    \caption[刀片阱实物图]{实验中刀片阱实物图\label{fig:trap_blads}}
-    \includegraphics[width=1.0\linewidth]{trap_blads.jpg}
+    \caption[HFSS中建立的3D模型图]{HFSS中建立的3D模型图。黄色圆片表示微波输入和输出端口；橙色部分表示耦合线圈和主线圈，一般采用紫铜材质制作；绿色部分是屏蔽外筒，一般采用紫铜或者黄铜制作。\label{fig:helical_HFSS_3d}}
+    \includegraphics[width=0.4\linewidth]{helical/helical_HFSS_3d}
 \end{figure}
 
-% 如第\ref{section:ion_classical_motion}节中给介绍的，
-由\emph{Earnshaw's theorem}\cite[]{Earnshaw}我们知道离子没有办法被静态地囚禁在三维空间中，好在我们仍然可以动态地将离子囚禁。实际实验中囚禁离子的离子阱如\ref{fig:trap_blads}图所示，这中类型的离子阱一般被称为刀片阱。它会产生如下形式的赝势$\Phi_p$：
-\begin{align}
-    \Phi_p=\frac{eV^2}{4MR^4\Omega_{rf}^2}\sum_{m}^{}\alpha_m^2r_m^2
-\end{align}
+离子阱实验中的谐振频率通常在$10-100$MHz之间，主线圈的典型直径和螺距间距分别为$50-60 $mm和$5-8$mm。为了测试HFSS模拟和实验之间的一致性，我们选择了三组几何设置，如表\ref{tb:helical_simulation_parameters}所示。
+在每个组中，谐振器具有相似的谐振中心频率，但线圈直径和绕组间距不同，即$30$MHz、$50$MHz、$75$MHz组。
+除了正常参数外，我们故意选择一个更大的参数范围，接近线圈直径和绕组间距的极限，比如线圈直径在$30-80$mm之间（与屏蔽直径$D=103$mm相比）；绕组间距在$4mm$到$ 18$mm之间（与导线直径为$d0 = 3$mm相比）。
+关于其它参数，参数$d=48$mm$/\tau = 7$mm的初始轮数$N = 5.734$，屏蔽外壳的高度$ B = 136$mm。螺旋谐振器由网络分析仪Keysight E5063A进行了实验测试。实验测试方案和螺旋谐振器的照片如图\ref{fig:helical_experiment_test}所示。
+\begin{table}
+    \centering
+    \caption[仿真的谐振腔参数设置]{仿真的谐振腔参数设置\label{tb:helical_simulation_parameters}}
+    \begin{tabular}{lccccccc}
+        %Left\footnote{Note a.}&Centered\footnote{Note b.}&Right\\
+        \toprule
+        $\#$ & groups & d & $\tau$ & $f_{HFSS}$ & $Q_{HFSS}$ & f$_{exp}$ & $Q_{exp}$ \\
+        \midrule
 
-其中$V$，$R$，$M$分别是RF电压、电极到阱中心的距离和离子的质量。$\Omega_{rf}$是RF的频率，$\alpha_m$是$r_m$方向的系数。
-这个电势的结果是在所有方向上都有正的系数 ($\alpha_m^2>0$)，直观地揭示了囚禁带电离子的能力。同时还可以从中得到有效的阱频率$\nu_m=eV\alpha_m/\sqrt{2}MR^2\Omega_{rf}$。
+        1 & \multirow{5}*{30MHz} 	& 40 & 4  & 32.4062 & 565 & 31.7472 & 513   \\
+        2 & 						& 80 & 4  & 25.2663 & 346 & 24.8038 & 207   \\
+        3 & 						& 60 & 5  & 28.4732 & 639 & 28.3904 & 587   \\
+        4 & 						& 50 & 6  & 30.2228 & 650 & 30.6030 & 599   \\
+        5 & 						& 80 & 10 & 27.1943 & 354 & 27.6059 & 317   \\
+        \midrule
+        6 & 50MHz 					& 48 & 5  & 49.878739 & 708 & 49.2687 & 631   \\
+        \midrule
+        7 & \multirow{5}{*}{75MHz} 	& 30 & 4  & 76.4602 & 595 & 76.2748 & 542   \\
+        8 & 						& 80 & 4  & 61.2866 & 453 & 60.7942 & 389   \\
+        9 & 						& 48 & 7  & 74.9382 & 802 & 75.2466 & 708   \\
+        10 & 						& 40 & 14 & 88.4308 & 686 & 88.8163 & 571   \\
+        11 & 						& 80 & 18 & 77.9517 & 469 & 78.4634 & 377   \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
-\section[镱离子的激光冷却]{镱离子的激光冷却\label{section:yb_laser_cooling}}
-从原子炉中喷出的原子是十分“热”的（标准大气压下原子的平均融化温度高达$824 ^o C$），由麦克斯韦运动分布可知它们的速度能达到超过一百米每秒。如此热的电子很容易从离子阱的囚禁电势中逃脱，很难被囚禁更不用说进行什么别的操作了。因此，我们需要某种冷却手段来给离子“降温”。
 
 \begin{figure}
     \centering
-    \caption[激光施加到离子的多普勒效应示意图]{激光施加到离子的多普勒效应示意图\label{fig:doppler_cooling_scattering}}
-    \includegraphics[width=1.0\linewidth]{doppler_cooling_scattering}
-\end{figure}
-离子可以使用红色失谐的反向传播激光束进行激光冷却，这被称为多普勒冷却\cite[]{Hänsch_Schawlow_1975}。如图\ref{fig:doppler_cooling_scattering}所示，当离子与激光反向运动时，吸收一个光子离子将减少$\hbar \vec{k}$的动量；当离子与光同向运动时，吸收一个光子离子将增加$\hbar \vec{k}$的动量。随后离子将通过受激辐射的形式随机散射$\hbar \vec{k}$的动量，这个随机散射过程的平均结果是动量变化为$0$。
-
-\begin{figure}
-    \centering
-    \caption[多普勒冷却示意图]{多普勒冷却示意图\label{fig:doppler_cooling}}
-    \includegraphics[width=1.0\linewidth]{doppler_cooling}
-\end{figure}
-如图\ref{fig:doppler_cooling}所示，由于多普勒效应，在离子局部坐标系下看入射激光的波长会产生$-\vec{k}\cdot\vec{v}$的频移。因此如果施加红是失谐的激光，那么与激光方向相反的离子将比与激光方向相同的离子吸收更多的光子；另一方面，对打的激光会抵消激光本身对离子的加速效应，最终离子会失去较多的动量，被激光“冷却”下来。
-
-对$Yb^+$离子来说，在这个过程中跃迁$^2S_{1/2}\ket{F=1}\to {^2P}_{1/2}\ket{F=0}$和$^2S_{1/2}\ket{F=0}\to {^2P}_{1/2}\ket{F=1}$同时被驱动以覆盖离子的所有超精细能级，避免离子陷入暗态（变黑）。
-
-此外，冷却激光的所有偏振都施加上去来提高冷却效率，相关跃迁回路和离子散射图如图\ref{fig:doppler_cooling_level}所示。
-\begin{figure}
-    \centering
-    \caption[离子冷却跃迁回路示意图]{离子冷却跃迁回路示意图\label{fig:doppler_cooling_level}}
-    \includegraphics[width=0.6\linewidth]{doppler_cooling_level}
-\end{figure}
-
-\section[镱离子的态初始化]{镱离子的态初始化\label{section:yb_state_init}}
-
-几乎任何量子计算或模拟任务都以确定性的纯状态开始。获得这个起点的过程称为\emph{态初始化(State Initialization)}，这是通过囚禁离子平台中的光泵浦过程实现的。
-
-\begin{figure}
-    \centering
-    \caption[离子态初始化示意图]{离子态初始化示意图\label{fig:initialization}}
-    \includegraphics[width=0.6\linewidth]{initialization}
+    \caption[实际实验的测量方式示意图]{实际实验的测量方式示意图\label{fig:helical_experiment_test}}
+    \includegraphics[width=1.0\linewidth]{helical/helical_experiment_test}
 \end{figure}
 
-如图\ref{fig:initialization}所示，在初始化过程中从$^2S_{1/2}\ket{F=1}$到$^2P_{1/2}\ket{F=1}$的跃迁被驱动。离子的状态很有可能衰减到$\ket{0}$状态，因此由于$12.6$GHz的失谐，处于$\ket{0}$态的离子不会参与进一步的激发。对于单个离子，这一过程在$5$μs内就可以以非常高的初始化保真度完成。这篇\cite[]{Harty_Allcock_Ballance_Guidoni_Janacek_Linke_Stacey_Lucas_2014}文献展示了状态初始化的误差小于可以$10^{−4}$。
+我们选择在表\ref{tb:helical_simulation_parameters}中的2、6、9三行设置作为示例来比较HFSS模拟和实验的结果，散射参数$S_{11}$的对比结果如图\ref{fig:helical_compares}所示（中心频率平移到相互重合，以便清楚地显示$S_{11}$的差异）。结果中的差异$\Delta f(Q)=f(Q)_{exp}-f(Q)_{HFSS}$。实验测试的频率$f_0$和品质因子$Q$结果和误差棒如图\ref{fig:helical_compares_f_q}所示。误差条非常小，几乎不可见。频率的最大差异约为$0.7$MHz。除了一个设置的$Q$因子差为$-122$，其他$Q$因子的差异约为或小于$60$。相对较大的$Q$偏差的原因可能是由于频率和电阻影响。
+频率的大小受到电感和电容的影响，电感和电容的具体值由谐振腔的几何结构和材料决定。
+电阻受材料和加工过程的影响，例如焊点电阻、金属表面氧化等。此外，我们模拟了我们之前使用的几种螺旋设计，并与实验记录相比，频率差异小于$1$MHz，$Q$差异小于 $50$。
 
-\section[镱离子的态探测]{镱离子的态探测\label{section:yb_state_detection}}
-在经过各种中间操控后，量子计算的结果需要被读出，这一过程通过离子的态测量实现。如图\ref{fig:detection}所示，通常采用状态相关的荧光检测技术进行高保真读出\cite[]{Blinov_Leibfried_Monroe_Wineland_2004}。在这个过程中使用的是$^2S_{1/2}\ket{F=0}$到$^2P_{1/2}\ket{F=1}$之间的跃迁（$^2S_{1/2}\ket{F=0}$到$^2P_{1/2}\ket{F=0}$之间的跃迁是偶极禁止跃迁的）。因此，我们可以通过数收集散射光子的数量的多少来区分投影状态。
+以上结果表明，仿真方法都能较好地预测实验结果。这验证了HFSS商业软件是帮助设计和预测螺旋谐振器行为的绝佳工具，为谐振腔的研究提供了极大的方便。
+
 \begin{figure}
     \centering
-    \caption[离子态测量示意图]{离子态测量示意图\label{fig:detection}}
-    \includegraphics[width=0.6\linewidth]{detection}
+    \caption[谐振腔仿真与实验散射参数结果对比]{谐振腔仿真与实验散射参数$S_{11}$结果对比。其中红色实线为HFSS仿真结果，蓝色实线为实验测得的结果。横坐标为频率（单位MHz），纵坐标为幅度（单位dB）。\label{fig:helical_compares}}
+    \subcaptionbox[50MHz]{50MHz}{
+        \includegraphics[width=1.0\linewidth]{helical/helical_50MHz_final}
+    }
+    \subcaptionbox[30MHz]{30MHz}{
+        \includegraphics[width=0.46\linewidth]{helical/helical_30MHz_final}
+    }
+    \subcaptionbox[75MHz]{75MHz}{
+        \includegraphics[width=0.46\linewidth]{helical/helical_75MHz_final}
+    }
 \end{figure}
 
-态测量过程得到的离子影像可以用\emph{电子倍增电荷耦合器件(Electron-multiplying charge-coupled device, EMCCD)}或者\emph{光电倍增管(Photomultiplier Tube, PMT)}通过两步成像来显示，如图\ref{fig:two_step_imaging}所示。
-对于单个离子，为了量化量子比特状态检测的保真度，我们可以将量子比特准备为$\ket{0}$状态或$\ket{1}$状态，然后应用持续$40$μs的探测激光束同时计数收集到的光子。每个状态的序列通常重复$2000$次以获得统计分布。
 
 \begin{figure}
     \centering
-    \caption[两步成像系统]{两步成像系统\label{fig:two_step_imaging}}
-    \includegraphics[width=0.6\linewidth]{two_step_imaging}
+    \caption[谐振腔仿真与实验频率和Q结果对比]{谐振腔仿真与实验频率和Q结果对比。横坐标为表中对应的序号数，（a）纵坐标为实验与仿真预测的频率结果偏差$\Delta f$（单位MHz），（b）纵坐标为实验与仿真预测的Q值结果偏差$\Delta Q$（单位1）。\label{fig:helical_compares_f_q}}
+    \subcaptionbox[谐振腔仿真与实验频率结果对比]{谐振腔仿真与实验频率结果对比}{
+        \includegraphics[width=0.48\linewidth]{helical/helical_delta_f}
+    }
+    \subcaptionbox[谐振腔仿真与实验Q结果对比]{谐振腔仿真与实验Q结果对比}{
+        \includegraphics[width=0.48\linewidth]{helical/helical_delta_Q}
+    }
 \end{figure}
 
-以我们目前系统为例，入射光子数量的统计数据几乎遵循泊松分布，$\ket{0}$和$\ket{1}$状态的平均光子分别为$0.05$和$9.58$。分离良好的分布使我们能够将投影状态与固定阈值区分开来。对于单次检测，如果收集到的光子数大于1，则我们将投影状态分类为$\ket{1}$状态，否则投影状态被视为$\ket{0}$状态。
+\section[几何参数对频率和Q的影响]{几何维度对频率和Q的影响}
 
-\section[镱离子的态操控]{镱离子的态操控\label{section:yb_state_manipulation}}
-量子门可以通过微波\cite[]{Olmschenk_Younge_Moehring_Matsukevich_Maunz_Monroe_2007}或脉冲激光\cite[]{Lee_2005}实现。微波对离子的态操控实现简单，但是由于所用微波的长波太长，使用微波技术方案往往仅限于单比特门；激光操控离子有诸多优点，尤其是在大规模的集成和寻址方面。接下来的小节将具体介绍这两类离子比特门操控方式。
-\subsection[微波操控镱离子]{微波操控镱离子\label{section:microwave_operation}}
-在本小节中，我将简要介绍微波操控的离子量子门，以帮助建立离子态操控的一般方式。
-在微波场下的离子哈密顿量为（保持$\hbar=1$）：
+在离子阱的应用中，螺线管谐振腔最重要的性能是谐振频率和Q因子，具有特定谐振频率和最高$Q$因子的谐振腔是最理想的\cite[]{Siverns_Simkins_Weidt_Hensinger_2012}。
+谐振频率和Q可以由以下包含集总参数电感$L$、电容$C$和电阻$R$的公式表达：
 \begin{align}
-    \hat{H}=\frac{\omega_q}{2}\hat{\sigma}_z + \Omega\cos\left(\vec{k}\cdot\vec{r}-\omega t + \phi\right)\hat{\sigma}_x
+    f&=\frac{1}{2\pi\sqrt{LC}} \label{eq:helical_f_equation}\\
+	Q&=\frac{\omega L}{R}=\frac{1}{R}\sqrt{\frac{L}{C}} \label{eq:helical_Q_equation}
 \end{align}
 
-第一项是简化的离子比特二能级系统的希尔伯特空间，二能级系统的能量差为$\omega_q$；第二项是磁偶极跃迁的导出项，其中磁场的振动频率为$\omega$，初始相位为$\phi$；$\Omega$是代表耦合强度的拉比频率；当$\omega\approx 12.6$GHz时有$\vec{k}\approx3\times ^{-4}um^{-1}$，所以空间项$\vec{k}\cdot \vec{r}$相对比较小，可以被忽略。通过一个重映射变换$\hat{H}_I=e^{iH_0t}(\hat{H}-\hat{H}_0)e^{-iH_0t}$，其中$\hat{H}_0=\omega\hat{\sigma}_z/2$，可以将自由空间哈密顿量转化到相互作用表象(dressed-state)下：
-\begin{align}
-    \hat{H}_I&=e^{iH_0t}(\hat{H}-\hat{H}_0)e^{-iH_0t}\\
-    &=-\frac{\mu}{2}\hat{\sigma}_z+\frac{\Omega}{2}\left(\hat{\sigma}_+e^{i\omega t}+\hat{\sigma}_-e^{-i\omega t}\right)\left(e^{i(\omega t-\phi)}+e^{-i(\omega t-\phi)}\right)\\
-    &\approx -\frac{\mu}{2}\hat{\sigma}_z+\Omega(\hat{\sigma}_+e^{i\phi}+\hat{\sigma}_-e^{-i\phi})\\
-    &=-\frac{\mu}{2}\hat{\sigma}_z+\frac{\Omega\cos{\phi}}{2}\hat{\sigma}_x+\frac{\Omega\sin{\phi}}{2}\hat{\sigma}_y\label{eq:interaction_hamiltonian_microwave}
-\end{align}
-
-其中$\mu=\omega=\omega_q$是量子比特和单微波光子之间的能量差。在$\approx$这步，我们采用了在第\ref{section:total_hamiltonian}节中介绍过的\emph{旋波近似}，将含$2\omega$的快速振动项忽略掉了。相互作用表象(dressed-state)的优点在于最终的哈密顿量是不含时的，这样各个泡利矩阵的成分的概率幅就完全由施加的微波场决定了。
-
-对于一个给定的状态$\ket{\Psi(0)}=c_0(0)\ket{0}+c_1(0)\ket{1}$，其中$|c_0(0)|^2+|c_1(0)|^2=1$，它的时间演化由演化算符$U(t)$决定：
-\begin{align}
-    \ket{\Psi(t)}=U(t)\ket{\Psi(0)}=\exp(-iH_It)\ket{\Psi(0)}
-\end{align}
-
-如果给定$\ket{\Psi(0)}=\ket{0}$，那么可以解析地写出这个态的演化后的概率幅：
-\begin{align}
-    c_1(t)&=-i\frac{\Omega}{\Omega_{eff}}e^{i\phi}\sin{\frac{\Omega_{eff}t}{2}},\\
-    c_0(t)&=\cos{\frac{\Omega_{eff}t}{2}}-i\frac{\mu}{\Omega_{eff}}\sin{\frac{\Omega_{eff}t}{2}}
-\end{align}
-
-其中$\Omega_{eff}=\sqrt{\Omega^2+\mu^2}$是有效拉比频率\cite[]{Foot_2005}。$\ket{1}$态的概率$p_1(t)=|c_1(t)|^2$在时间$t=\pi/\Omega_{eff}$时取得最大值，最大值为$\Omega^2/(\Omega^2+\mu^2)$。不同失谐$\mu$情况下的拉比振荡如图所示。
-
+对于特定的材料，几何物理参数完全决定了设备的所有特性和等效的集总电路参数。进一步地，频率主要取决于电感和电容两者的比值$L/C$，从几何角度看就是取决于谐振腔主线圈的直径、螺距以及总线长等；在此基础上，$Q$除了跟$L/C$有关外，还与电阻有关。
+在之前的研究中，大多数研究人员将线圈直径、绕组间距和主线圈数视为非独立参数\cite[]{Siverns_Simkins_Weidt_Hensinger_2012,Macalpine_Schildknecht_1959}。
+然而，在我们的模拟中，我们发现如果主线圈的总长度是固定的，谐振频率将比总导线长度变化小得多，结果如图\ref{fig:helical_fixedwirelength}所示。
+这使得谐振频率的控制更容易。一项研究\cite[]{Nandi_Sikdar_Das_Ray_2022}也指出了这种类似的现象，它给出了谐振频率与主线圈长度之间的关系。螺线管谐振腔基本上与四分之一波长谐振器相同。
 \begin{figure}
     \centering
-    \caption[不同失谐$\mu$情况下的拉比振荡]{不同失谐$\mu$情况下的拉比振荡\cite[]{Lu_2019}}
-    \includegraphics[width=1.0\linewidth]{rabi_oscillations}
+    \caption[固定线长下改变主线圈参数的频率$f_0$变化]{固定线长下改变主线圈参数的频率$f_0$变化。（a）横坐标为主线圈直径$d$（单位mm），（b）主线圈螺距$\tau$（单位mm）；纵坐标为频率$F$（单位MHz）。\label{fig:helical_fixedwirelength}}
+    \subcaptionbox[改变主线圈直径参数]{改变主线圈直径参数}{
+        \includegraphics[width=0.48\linewidth]{helical/helical_fixedwirelength_1}
+    }
+    \subcaptionbox[改变主线圈螺距参数]{改变主线圈螺距参数}{
+        \includegraphics[width=0.48\linewidth]{helical/helical_fixedwirelength_2}
+    }
 \end{figure}
 
-在量子计算的实现中，我们总是使$\mu\approx0$以实现任意单比特的旋转操控：
+在我们的模拟中，主要线圈几何形状设置了两个限制，即固定的总导线长度$l_{total}$和固定的总导线高度$h$:
 \begin{align}
-    R_\phi(\theta)=U\left(\frac{\theta}{\Omega},P\phi\right)=\exp[-i\frac{\theta}{2}\sigma_\phi]
+    l_{total}&=N\sqrt{(\pi d)^2+\tau^2}+l_{out} \label{eq:helical_fixed_constraints_1}\\
+	h&=N\tau+l_{out} \label{eq:helical_fixed_constraints_2}
 \end{align}
 
-其中$\sigma_\phi=\sigma_x\cos{\phi}+\sigma_y\sin{\phi}$。对于初始状态，在$\theta=\pi$或者说是$t=\pi/\Omega$时，初始态的概率可以完全转移到二能级系统的另一个态上。这种$R_\phi(\theta)$旋转操作被称为沿着$\phi$轴的态旋转操控，$R_\phi(\pi)$被称为$\pi$翻转，它的作用类似之前在第\ref{section:reversible_gates}节中介绍过的经典的NOT门。除此之外，还有一种重要的旋转操作$R_\phi(\pi/2)$，它常被称为$\pi/2$翻转，可以用来制备十分有用的叠加态$(\ket{0}+e^{-i\phi}\ket{1})/\sqrt{2}$。
+因此，频率在$d=20 $mm到$d=80 $mm时平均变化约为$0.701$MHz/mm；虽然绕组间距效应不那么明显，但频率在$\tau=4 $mm到$\tau=118 $mm时平均变化约为$1.29$MHz/mm。这种现象有助于分离几何效应和频率变化之间$ Q $因子改进的原因。接下来的几节将在这些预设下，研究几个几何参数的效应来设计所需的频率$f_0$和$Q$因子。
+\subsection[主线圈几何参数的影响]{主线圈几何参数的影响}
 
+为了研究对谐振频率$f_0$和$Q$因子的几何效应，基于表\ref{tb:helical_simulation_parameters}中第9行的参数，对几组主线圈参数进行设置和模拟。
+主线圈的直径和间距设置为双参数扫描；直径从$30-80$mm，步长为$10$mm；螺距设置为$4-18$mm，步长为$2$mm。
+这些模拟的结果给出了一个谐振频率$f_0$和$Q$因子的几何效应图，将其绘制为等高线图，如图\ref{fig:helical_contour}所示。左上角的白色三角形是参数禁止区，因为主线圈参数不满足约束公式\eqref{eq:helical_fixed_constraints_1}和\eqref{eq:helical_fixed_constraints_2}。
+使用一组确定的参数($d$和$\tau$)，可以近似在这个等高线图上立即读出谐振频率$f_0$和$Q$因子，如图中红点代表表\ref{tb:helical_simulation_parameters}中第9行的参数设置。
 
-
-\subsection[连续激光操控镱离子]{连续激光操控镱离子\label{section:raman_transition}}
-
-离子的内态也可以用激光通过称为\emph{受激拉曼跃迁(Stimulated Raman Transition, SRT)}的过程来操控。与微波场操控的方式相比，光学激光器的波长更短，提供了强大量子比特寻址的优势，这对于多量子比特情况下的单个量子比特操作至关重要，接下来的部分介绍了这种方法。
-
-信息储存在镱离子的超精细能级上，$\ket{0}$和$\ket{1}$能级之间有着$12.6$GHz的能量差。尽管激光的能量远大于这个能级间隔以至于无法用激光直接操控$\ket{0}$态和$\ket{1}$态之间的跃迁，我们仍然可以通过两光子的受激拉曼跃迁来实现对离子内态的操控，如图\ref{fig:raman_transition}所示。
 \begin{figure}
     \centering
-    \caption[镱离子受激拉曼跃迁示意图]{镱离子受激拉曼跃迁示意图。$\ket{e}$：上级激发态能级；$\ket{0},\ket{1}$：编码量子信息的高低能级；$\omega_{q}$：编码量子信息的能级能隙；$\Delta$：激光相对于上级激发态能级的失谐；$\mu$：用于施加数态跃迁的失谐；$\omega_e$：$\ket{1}$和$\ket{e}$能级的能隙；$\omega_1,\phi_1,\vec{k}_1, \Omega_1$和$\omega_2,\phi_2,\vec{k}_2, \Omega_2$：施加到离子量子信息编码能级上的激光频率、相位、波矢、耦合强度等参数。\label{fig:raman_transition}}
-    \includegraphics[width=0.6\linewidth]{raman_transition}
+    \caption[螺线管谐振腔$f_0$、$Q$值等高图]{螺线管谐振腔$f_0$、$Q$值等高图。横坐标为主线圈直径$d$（单位mm），纵坐标为主线圈螺距$\tau$（单位mm）\label{fig:helical_contour}}
+    \subcaptionbox[螺线管谐振腔$f_0$值等高图]{螺线管谐振腔$f_0$值等高图\label{fig:helical_contour_f}}{
+        \includegraphics[width=0.48\linewidth]{helical/helical_contour_f}
+    }
+    \subcaptionbox[螺线管谐振腔$Q$值等高图]{螺线管谐振腔$Q$值等高图\label{fig:helical_contour_Q}}{
+        \includegraphics[width=0.48\linewidth]{helical/helical_contour_Q}
+    }
 \end{figure}
 
-通过同时激发从$\ket{0}$和$\ket{1}$到一个中间激发态$\ket{e}$的电偶极跃迁，整个系统的自由空间哈密顿量可以写为：
+在图\ref{fig:helical_contour_f}中，频率$f_0$在绝大部分地方随着$\tau$的减小而减小。随着主线圈直径$d$的增加，电感$L$会先慢慢增加（当$d$较小时）然后减小（当$d$较大时）。同时，$C_c$和$C_s$单调地增加。因此在这个过程中频率会先急剧下降然后慢慢下降。参考频率计算公式\eqref{eq:helical_f_equation}和文献\cite[]{Siverns_Simkins_Weidt_Hensinger_2012,Macalpine_Schildknecht_1959}中的电感$L$和电容$C = C_c +C_s$计算公式:
 \begin{align}
-    \hat{H}&=\frac{\omega_q}{2}\hat{\sigma}_z+\left(\omega_e+\frac{\omega_q}{2}\right)\ket{e}\bra{e}\\
-    &+\frac{\Omega_1}{2}(\ket{e}\bra{0}+\ket{e}\bra{1}+H.c.)\left(e^{i(\vec{k}_1\cdot\vec{r}-\omega_1t+\phi_1)}+H.c.\right)\\
-    &+\frac{\Omega_2}{2}(\ket{e}\bra{0}+\ket{e}\bra{1}+H.c.)\left(e^{i(\vec{k}_2\cdot\vec{r}-\omega_2t+\phi_2)}+H.c.\right)
+    L&=39.37b\frac{0.025d^2(1-(\frac{d}{D})^2)}{\tau^2} &\mu \textnormal{H/m} \label{eq:helical_L} \\
+	C_c&=d(11.26\frac{b}{d}+8+\frac{27}{\sqrt{b/d}})  &\textnormal{pF/m} \label{eq:helical_C_c}\\
+	C_s&=39.37b\frac{0.75}{lg(D/d)} &\textnormal{pF/m} \label{eq:helical_C_s}
 \end{align}
 
-其中$\Omega_i,\vec{k}_i, \phi_i$分别为第$i$个拉曼激光的电偶极跃迁强度、波矢和光相位。$H.c.$表示厄米共轭。如果在旋转坐标系$\hat{H}_0=\frac{\omega_1\hat{\sigma}_z}{2}+\left(\omega_e+\frac{\omega_q}{2}\right)\ket{e}\bra{e}$下看，相互作用的哈密顿量变为了：
-\begin{align}
-    \hat{H}=
-    &\left(\frac{\Omega_1}{2}e^{i(-\Delta-\mu)t}e^{i(\vec{k}_1\cdot \vec{r}+\phi_1)}
-    +\frac{\Omega_2}{2}e^{i(-\Delta+\omega_q)t}e^{i(\vec{k}_2\cdot \vec{r}+\phi_2)}\right)\ket{e}\bra{0}\\
-    +&\left(\frac{\Omega_1}{2}e^{i(-\Delta-\mu-\omega_q)t}e^{i(\vec{k}_1\cdot \vec{r}+\phi_1)}
-    +\frac{\Omega_2}{2}e^{i(-\Delta)t}e^{i(\vec{k}_2\cdot \vec{r}+\phi_2)}\right)\ket{e}\bra{1}+H.c.\label{eq:interaction_hamiltonian_yb}
-\end{align}
+然而，在左上和右下角，有两个非单调异常区域。一种是在大$d$和小$\tau$参数区（右下区域）。
+频率等高线不是单调的，随着$d$的增大等高线向下弯曲。
+这是因为当单独改变$d$时$L$有一个最大值，并且由$\tau$导致的$L$变化不足以逆转这个最大值附近的影响。另一处是在小$d$和大$\tau$参数区（左上区域）。在这里频率等高线也不是单调的，随着$\tau$的增大等高线向左弯曲（如果是将$\tau$作为横轴则是向下弯曲）。这是因为当$\tau$过大时会螺线圈会更加接近输出端会更加接近屏蔽壳引入较大的侧壁电容$C_s$而增大$\tau$带来的电感减少效应不足以抵消，从而导致频率未能随$\tau$单调增加。
 
-其中失谐$-\Delta$如图\ref{fig:raman_transition}所示.考虑$\Delta\gg\Omega_1,\Omega_2$且$|\Delta|\gg\omega_q\gg\mu$的情况，这时中间激发态$\ket{e}$可以绝热消除，最终离子比特系统中有效的哈密顿量如下：
-\begin{align}
-    \hat{H}_{eff}=\frac{\delta_{diff}}{2}\hat{\sigma}_z+\frac{\Omega}{2}\left(\hat{\sigma}_+e^{i\left(\vec{k}\cdot\vec{r}-\mu t+\phi\right)}
-    +\hat{\sigma}_-e^{-i\left(\vec{k}\cdot\vec{r}-\mu t+\phi\right)}\right)\label{eq:effective_hamiltonian_raman}
-\end{align}
+对于$Q$的变化，如图\ref{fig:helical_contour_Q}所示，它具有一个明显的最大值。可见选择合适的$d$和$\tau$是十分重要的。图中$Q$的最大值位置约在$d=48$mm，$\tau=7.3$mm处，最大值$Q$约为$810$。图中红点表示了表\ref{tb:helical_simulation_parameters}中第9行的参数的$Q$值结果。
 
-其中$\Omega=\frac{\Omega_1\Omega_2}{2\Delta}$，$\vec{k}=\vec{k}_1-\vec{k}_2$，$\phi=\phi_1-\phi_2$分别是有效拉比频率、有效波矢和激光的相对相位。$\delta_{diff}$有如下形式\cite[]{James_Jerke_2007}：
-\begin{align}
-    \delta_{diff}&=-\left(\frac{\Omega_1^2}{4(-\Delta-\mu-\omega_q)+\frac{\Omega_2^2}{4(-\Delta)}}\right)+\left(\frac{\Omega_1^2}{4(-\Delta+\mu)+\frac{\Omega_2^2}{4(-\Delta+\omega_q)}}\right)\\
-    &\approx-\frac{\Omega_1^2+\Omega_2^2}{4\Delta}\frac{\omega_q}{\Delta}
-\end{align}
-这个是量子比特能级的差分光位移，由于在一般的实验设置中$\omega_a/|\Delta|\sim 10^{-3}\ll 1$，$\delta_{diff}$的值非常小。这项可以通过将原来的旋转坐标$\omega_q$重新选择为$(\omega_q+\delta_{diff})$来吸收掉。
+在图\ref{fig:helical_contour}的$ f_0,\ Q $结果图的帮助下，可以直接读出具有特定几何参数设置的任何$f_0$和$Q$结果。该图还可以帮助谐振腔设计和确定的$f_0$和$Q$。
+此外，沿$d$或$\tau$方向任意点的偏导数将给出线圈参数对频率和$Q$的敏感性。几何参数对$f,\ Q$的敏感性决定了线圈的加工精度，以及实验误差范围。
+以图\ref{fig:helical_contour}中的红点参数为例，计算线圈$d$和$\tau$灵敏度，结果如表\ref{tb:helical_d_tau_sensitivity}所示。
+从结果中可以看出，灵敏度$d$的结果值小于$\tau$的结果值。因此，在加工过程中，$\tau$大小的偏差更有可能对 $f,\ Q$产生影响，值得更多地关注。
 
-另外注意，这里的有效哈密顿量与公式\eqref{eq:interaction_hamiltonian_microwave}的共振情况相同，后者是用微波进行的操控。因此如果我们让$\vec{k}_1=\vec{k}_2$且$\mu=\delta_{diff}\approx0$，那么这两种离子比特的操控方式从结果上看没有什么不同。不过实际上，两者还有所不同。除了上面提高过的受激发的拉曼跃迁方法有单比特寻址的能力外，它还通过改变传播拉曼光束的角度$\vec{k}\in[0,4\pi/\lambda]$（激光方向从同向到反向传播）来提供波矢$\vec{k}$的操控自由度。因为波长$\lambda$是在光学波段，最大的波矢模$|\vec{k}|$能达到$10um^{-1}$，这为离子的运动耦合提供了可能性。离子也可以看作是一个以频率$\nu$振动的量化的谐振子
-% （第\ref{section:ion_classical_motion}节）
-，这时公式\eqref{eq:effective_hamiltonian_raman}中的哈密顿量为:
-\begin{align}
-    H_{eff}=\nu a^\dagger a+\frac{\Omega}{2}\left(\sigma_+e^{i(\eta(a^\dagger a)-\mu t+\phi)}+H.c.\right) \label{eq:effective_hamiltonian_rotating}
-\end{align}
-其中$a,a^\dagger$分别是产生和湮灭算子。这里我们通过研究一个维度的情况来具体说明，比如$x$方向。此时$\vec{k}\cdot\vec{r}\to k\cdot x$等价于$k\Delta x(a+a^\dagger)=\eta(a+a^\dagger)$，其中$\Delta x=\sqrt{\hbar/2M\nu}$是基态波函数的拓展，$\eta=k\Delta x$是在第\ref{section:total_hamiltonian}节介绍过的LDP。将公式\eqref{eq:effective_hamiltonian_rotating}转换到$H_0=\nu a^\dagger a$的表象下并将$\exp{i\vec{k}\cdot \vec{r}}$进行一阶展开，可以得到近似的相互作用哈密顿量：
-\begin{align}
-    H_I\approx\frac{\Omega}{2}\left[\sigma_+(1+i\eta a e^{-i\nu t}+i\eta a^\dagger e^{i\nu t})e^{-i\mu t+i\phi}+H.c.\right]
-\end{align}
+\begin{table}
+    \centering
+    \caption[谐振腔对主线圈直径和螺距参数的敏感性]{谐振腔对主线圈直径和螺距参数的敏感性\label{tb:helical_d_tau_sensitivity}}
+    \begin{tabular}{ccccc}
+        \toprule
+        Operation & range (mm) & F sensitivity(MHz/mm) & Q sensitivity (/mm) \\
+        \midrule
+        $d$ Stretch & [-1,1] & $\approx$-0.606 & $\approx$ 0.4\\
+        $\tau$ Stretch & [0, 0.5] & $\approx$ 2.988 & $\approx$ 23.491 \\
+        Axial Shift & [-2, 2] & $\approx$ -0.049 & $\approx$ 0.185\\
+        Radial Shift & [-2, 2] & $\approx$ 0.034 & $\approx$ -0.4904\\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
-这个近似形式仅在$\eta\sqrt{\braket{(a+a^\dagger)^2}}\ll1$时成立，这也被称为\emph{Lamb-Dick近似(Lamb-Dick Approximation)}，其中$\braket{\cdot}$表示量子态平均。在实验中这个条件是成立的，不然就会产生高阶的跃迁。通过调节$\mu$等于$0,-\nu,\nu$，我们可以得到三种类型的跃迁：
-\begin{align}
-    H_{car}&=\frac{\Omega}{2}(\sigma_+e^{i\phi}+H.c.)\\
-    H_{rsb}&=\frac{i\eta\Omega}{2}(\sigma_+ae^{i\phi}+H.c.)\\
-    H_{bsb}&=\frac{i\eta\Omega}{2}(\sigma_+a^\dagger e^{i\phi}+H.c.)
-\end{align}
-$H_{car}$， $H_{rsb}$， $H_{bsb}$分别被称为载带跃迁、红边带跃迁和蓝边带跃迁，如图\ref{fig:red_carray_blue_sideband}所示。离子比特的两个内能级分别为$\ket{0},\ket{1}$；灰色先表示载带跃迁，其拉比频率为$\Omega$；红色线和蓝色线分别表示红边带和蓝边带跃迁，相应的拉比频率为$\eta \Omega$；$\nu$表示两个数态之间的能隙，也就是实现红蓝边带跃迁需调节的失谐量。
+除了研究$f,\ Q$的独立参数变化效应外，我们还研究了主线圈平移对$f,\ Q$的影响，即沿径向或轴向。结果如图\ref{fig:helical_main_coil_compares}和表\ref{tb:helical_d_tau_sensitivity}所示。
+从结果可以看出，主线圈的轴向平移和径向平移对$f,\ Q$影响不大。平移对$f,\ Q$的影响远小于几何参数 ($d,\ \tau$) 变化效应。因此，我们需要更多地关注加工过程中主线圈的俯仰精度，以获得更一致的实验结果。
+
 \begin{figure}
     \centering
-    \caption[载带跃迁、红边带跃迁和蓝边带跃迁示意图]{载带跃迁、红边带跃迁和蓝边带跃迁示意图。$\ket{0},\ket{1}$：编码量子信息的高低能级；$\Omega$：驱动激光耦合强度；$\eta \Omega$：数态跃迁的耦合强度；$\nu$：数态之间的失谐能隙；$\ket{0}_F,\ket{1}_F,\ket{2}_F,\dots$：不同的数态的编号。\label{fig:red_carray_blue_sideband}}
-    \includegraphics[width=1.0\linewidth]{red_carray_blue_sideband}
+    \caption[谐振腔仿真与实验散射参数结果对比]{谐振腔仿真与实验散射参数结果对比。（a）横坐标为主线圈轴向偏移距离（单位mm），（b）主线圈平行于接地端径向偏移（单位mm），（c）主线圈垂直于接地端径向偏移（单位mm）。\label{fig:helical_main_coil_compares}}
+    \subcaptionbox[主线圈轴向偏移]{主线圈轴向偏移\label{fig:helical_bias_axial}}{
+        \includegraphics[width=1.0\linewidth]{helical/helical_bias_axial}
+    }
+    \subcaptionbox[主线圈径向偏移（平行于接地端）]{主线圈径向偏移（平行于接地端）}{
+        \includegraphics[width=0.46\linewidth]{helical/helical_bias_radial_gndalong}
+    }
+    \subcaptionbox[主线圈径向偏移（垂直于接地端）]{主线圈径向偏移（垂直于接地端）}{
+        \includegraphics[width=0.46\linewidth]{helical/helical_bias_radial_gndperpendicular}
+    }
 \end{figure}
 
-载带跃迁可以用来实现如微波操控一样（第\ref{section:microwave_operation}节）的单比特门翻转$R_\phi(\theta)$。
-红边带跃迁和蓝边带跃迁的哈密顿量分别称为\emph{Jaynes-Cummings}或\emph{anti-Jaynes-Cummings}模型\cite[]{Karnieli_Fan_2023}。这类跃迁可以将量子比特与其外部量化运动耦合，这对于实现多个离子量子比特纠缠至关重要。
-\subsection[脉冲激光操控镱离子]{脉冲激光操控镱离子\label{section:pulsed_laser_ion_operation}}
-如上一节所述的在用激光操控离子的技术方案下，$\ket{0}$和$\ket{1}$态耦合的主要方式是通过受激拉曼跃迁。脉冲激光控制离子的原理本质上与连续激光的情况没有不同。主要区别在于连续激光是通过驱动拉曼跃迁来控制的，而脉冲激光是通过同时驱动一系列小间隔的拉曼跃迁来控制的。原理图如图\ref{fig:pulsed_laser_interaction}所示。
+
+\subsection[输出线参数的影响]{输出线参数的影响\label{section:helical_output_wire}}
+在我们的模拟中，我们发现输出导线长度对谐振$f,\ Q$有很大的影响。与之前的固定线长情况不同，这里我们不再做公式\eqref{eq:helical_fixed_constraints_1}和公式\eqref{eq:helical_fixed_constraints_2}的约束。
+主线圈直径及其螺距保持在相同的长度，独立改变输出导线$l_{out}$的总长度，其中$l_{out} = l_{lout1} + l_{lout2}$。
+$l_{out1}$和$l_{out2}$分别是屏蔽外壳中的输出线和连接器馈通部分的输出线，如图\ref{fig:helical_lout_2}所示。
+
+
 \begin{figure}
     \centering
-    \caption[脉冲激光操控镱离子]{脉冲激光操控镱离子。$\ket{0},\ket{1}$：编码量子信息的高低能级；$\omega_R$：激光重复频率间隙；$\omega_q$：编码量子信息的能级能隙；$\omega_0$：脉冲激光中心频率；$\Delta$：与上级激发态能级的失谐量。\label{fig:pulsed_laser_interaction}}
-    \includegraphics[width=1.0\linewidth]{pulsed_laser_interaction}
+    \caption[输出线部分示意图]{输出线部分示意图。$l_{out1}$：输出线在屏蔽壳内部分的长度；$C_{lout1}$：输出线在屏蔽壳内部分的电容；$l_{out2}$：输出线在输出端口内部分的长度；$C_{lout2}$：输出线在输出端口内部分的电容；$D$：屏蔽壳内直径；$D_1$：输出端内直径.\label{fig:helical_lout_2}}
+    \includegraphics[width=0.6\linewidth]{helical/helical_lout_2}
 \end{figure}
 
-在空间中的固定点上，理想化的激光脉冲束有一个时间独立的电场，可以表述为:
-\begin{align}
-    E(t)=\sum_{n=1}^{N}f(t-nT)e^{i\omega_0t}
-\end{align}
-
-其中$f(t)$是脉冲激光的包络，$T$是激光脉冲的重复周期，$N
-$是整数激光包含的脉冲数，$\omega_0$是脉冲激光的波长。脉冲激光在频域中可以表示为：
-\begin{align}
-    E(\omega)=\sum_{n=0}^{\infty}\tilde{f}(\omega)(\omega_0\pm n\omega_R)
-\end{align}
-
-其中$\tilde{f}(\omega)=\mathcal{F}(f(t))$表示$f(t)$傅里叶变换的结果，$\omega_R=2\pi\nu_R$是脉冲激光的重复频率。如图\ref{fig:pulsed_laser_comb}所示，脉冲激光在频域上是一些列频率梳齿，离子比特态之间拉曼跃迁的共振拉比频率由梳齿的所有谱分量的总和给出，如图\ref{fig:pulsed_laser_interaction}所示。在绝热近似消除激发态$^2P_{1/2}$并执行旋转波近似后，脉冲激光的受激拉曼跃迁拉比频率有以下形式\cite[]{Hayes_Matsukevich_Maunz_Hucul_Quraishi_Olmschenk_Campbell_Mizrahi_Senko_Monroe_2010}：
-\begin{align}
-    \Omega=\frac{|\mu|^2\sum_{l}^{}E_lE_{l-q}}{\Delta}\approx\Omega_0\left(\frac{\omega_q\tau}{e^{\frac{\omega_q\tau}{2}}-e^{-\frac{\omega_q\tau}{2}}}\right)
-\end{align}
+仿真结果如图\ref{fig:helical_lout_1}所示。随着输出导线长度的增加，谐振频率下降。$Q$随着谐振频率的减小而减小，两者成正比，与公式\eqref{eq:helical_Q_equation}具有相同的关系。这主要是输出线引入额外电容而对电阻和电感影响较小导致的。
 
 \begin{figure}
     \centering
-    \caption[脉冲激光在频域中的梳齿]{脉冲激光在频域中的梳齿\cite[Chap1.3]{Mizrahi_2013}\label{fig:pulsed_laser_comb}}
-    \includegraphics[width=1.0\linewidth]{pulsed_laser_comb}
+    \caption[输出线部分影响]{输出线部分影响。横坐标为输出线长$l_{out}$（单位mm），蓝色‘*’标和‘+’标分别为仿真和实验的频率$F$（单位MHz，对应左侧纵坐标），橙色‘o’标和‘x’标分别为仿真和实验的品质因子$Q$（单位1，对应右侧纵坐标）。\label{fig:helical_lout_1}}
+    \includegraphics[width=1.0\linewidth]{helical/helical_lout_1}
 \end{figure}
 
-其中$\mu$是地面之间的偶极子矩阵元素,$\tau\approx 1 psec$是每个脉冲的持续时间，$E_k\equiv \nu_R\tilde{f}(2\pi k\nu_R)$是激发态电子态，$q\equiv\omega_q/\omega_R$是整数。在上述的近似表述中，求和被表述为积分，每个脉冲表示为$f(t)=\sqrt{\pi/2}E_0 sech(\pi t/\tau)$（$\tau\ll T$）。$\Omega_0=\nu_R\tau|\nu E_0|^2/\Delta=s\gamma^2/2\Delta$脉冲束的时间平均谐振拉比频率，$\gamma/2\pi=20MHz$是$^2P_{1/2}$态的辐射线宽,$s=\bar{I}/T_{sat}$是$^2S_{1/2}\leftrightarrow ^2P_{1/2}$的饱和强度。在假设单脉冲带宽与我们的实验系统中满足的超精细频率（$\omega_q\tau\ll 1$）相比较大的情况下，可以得到$\Omega\approx\Omega_0$。
+为了验证仿真结果，我们进行了输出导线长度切割实验，测量了输出导线长度和器件谐振频率$f_0$和$Q$。结果如图\ref{fig:helical_lout_1}所示。实验与模拟的频率差约为$2$MHz，实验测量的$Q$数据比模拟低约$150$。为了在同一图中绘制$ Q $数据，实验$ Q $数据偏移了$ 100$。除了偏移之外，频率$f_0$和$ Q $都与其对应的数据一致。该结果再次表明了仿真结果的可信度。
 
-\section[Mølmer-Sørensen 门]{Mølmer-Sørensen 门}
+文献\cite[]{Gandolfi_Niedermayr_Kumph_Brownnutt_Blatt_2012,Macalpine_Schildknecht_1959, Deng_Sun_Yuan_Xu_Zhang_Lu_Luo_2014}之前研究中的理论预测和实验之间的大频率误差可能来自于忽略输出线电容\cite[]{Nandi_Sikdar_Das_Ray_2022, Batra_Panja_De_Roy_Majhi_Yadav_Sen_Gupta_2017}。我们给出了改进的LCR电路模型和一种新的电容评估公式来估计频率。与 HFSS 仿真结果相比，我们的新模型的频率预测有了很大的提高，更多细节见第\ref{section:helical_theory_model}节。
 
-两量子比特纠缠门可以通过利用不同离子之间共享的集体运动实现。该策略利用了囚禁离子链的一个非常有利的特性，称为\emph{完全连通性(Full Connectivity)}，这意味着整个离子链的离子都有相互作用。
+\subsection[屏蔽外壳参数的影响]{屏蔽外壳参数的影响}
+\begin{figure}
+    \centering
+    \caption[屏蔽外壳的影响]{屏蔽外壳的影响，横坐标为屏蔽壳内直径$D$（单位mm），纵坐标为频率$F$（单位MHz）。蓝色实线和‘*’标点为频率（单位MHz，对应左侧纵坐标），橙色虚线和‘o’标点为品质因子Q（单位1，对应右侧纵坐标）。\label{fig:helical_shield_diameter}}
+    \includegraphics[width=1.0\linewidth]{helical/helical_shield_diameter}
+\end{figure}
 
-Ignacio Cirac和Peter Zoller最早在1995年中提出了双量子比特纠缠门的第一个方案\cite[]{Cirac_Zoller_2002}，称为\emph{Cirac-Zoller门(Cirac-Zoller Gate, CZ-Gate)}，并在2003年在实验中实现\cite[]{Schmidt_Kaler_Häffner_Riebe_Gulde_Lancaster_Deuschle_Becher_Roos_Eschner_Blatt_2003}。
-然而，如果离子不冷却到它们的运动基态，CZ-Gate的性能会急剧下降。这种苛刻的要求限制了CZ-Gate的扩展。
-Klaus Mølmer和Anders Sørensen在1999年提出了另一种运动状态不敏感门的技术方案\cite[]{Sørensen_Mølmer_2002},被称为\emph{Mølmer-Sørensen门(Mølmer-Sørensen Gate, MS-Gate)}。
-由于MS-Gate的更鲁棒的特征，它广泛用于囚禁离子量子计算中。在本节中，我们将详细介绍MS型双量子比特纠缠门的实现。
+铜屏蔽外壳完成了电流回路，定义了螺旋谐振腔中的EM场边界条件。屏蔽外壳和主线圈形成电容$C_s$，因此屏蔽的直径对谐振频率有影响。屏蔽外壳可以屏蔽和减少电磁场辐射耗散，因此谐振器将具有高$Q$因子。在这里，通过数值模拟研究了屏蔽外壳直径$ D $对频率$f_0$和$ Q $因子的影响。结果如图\ref{fig:helical_shield_diameter}所示，当屏蔽直径$ D $增加时，频率$f_0$和$ Q $因子都会增加。频率变化很小，而$ Q $因子首先快速增长，然后逐渐减慢。频率的微弱增加是由于侧壁电容随着屏蔽外壳$D$的增大而减小。$Q$因子的增加是因为屏蔽直径越大，电场强度越小，屏蔽电流越小，电阻相等，耗散越小。因此为了获得更大的$Q$，在合理的设备尺寸下将首选较大的屏蔽直径。
 
-如果我们对离子施加二色场$\mu_b=mu, \mu_r=-\mu$，就可以得到状态相关力，相应的哈密顿量可以表述为：
-\begin{align}
-    H_{SDF}=\sum_{j=1}^{2}\sum_{m=1}^{2}\frac{\eta_{j,m}\Omega}{2}\left(a_m^\dagger e^{i\delta_m t}e^{-i\phi_p}+a_m e^{-i\delta_m t}e^{i\phi_p}\right)\hat{\sigma}_{\phi_s}^j
-\end{align}
+屏蔽外壳高度的影响与相对于外壳沿轴向移动主线圈位置并相应地调整端帽位置相同。结果如图\ref{fig:helical_bias_axial}所示。屏蔽高度对频率$f_0$和$Q$因子的影响很小。
 
-其中$\eta_{j.m}$是缩放的Lamb-Dicke参数（其中包括来自正常模式变换矩阵的因子）\cite[]{James_1998}，$\hat{\sigma}_j$是第$j$个离子比特的泡利矩阵。
-$a_m$和$a_m^\dagger$是第$m$个模式的湮灭和产生算子，相应的模态频率表示为$\nu_m$。$\delta_m=\nu_m-\mu$是相对于第$m$个模式的失谐，它对于红蓝两个相应的跃迁的拉比频率相等为$\Omega_r=\Omega_b=\Omega$。
-光学相位$\phi_b$和$\phi_r$可以分解为运动和量子比特两部分，其形式分别为$\phi_p=(\phi_r-\phi_b)/2, \phi_s=(\phi_r+\phi_b+\pi)/2$。我们可以定义形式为$f_{j,m}=\eta_{j,m}\Omega e^{i\phi_p}/2$的一个复合力。不失一般性，我们可以设定$\phi_p=\phi_s=0$，从而得到一个由$\hat{\sigma}_x$决定的力，哈密顿量为：
-\begin{align}
-    H_{SDF}=\sum_{j=1}^{2}\sum_{m=1}^{2}\frac{\eta_{j, m}\Omega}{2}\left(a_m^\dagger e^{i\delta_mt}+a_m e^{-i\delta_mt}\right)\hat{\sigma}_x^j\label{eq:sigma_x_dependent_force}
-\end{align}
+\subsection[耦合线圈参数的影响]{耦合线圈参数的影响}
 
-那么由公式\eqref{eq:sigma_x_dependent_force}所描述的哈密顿量控制的演化可以推导出为：
-\begin{align}
-    U(\tau)=\mathscr{T}\exp\left[-i\int_{0}^{\tau}H_{SDF}(t)dt\right]\label{eq:unitary_evolution_operator}
-\end{align}
-
-这是一个时间顺序的积分，因为$[H_{SDF}(t_2),H_{SDF}(t_1)]\neq 0, t_1\neq t_2$。幸运的是，通过利用Magnus公式，方程\eqref{eq:unitary_evolution_operator}可以解析计算如下\cite[]{Lee_Brickman_Deslauriers_Haljan_Duan_Monroe_2005}：
-\begin{align}
-    U(\tau)=\exp\left\{-i\int_{0}^{\tau}H_{SDF}(t)dt-\frac{1}{2}\int_{0}^{\tau}dt_2\int_{0}^{t_2}[H_{SDF}(t_2),H_{SDF}(t_1)]dt_1\right\}\label{eq:hamiltonian_with_magnus}
-\end{align}
-
-具体来看，公式\eqref{eq:hamiltonian_with_magnus}中第一个积分变为：
-\begin{align}
-    T_1=&-i\int_{0}^{\tau}H_{SDF}(t)dt\\
-    =&-i\int_{0}^{\tau}\sum_{j=1}^{2}\sum_{m=1}^{2}\frac{\eta_{j,m}\Omega}{2}\left(a_m^\dagger e^{i\delta_mt}+a_m e^{-i\delta_mt}\right)\hat{\sigma}_x^j dt\\
-    =&\sum_{j=1}^{2}\sum_{m=1}^{2}\left(\alpha_{j,m}(\tau)a_m^\dagger-\alpha_{j,m}^*(\tau)a_m\right)\hat{\sigma}_x^j\label{eq:integral_t1}
-\end{align}
-
-其中，
-\begin{align}
-    \alpha_{j,m}(\tau)=-i\frac{\eta_{j,m}\Omega}{2}\int_{0}^{\tau}e^{i\sigma_m t}dt=\frac{\eta_{j,m}\Omega}{2}\frac{1-e^{i\delta_m\tau}}{\delta_m}\label{eq:alpha_j_m}
-\end{align}
-
-显然，第一个积分的结果揭示了在多个运动模式上的状态相关位移算子，它将量子比特状态与其在位置动量相空间中的位移纠缠在一起。
-
-公式\eqref{eq:hamiltonian_with_magnus}中第二个双重积分可以简化为：
-\begin{align}
-    T_2=&-\frac{1}{2}\int_{0}^{\tau}dt_2\int_{0}^{t_2}[H_{SDF}(t_2),H_{SDF}(t_1)]dt_1\\
-    =&-\sum_{j,j'=1}^{2}\sum_{m,m'=1}^{2}\frac{\eta_{j,m}\eta_{j',m'}\Omega^2}{8}\hat{\sigma}_x^j\hat{\sigma}_x^{j'}\\
-    &\int_{0}^{\tau}dt_2\int_{0}^{t_2}dt_1\left[a_m^\dagger e^{i\delta_m t_2}+a_m e^{i\delta_m t_2}, a_{m'}^\dagger e^{i\delta_{m'} t_1}+a_{m'} e^{i\delta_{m'} t_1}\right]\\
-    =&i\sum_{j,j'=1}^{2}\sum_{m,m'=1}^{2}\frac{\eta_{j,m}\eta_{j',m'}\Omega^2}{4}\hat{\sigma}_x^j\hat{\sigma}_x^{j'}\int_{-}^{\tau}dt_2\int_{0}^{t_2}dt_1\sin[\delta_m(t_2-t_1)]\\
-    =&i\sum_{j,j'=1}^{2}\sum_{m,m'=1}^{2}\frac{\eta_{j,m}\eta_{j',m'}\Omega^2}{4}\left(\frac{\tau}{\delta_m}-\frac{\sin(\delta_m\tau)}{\delta_m^2}\right)\hat{\sigma}_x^j\hat{\sigma}_x^{j'}\\
-    =&-i\theta_{1,2}(\tau)\hat{\sigma}_x^1\hat{\sigma}_x^2\label{eq:integral_t2}
-\end{align}
-
-其中，
-\begin{align}
-    \theta_{1,2}(\tau)=-2\sum_{m=1}^{2}\frac{\eta_{1,m}\eta_{2,m}\Omega^2}{4}\left(\frac{\tau}{\delta_m}-\frac{\sin(\delta_m\tau)}{\delta_m^2}\right)
-\end{align}
-
-由于$\hat{\sigma}_x^j\hat{\sigma}_x^j=\mathbb{I}$，所有自交互项都消失了，仅导致可忽略的恒定相位。耦合强度$\theta_{1,2}$中的两个因子是由于$\hat{\sigma}_x^1\hat{\sigma}_x^2$和$\hat{\sigma}_x^2\hat{\sigma}_x^1$的对称贡献产生的。
-这里的量子比特-量子比特耦合项提供了纠缠不同量子比特的可能性。这里注意，由于$[H_{SDF}(t_3),[H_{SDF}(t_2),H_{SDF}(t_1)]]=0$，即使是高阶积分也会消失。
-
-通过将公式\eqref{eq:integral_t1}和公式\eqref{eq:integral_t1}带入公式\eqref{eq:hamiltonian_with_magnus}中，我们可以得到简化的演化算子：
-\begin{align}
-    U(\tau)=\exp\left[\sum_{j=1}^{2}\sum_{m=1}^{2}\left(\alpha_{j,m}(\tau)a_m^\dagger-\alpha_{j,m}^*(\tau)a_m\right)\hat{\sigma}_x^j-i\theta_{1,2}(\tau)\hat{\sigma}_x^1\hat{\sigma}_x^2\right]
-\end{align}
-
-为了具有纯量子比特耦合，量子比特运动应该在时间$\tau$处解纠缠，这表明对于任何$j,m$来说$\alpha_{j,m}(\tau)$应该为零。由公式\eqref{eq:alpha_j_m}可知，这些等价于$\delta_m\tau$对任意$m$来说都是$2\pi$的整数倍。
-对于两量子比特链来说，这可以通过设置$\mu=(\nu_1+\nu_2)/2$和$\tau=2n\pi\times2/(\nu_1-\nu_2)$（假设$\nu_1>\nu_2$），其中$n$是正整数。这样一来，耦合力变为：
-\begin{align}
-    \theta_{1,2}=-\frac{n\pi\Omega^2}{\delta_1}\left(\frac{\eta_{1,1}\eta_{2,1}}{\delta_1}+\frac{\eta_{1,2}\eta_{2,2}}{\delta_2}\right)\approx-\frac{2n\pi\eta_{1,1}^2\Omega^2}{\delta_1^2}
-\end{align}
-
-最后的简化是由于$\delta_1=-\delta_2$和$\eta_{1,1}=\eta_{2,1}\approx\eta_{1,2}=-\eta_{2,2}$的关系。最终的演化算子揭示了双量子位纠缠操作，可以写为：
-\begin{align}
-    XX_{1,2}(\theta_{1,2})=U(\tau)=\exp[-i\theta_{1,2}\hat{\sigma}_x^1\hat{\sigma}_x^2]
-\end{align}
-
-这是\emph{镜像型门(Ising-Type Gate)}之一，表示为XX门。通过改变驱动激光$\Omega$的功率来调节耦合强度。
-
-如前面第\ref{section:quantum_computation}章中所述，在量子计算社区中，CNOT门是最著名的双量子比特门。XX门可以通过夹在几个单量子旋转门之间转换为CNOT门\cite[]{Debnath_Linke_Figgatt_Landsman_Wright_Monroe_2016}，如图\ref{fig:xx_gate}所示。
-从这个意义上说，我们总是选择任意单量子比特旋转和双量子比特XX门，而不是CNOT门，作为我们的囚禁离子平台的通用门集。
-
-
-XX门最重要的功能之一是制备纠缠态，如下公式所描述的：
-\begin{align}
-    XX(\theta)\ket{00}=\cos\theta\ket{00}-i\sin\theta\ket{11}
-\end{align}
-
-在选择$\theta$为$\pm\pi/4$时，制备出的状态是最大纠缠态$\ket{00}\pm i\ket{11}/\sqrt{2}$，相当于贝尔态。通常用这些状态的状态保真度来表征XX门的性能。
+耦合线圈是螺线管谐振腔的一个有趣部分。通过调节耦合线圈的形状和位置可以满足阻抗匹配工作，实现最佳耦合以最小化散射参数$S_{11}$。然而，据我们所知，以前还没有耦合线圈几何形状影响的具体相关研究。在这里，数值模拟方法提供了研究这些问题的机会。
 
 \begin{figure}
     \centering
-    \caption[XX门转换为CNOT门]{XX门转换为CNOT门\label{fig:xx_gate}}
-    \includegraphics[width=1.0\linewidth]{xx_gate}
+    \caption[耦合线圈的影响]{耦合线圈的影响。$\Delta h$：耦合线圈和主线圈之间的距离（单位mm）；$d$：耦合线圈的直径（单位mm）；$\tau$：耦合线圈的螺距（单位mm）。\label{fig:helical_primary_coil}}
+    \includegraphics[width=1.0\linewidth]{helical/helical_primary_coil}
+\end{figure}
+
+为了研究主线圈形状效应，我们在其他参数满足表\ref{tb:helical_simulation_parameters}中第9行的情况下，模拟了各种耦合线圈尺寸(耦合线圈直径$d_1$和螺距$\tau_1$)及其轴向位置，并试图满足阻抗匹配。
+对于每个耦合线圈(直径$d_1$和螺距$\tau_1$)，扫描和优化耦合线圈在轴向的位置，以实现最小耦合反射$S_{11}$。
+如果$S_{11}$系数可以达到$-45$dB或更低，认为阻抗匹配过程完成，同时记录耦合线圈轴向位置。仿真结果如图\ref{fig:helical_primary_coil}所示。
+$x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达到最佳耦合条件时的轴向位置。
+结果表明，所有$ d_1,\ \tau_1 $参数设置都具有最佳的耦合位置$ \delta_1$，几乎所有数据点($d_1,\tau_1\delta_1$)都位于同一平面表面上。
+这意味着耦合线圈的绝对形状对于实现阻抗匹配过程并不重要。在合理范围内，总可以通过调整耦合线圈轴向位置来补偿耦合线圈的所有变形。
+
+\section{谐振腔耦合过程特性}
+谐振腔的实际使用离不开一个十分重要的过程，即阻抗匹配，我们一般称为耦合。经验上来看，我们知道可以通过移动耦合线圈和主线圈之间的距离或者改变耦合线圈的形状来实现耦合。一般来说实践上我们更倾向于改变耦合线圈和主线圈之间的距离的方式来实现耦合，存在一个最优距离使得匹配最佳，两者的距离太近或者太远都无法实现最佳匹配。只有在最佳匹配的时候微波功率透过谐振腔的传输率才能达到最大。在耦合的过程中谐振腔的最佳耦合频率会发生微小的偏移，而Q值则会发生较大的变化。值得注意的是，我们发现耦合过程中最佳耦合频率点和Q值的变化并不像最佳耦合点一样有最有值，如图\ref{fig:helical_coupling_delta}所示，它们是随着耦合距离单调变化的。也就是说，在最佳耦合点左右两侧，虽然透过率都会下降，但是两侧的Q值却是大不相同的。从图\ref{fig:helical_coupling_delta}中可见最佳匹配点左右两侧的Q值差能达到一倍之多，这给我们带来的启示是：我们可以通过牺牲一定的微波功率透过率来获得更高的Q值或者相反。
+\begin{figure}
+    \centering
+    \caption[谐振腔耦合过程特性]{谐振腔耦合过程特性。横坐标为耦合线圈到主线圈的距离$\Delta h$，左侧和右侧的纵坐标分别是品质因子数值（单位1）和散射系数值（单位dB）。其中蓝色‘o’标线是谐振腔的品质因子Q，红色‘*’标线是相应的最佳耦合时的反射系数最小值$S_{11}^{min}$，绿色‘o’标线是相应的最佳耦合时的透射系数最大值$S_{21}^{max}$。\label{fig:helical_coupling_delta}}
+    \includegraphics[width=0.8\linewidth]{helical/helical_coupling_delta}
+\end{figure}
+
+从上面的耦合过程结果来看，耦合线圈距离主线圈距离越远的情况下Q值越高。也就是说两者相互‘影响’越小的情况下Q值会越高。这个影响实际上就是等效的阻抗带来的耗散，为了验证这一点我们进行了另一组仅改变耦合线圈电阻值的实验，结果如图\ref{fig:helical_coupling_rin}所示。从图\ref{fig:helical_coupling_rin}中可以看出，随着耦合线圈电阻值的增加，Q值逐渐下降，同时也伴随着最佳耦合频率的偏移。不难发现，增加耦合线圈电阻值的过程这个结果跟图\ref{fig:helical_coupling_delta}中耦合线圈与主线圈距离的减小过程的结果是相互对应的。
+\begin{figure}
+    \centering
+    \caption[谐振腔耦合过程特性]{谐振腔耦合过程特性。横坐标为耦合线圈的阻值$R$，左侧和右侧的纵坐标分别是品质因子数值（单位1）和散射系数值（单位dB）。其中蓝色‘o’标线是谐振腔的品质因子Q，红色‘*’标线是相应的最佳耦合时的反射系数最小值$S_{11}^{min}$，绿色‘o’标线是相应的最佳耦合时的透射系数最大值$S_{21}^{max}$。\label{fig:helical_coupling_rin}}
+    \includegraphics[width=0.8\linewidth]{helical/helical_coupling_rin}
+\end{figure}
+
+
+% \textcolor{red}{可以考虑将耦合过程会有不同的Q值的那个图也放上来说明一下\dots}
+
+\newpage
+\section[螺线管谐振腔的数学建模]{螺线管谐振腔的数学建模\label{section:helical_theory_model}}
+
+螺线管谐振腔的集总电路模型可以解释和预测器件的行为。一个好的电路模型可以帮助研究人员轻松地设计具有特定属性的设备。在这里，对于螺线管谐振腔，谐振频率和较高的Q因子是最重要的两个指标。首先，对于谐振频率，我们假设额外的输出导线长度电容是频率误差发生的主要原因，如第\ref{section:helical_output_wire}节所述。
+
+\begin{figure}
+    \centering
+    \caption[LCR电路模型]{LCR电路模型。$L$表示谐振腔的电感，主要包括耦合线圈和主线圈的电感；$R$表示整个谐振腔的电阻；$C$表示谐振腔的电容，$C_x$表示谐振腔内部结构的电容，$C_{lout}$表示谐振腔输出线引入的电容。\label{fig:helical_RLC_circuit1}}
+    \includegraphics[width=1.0\linewidth]{helical/helical_RLC_circuit1}
+\end{figure}
+
+因此，输出线电容被添加到LCR电路模型中，如图\ref{fig:helical_RLC_circuit1}所示。总等效电容可视为传统电容CT和输出线总电容$C_{lout}$的总。传统的电容部分与以往的研究相同，而输出线和外部屏蔽将形成同轴电容:
+\begin{align} 
+	C_{lout}&=C_{lout1}+C_{lout2} \label{eq:helical_lout}\\ 
+	C_{lout1}&=\frac{2\pi\epsilon_0 l_{out1}}{ln(D/d_0)} \label{eq:helical_lout1}\\ 
+	C_{lout2}&=\frac{2\pi\epsilon_0 l_{out2}}{ln(D_1/d_0)} \label{eq:helical_lout2}
+\end{align}
+其中输出线电容$C_{lout1}$（$C_{lout2}$）是长度为$l_{out1}$（$l_{out2}$）的输出线与内径为$D$（$D_1$）侧壁形成的电容。
+
+然而，在补偿输出线长效应后，频率预测仍然低于数值模拟或实验结果。经过多次尝试，我们发现主要原因是对电容$C_c$和$C_s$的高估。最近的一项研究\cite[p52,f5.3]{article_2010}给出了一个螺线管电容$C_c$的新估计公式：
+\begin{align}
+    C_c=\frac{4\epsilon_0 b}{\pi}(1+k_c)/cos^2\psi 	\label{eq:helical_C_c_new}
+\end{align}
+
+其中$k_c=0.717439(d/b)+0.933048(d/b)^{3/2}+0.106(d/b)^2$，$d$是螺线管的直径，$b$是螺线管的长度，$\psi$是螺距角（$\tan\psi=\tau/(\pi d)\approx 1$），$\epsilon_0$是真空介电常数。
+
+另一方面，屏蔽壁电容$C_s$在主线圈和外部屏蔽壁之间形成，与电容$C_{lout}$相同，因此同轴电容公式可用于计算$C_s$。主线圈的等效同轴线长度为$Nd_0$，单匝等效长度为$d_0$，总主线圈有$N$匝，因此屏蔽电容计算为:
+
+\begin{align}
+    C_s=2\pi\epsilon_0 \frac{Nd_0}{ln(D/d')} \label{eq:helical_C_s_new}
+\end{align}
+
+其中$d'$是一个等效的线圈直径，$d'=d+\pi d_0/4$，其中$\pi d_0/4$是一个用于修正线圈边缘效应的因子。
+
+此外，实际的主线圈螺旋长度有限，匝稀疏，因此需要更新或修改文献\cite[]{Siverns_Simkins_Weidt_Hensinger_2012}中的电感计算方法。短螺旋电感估计方法可计算为：
+
+\begin{align}
+    L=\frac{\mu_0 \pi (d/2)^2 }{\tau^2} (\sqrt{b^2+(d/2)^2}-d/2) \label{eq:helical_L_new}
+\end{align}
+
+最后，我们通过更新上述所有估计的方法，得到了一个新的频率预测模型。我们比较了频率预测模型、Sussex模型\cite[]{Siverns_Simkins_Weidt_Hensinger_2012}、SUST模型（本文）和 HUST模型\cite[]{Deng_Sun_Yuan_Xu_Zhang_Lu_Luo_2014}的准确性。
+基于数值模拟结果，通过统计直方图对模型的有效性和准确性进行比较和评估，如图14(c)所示。频率误差的平均值和标准差越小，精度越好，误差离散越小。
+所有的模型都与仿真的结果为标准做比较。
+图\ref{fig:helical_freqmodelcompare}中的每一个数据结果都是一些列可行的$d,\tau$参数组合的模型预测和仿真结果的差值$\delta f=f_{model}-f_{HFSS}$，最终绘制出误差的统计分布。
+针对不同的谐振频率组计算和模拟一系列离散的$d,\tau$参数（与表\ref{tb:helical_simulation_parameters}$30$MHz、$50$MHz、$75$MHz）。$d$的样本在$20-80$mm的范围内，步长为$10$mm；$\tau$的样本在$4-18$mm的范围内，步长为$2$mm。
+平均偏差和标准偏差都在每个图的顶部标记。平均值是一个有符号值，表示模型的整体频率预测效果。标准差表示频率误差的离散程度。
+
+\begin{figure}
+    \centering
+    \caption[三种理论模型的预测效果比较]{三种理论模型的预测效果比较。左、中、右图分别是30MHz、50MHz、75MHz附近频率设置的模型与参考表中偏差的结果的频数统计图。作为参考，每幅图上方给出了所有偏差的均值和其标准差。\label{fig:helical_freqmodelcompare}}
+    \subcaptionbox[HUST模型结果]{HUST模型结果\label{fig:helical_freqmodelcompare_hust}}{
+        \includegraphics[width=0.55\linewidth]{helical/helical_freqmodelcompare_hust}
+    }
+    \subcaptionbox[Sussex模型结果]{Sussex模型结果\label{fig:helical_freqmodelcompare_sussex}}{
+        \includegraphics[width=0.55\linewidth]{helical/helical_freqmodelcompare_sussex}
+    }
+    \subcaptionbox[SUST模型结果]{SUST模型结果\label{fig:helical_freqmodelcompare_sust}}{
+        \includegraphics[width=0.55\linewidth]{helical/helical_freqmodelcompare_sust}
+    }
+
+\end{figure}
+% \begin{figure}
+%     \centering
+%     \caption[HUST模型结果]{HUST模型结果\label{fig:helical_freqmodelcompare_hust}}
+%     \includegraphics[width=0.33\linewidth]{helical/helical_freqmodelcompare_hust}
+% \end{figure}
+
+% \begin{figure}
+%     \centering
+%     \caption[Sussex模型结果]{Sussex模型结果\label{fig:helical_freqmodelcompare_sussex}}
+%     \includegraphics[width=0.33\linewidth]{helical/helical_freqmodelcompare_sussex}
+% \end{figure}
+
+% \begin{figure}
+%     \centering
+%     \caption[SUST模型结果]{SUST模型结果\label{fig:helical_freqmodelcompare_sust}}
+%     \includegraphics[width=0.33\linewidth]{helical/helical_freqmodelcompare_sust}
+% \end{figure}
+
+直方图结果表明：对于$75$MHz组，本文中的模型的均值和标准差（SUST）在三个模型中都是最小的，预测的准确性是最好的。对于 $50$MHz组，SUST和HUST模型之间的平均偏差值和标准偏差值基本相似。它们都预测了比Sussex模型更准确的谐振频率。对于$30$MHz组，HUST频率预测的平均值最小，SUST模型准确率次之，但它们都优于Sussex模型。HUST和SUST模型的标准偏差相似，但它们都优于Sussex模型。需要注意的是，在30MHz组中，由于主线圈线长度约束，所有$56$种可能组合中只有$11$个可行数据，参见公式\eqref{eq:helical_fixed_constraints_1}和\eqref{eq:helical_fixed_constraints_2}，因此结果可能会波动和偏差很大。
+
+在上述结果中，对于$30-80$MHz频率范围内的情况，本文提出的LCR模型提高了预测精度。输出线效应（参见第\ref{section:helical_output_wire}节）作为对分布式电容效应的替代解释，给出了更简单直观的物理解释。
+
+% \section[螺线管谐振腔的加工和制作]{螺线管谐振腔的加工和制作}
+\newpage
+\section[螺线管谐振腔的机械结构优化]{螺线管谐振腔的机械结构优化}
+
+\subsection[惯用旧版谐振腔]{惯用旧版谐振腔}
+惯用的旧版谐振腔设计如图\ref{fig:helical_old_design}所示。在该设计中，主线圈的接地/直流输入端口安装在谐振腔侧壁、即主屏蔽壳上。在采用以SMA为代表的射频连接头作为端口时，会产生额外的径向长度，导致配件之间的机械冲突，安装的时候主线圈很难直接放入外筒中。装配时一般需要先将输出头向内弯折，进入筒后再进行折回，将射频接头上紧固定；或者先将射频头固定在侧壁上，装入主线圈后再进行焊接。上述两种安装方式都缺乏便利性，比如弯折过程中射频连接头焊接会脱落、或壳内焊接的复杂度较高。更重要的是，安装时往往会破坏主线圈的结构，很难完全恢复到进筒前的结构参数。还有，该设计中对主线圈的支持较弱，主线圈易形变。这在装配时会导致难以将线圈按照目标设计参数准确地进行装配，增加调试成本。即使装配好了，在工作过程中也会对外界机械抖动等较为敏感、稳定性差。该设计的耦合方式也就奥维笨拙，在实际使用中需要华为大量时间来拆卸谐振腔、调整腔内小线圈的形状来实现最佳耦合。
+除此之外，该设计的主线圈输出端口的便利性、稳定性以及屏蔽性能较差。为了减小金属电容板与线圈之间的等效电容影响，通孔直径较大，使得谐振腔的信号泄露增加、屏蔽效果减弱。而谐振腔在与后级设备进行连接时，通过中空螺柱进行压接连接，稳定性较差。
+
+为此，我们设计了一款新的谐振腔来解决以上提到的一些问题。
+
+\begin{figure}
+    \centering
+    \caption[旧版的谐振腔设计]{旧版的谐振腔设计，有机械冲突、耦合方式较差。\label{fig:helical_old_design}}
+    \includegraphics[width=1.0\linewidth]{helical/helical_old_design}
+\end{figure}
+\subsection[易装配易耦合的新版谐振腔]{易装配易耦合的新版谐振腔}
+新的易装配易耦合的谐振腔设计如图\ref{fig:helical_new_design}所示。它解决了现有技术对主线圈的安装较为不便、对主线圈固定的稳定性差、对次级线圈耦合部分缺乏灵活调节的问题。新的设计主要包括以下结构：
+\begin{enumerate}
+    \item 主腔体屏蔽与支撑部分，包括：主屏蔽壳、底部和顶部两个固定板（记为固定板一与固定板二）、四个固定柱、一个输出屏蔽壳；
+    \item 线圈及其固定与调节结构，包括：一个或两个主线圈（以下图示说明均使用两个主线圈情况、但本结构同样适用于一个主线圈的情况）、一对主线圈固定支架、一个次级线圈、一个非旋转伸缩套筒、一个射频分压电路模块；
+    \item 电学相关接口与紧固零件，包括：射频输入与输出接头、直流输入接头、射频分压输出接头、及若干固定螺丝。
+\end{enumerate}
+
+新设计的实物图如图\ref{fig:helical_new_design_real}所示，将主线圈的接地/直流输入端口转移至底部固定板一。安装时可以直接固定好底座，然后将主屏蔽壳套上，再盖上顶部的固定板，最后用四个固定柱将上下两个固定板连接起来即可。安装过程不存在装配上的机械冲突。
+新设计采用一对主线圈固定支架对主线圈进行支撑与固定，通过固定支架上面的凹槽设计来约束线圈为目标参数（螺线的直径、螺距、长度）。这样在装配时易按照设计目标参数进行装配，在使用过程中也能够保持稳定。
+新设计巧妙地采用了非旋转伸缩套筒来实现小线圈的平动耦合。非旋转伸缩套筒可实现高精度的平动，常用于光学系统中透镜的高精度调节。套筒中心可以用来固定射频接头，并与次级线圈连接，方便次级线圈的固定和外部信号输入。非旋转伸缩套筒的表面可以镀上氧化层，形成次级线圈部分与其它部分的绝缘，很好地隔离了两者，保证了次级线圈与主线圈仅通过自由空间进行耦合，接地部分不会相互干扰。
+本设计通过主线圈末端焊接射频连接头、并固定至顶部固定板，来实现谐振腔的输出。该设计中，谐振腔主腔体几乎完全封闭，增加屏蔽效果，减少腔内信号泄露、以及腔外噪声的耦入。输出为标准射频接口，与后级设备连接的便利性更高，且稳定性也有了进一步的提升。
+
+与现有技术相比，本设计设计更为合理，元件装配更加方便，谐振耦合更加精细快捷，谐振腔长时工作的稳定性更高。
+\begin{figure}
+    \centering
+    \caption[易装配易耦合的谐振腔设计]{易装配易耦合的谐振腔设计\label{fig:helical_new_design}}
+    \includegraphics[width=1.0\linewidth]{helical/helical_new_design}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \caption[易装配易耦合的谐振腔设计实物图]{易装配易耦合的谐振腔设计实物图\label{fig:helical_new_design_real}}
+    \includegraphics[width=1.0\linewidth]{helical/helical_new_design_real}
 \end{figure}

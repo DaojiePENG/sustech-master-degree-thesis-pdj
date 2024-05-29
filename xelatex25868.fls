@@ -1,0 +1,5 @@
+PWD d:/BaiduSyncdisk/Master_Thesis/sustech-master-degree-thesis-pdj
+INPUT d:/Softwares/texlive/2023/texmf.cnf
+INPUT d:/Softwares/texlive/2023/texmf-dist/web2c/texmf.cnf
+INPUT d:/Softwares/texlive/2023/texmf-var/web2c/xetex/xelatex.fmt
+INPUT sustechthesis-pdj.tex

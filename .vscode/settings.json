@@ -51,5 +51,12 @@
             "env": {}
         }
     ],
-    "editor.wordWrap": "bounded"
+    "editor.wordWrap": "bounded",
+    "spellright.language": [
+        "en"
+    ],
+    "spellright.documentTypes": [
+        "markdown",
+        "plaintext"
+    ]
 }
