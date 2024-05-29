@@ -6,7 +6,7 @@
 % 讲一下离子量子比特的主要特点（一致性、全连接性、相干时间长等）、介绍一下单比特门操作的主要方案（微波、激光拉曼）；离子的运动不用讲太多，先讲囚禁，再讲一下运动的量子化、拉曼光对运动的耦合以及M-S门就行，特殊量子态可以不用讲，或至少不用大篇幅。这里M-S门部分可以给后面Helical部分做点铺垫，讲一下阱频率对门操作保真度和操作时间的影响。
 % 整体而言，离子量子比特的量子态制备、探测和单比特门一个小节，运动部分再2个小节，差不多。
 % }
-量子测控是量子计算系统中的重要组成部分，相对于传统测控系统来说，量子测控系统的特别之处在于它不仅需要具备经典场景下的信息处理能力，还需要具备量子场景下的信息处理能力。总体来说，量子物理场景对测控系统提出了实时性、拓展性、信息处理方式等方面的新需求。对于离子量子计算来说，具体需求的认识和处理都需要我们对目标系统拥有充分的了解，这样才能更好地优化和部署适宜的测控系统。本章内容将介绍与量子测控系统紧密相关的离子量子计算的重要背景，包括离子的囚禁及其涉及到的经典和量子运动，特别地，针对我们实验室所使用的镱离子介绍它的能级结构、比特编码、比特控制，以及基于离子构建的通用量子门。
+量子测控是量子计算系统中的重要组成部分，相对于传统测控系统来说，量子测控系统的特别之处在于它不仅需要具备经典场景下的信息处理能力，还需要具备量子场景下的信息处理能力。总体来说，量子物理场景对测控系统提出了实时性、拓展性、信息处理方式等方面的新需求。对于离子量子计算来说，具体需求的认识和处理都需要我们对目标系统拥有充分的了解，这样才能更好地优化和部署适宜的测控系统。本章内容将介绍与量子测控系统紧密相关的离子量子计算的重要背景，包括离子的囚禁及其涉及到的经典和量子运动，特别地，针对当前实验室所使用的镱离子介绍它的能级结构、比特编码、比特控制，以及基于离子构建的通用量子门。
 
 
 \section[离子的囚禁及在阱中的经典和量子运动]{离子的囚禁及在阱中的经典和量子运动\label{section:ion_trap_motion}}
@@ -262,7 +262,7 @@ ME方程属于一般的周期系数微分方程。它的稳定解的一般形式
     +\hbar\frac{\omega}{2}(\ket{g}\bra{g}-\ket{e}\bra{e}) \label{eq:two_level_hamiltonian}
 \end{align}
 
-任何二能级系统有关的算子都可以被映射到$1/2$自旋算子基矢上，因此上述的$\hat{H}^{(e)}$及其相关的算子也可以被表示为公式\eqref{eq:pauli_matrices}中描述的泡利矩阵的形式，它们之间的映射关系如下：
+任何二能级系统有关的算子都可以被映射到$1/2$自旋算子基矢上，因此上述的$\hat{H}^{(e)}$及其相关的算子也可以被表示为泡利矩阵的形式，它们之间的映射关系如下：
 \begin{align}
     \ket{g}\bra{g}+\ket{e}\bra{e}\mapsto \hat{I},\ \ket{g}\bra{e}+\ket{e}\bra{g}\mapsto \hat{\sigma}_x,\ \\
     i(\ket{g}\bra{e}-\ket{e}\bra{g})\mapsto \hat{\sigma}_y,\ \ket{e}\bra{e}-\ket{g}\bra{g}\mapsto \hat{\sigma}_z
@@ -275,7 +275,7 @@ ME方程属于一般的周期系数微分方程。它的稳定解的一般形式
 
 相应的能量以$-\hbar(\omega_e+\omega_g)/2$重新缩放，以抑制公式\eqref{eq:two_level_hamiltonian}中与状态无关的能量贡献。
 
-\subsubsection[耦合的理论表述]{耦合的理论表述}
+\subsubsection[耦合的理论表述]{耦合的理论表述\label{section:coupling_theory}}
 
 为了以一种简单而充分的方式描述囚禁离子与光场的相互作用，如前一节所述，我们假设囚禁离子的运动在所有三个维度上都是谐波的。
 下面的描述将包括囚禁电势的显式时间依赖，但在许多情况下，将离子的运动建模为三维静态势谐振子是足够的。
@@ -490,9 +490,9 @@ $\hat{H}^{(i)}$代表本部分将要讨论施加的光场与离子之间的耦�
 以我们目前系统为例，入射光子数量的统计数据几乎遵循泊松分布，$\ket{0}$和$\ket{1}$状态的平均光子分别为$0.05$和$9.58$。分离良好的分布使我们能够将投影状态与固定阈值区分开来。对于单次检测，如果收集到的光子数大于1，则我们将投影状态分类为$\ket{1}$状态，否则投影状态被视为$\ket{0}$状态。
 
 \subsection[镱离子的态操控]{镱离子的态操控\label{section:yb_state_manipulation}}
-量子门可以通过微波\cite[]{Olmschenk_Younge_Moehring_Matsukevich_Maunz_Monroe_2007}或脉冲激光\cite[]{Lee_2005}实现。微波对离子的态操控实现简单，但是由于所用微波的长波太长，使用微波技术方案往往仅限于单比特门；激光操控离子有诸多优点，尤其是在大规模的集成和寻址方面。接下来的小节将具体介绍这两类离子比特门操控方式。
+离子量子比特可以通过微波\cite[]{Olmschenk_Younge_Moehring_Matsukevich_Maunz_Monroe_2007}或脉冲激光\cite[]{Lee_2005}实现。微波对离子的态操控实现简单，但是由于所用微波的长波太长，使用微波技术方案往往仅限于单比特门；激光操控离子有诸多优点，尤其是在大规模的集成和寻址方面。接下来的小节将具体介绍这两类离子比特门操控方式。
 \subsubsection[微波操控镱离子]{微波操控镱离子\label{section:microwave_operation}}
-在本小节中，我将简要介绍微波操控的离子量子门，以帮助建立离子态操控的一般方式。
+本小节将简要介绍微波操控的离子量子门，以帮助建立离子态操控的一般方式。
 在微波场下的离子哈密顿量为（保持$\hbar=1$）：
 \begin{align}
     \hat{H}=\frac{\omega_q}{2}\hat{\sigma}_z + \Omega\cos\left(\vec{k}\cdot\vec{r}-\omega t + \phi\right)\hat{\sigma}_x
@@ -506,7 +506,7 @@ $\hat{H}^{(i)}$代表本部分将要讨论施加的光场与离子之间的耦�
     &=-\frac{\mu}{2}\hat{\sigma}_z+\frac{\Omega\cos{\phi}}{2}\hat{\sigma}_x+\frac{\Omega\sin{\phi}}{2}\hat{\sigma}_y\label{eq:interaction_hamiltonian_microwave}
 \end{align}
 
-其中$\mu=\omega=\omega_q$是量子比特和单微波光子之间的能量差。在$\approx$这步，我们采用了在第\ref{section:total_hamiltonian}节中介绍过的\emph{旋波近似}，将含$2\omega$的快速振动项忽略掉了。相互作用表象(dressed-state)的优点在于最终的哈密顿量是不含时的，这样各个泡利矩阵的成分的概率幅就完全由施加的微波场决定了。
+其中$\mu=\omega=\omega_q$是量子比特和单微波光子之间的能量差。在$\approx$这步，我们采用了在第\ref{section:coupling_theory}节中介绍过的\emph{旋波近似}，将含$2\omega$的快速振动项忽略掉了。相互作用表象(dressed-state)的优点在于最终的哈密顿量是不含时的，这样各个泡利矩阵的成分的概率幅就完全由施加的微波场决定了。
 
 对于一个给定的状态$\ket{\Psi(0)}=c_0(0)\ket{0}+c_1(0)\ket{1}$，其中$|c_0(0)|^2+|c_1(0)|^2=1$，它的时间演化由演化算符$U(t)$决定：
 \begin{align}
@@ -532,7 +532,7 @@ $\hat{H}^{(i)}$代表本部分将要讨论施加的光场与离子之间的耦�
     R_\phi(\theta)=U\left(\frac{\theta}{\Omega},P\phi\right)=\exp[-i\frac{\theta}{2}\sigma_\phi]
 \end{align}
 
-其中$\sigma_\phi=\sigma_x\cos{\phi}+\sigma_y\sin{\phi}$。对于初始状态，在$\theta=\pi$或者说是$t=\pi/\Omega$时，初始态的概率可以完全转移到二能级系统的另一个态上。这种$R_\phi(\theta)$旋转操作被称为沿着$\phi$轴的态旋转操控，$R_\phi(\pi)$被称为$\pi$翻转，它的作用类似之前在第\ref{section:reversible_gates}节中介绍过的经典的NOT门。除此之外，还有一种重要的旋转操作$R_\phi(\pi/2)$，它常被称为$\pi/2$翻转，可以用来制备十分有用的叠加态$(\ket{0}+e^{-i\phi}\ket{1})/\sqrt{2}$。
+其中$\sigma_\phi=\sigma_x\cos{\phi}+\sigma_y\sin{\phi}$。对于初始状态，在$\theta=\pi$或者说是$t=\pi/\Omega$时，初始态的概率可以完全转移到二能级系统的另一个态上。这种$R_\phi(\theta)$旋转操作被称为沿着$\phi$轴的态旋转操控，$R_\phi(\pi)$被称为$\pi$翻转，它的作用类似经典的NOT门。除此之外，还有一种重要的旋转操作$R_\phi(\pi/2)$，它常被称为$\pi/2$翻转，可以用来制备十分有用的叠加态$(\ket{0}+e^{-i\phi}\ket{1})/\sqrt{2}$。
 
 
 
@@ -582,7 +582,7 @@ $\hat{H}^{(i)}$代表本部分将要讨论施加的光场与离子之间的耦�
 \begin{align}
     H_{eff}=\nu a^\dagger a+\frac{\Omega}{2}\left(\sigma_+e^{i(\eta(a^\dagger a)-\mu t+\phi)}+H.c.\right) \label{eq:effective_hamiltonian_rotating}
 \end{align}
-其中$a,a^\dagger$分别是产生和湮灭算子。这里我们通过研究一个维度的情况来具体说明，比如$x$方向。此时$\vec{k}\cdot\vec{r}\to k\cdot x$等价于$k\Delta x(a+a^\dagger)=\eta(a+a^\dagger)$，其中$\Delta x=\sqrt{\hbar/2M\nu}$是基态波函数的拓展，$\eta=k\Delta x$是在第\ref{section:total_hamiltonian}节介绍过的LDP。将公式\eqref{eq:effective_hamiltonian_rotating}转换到$H_0=\nu a^\dagger a$的表象下并将$\exp{i\vec{k}\cdot \vec{r}}$进行一阶展开，可以得到近似的相互作用哈密顿量：
+其中$a,a^\dagger$分别是产生和湮灭算子。这里我们通过研究一个维度的情况来具体说明，比如$x$方向。此时$\vec{k}\cdot\vec{r}\to k\cdot x$等价于$k\Delta x(a+a^\dagger)=\eta(a+a^\dagger)$，其中$\Delta x=\sqrt{\hbar/2M\nu}$是基态波函数的拓展，$\eta=k\Delta x$是在第\ref{section:coupling_theory}节介绍过的LDP。将公式\eqref{eq:effective_hamiltonian_rotating}转换到$H_0=\nu a^\dagger a$的表象下并将$\exp{i\vec{k}\cdot \vec{r}}$进行一阶展开，可以得到近似的相互作用哈密顿量：
 \begin{align}
     H_I\approx\frac{\Omega}{2}\left[\sigma_+(1+i\eta a e^{-i\nu t}+i\eta a^\dagger e^{i\nu t})e^{-i\mu t+i\phi}+H.c.\right]
 \end{align}
@@ -649,7 +649,7 @@ $是整数激光包含的脉冲数，$\omega_0$是脉冲激光的波长。脉冲
 Ignacio Cirac和Peter Zoller最早在1995年中提出了双量子比特纠缠门的第一个方案\cite[]{Cirac_Zoller_2002}，称为\emph{Cirac-Zoller门(Cirac-Zoller Gate, CZ-Gate)}，并在2003年在实验中实现\cite[]{Schmidt_Kaler_Häffner_Riebe_Gulde_Lancaster_Deuschle_Becher_Roos_Eschner_Blatt_2003}。
 然而，如果离子不冷却到它们的运动基态，CZ-Gate的性能会急剧下降。这种苛刻的要求限制了CZ-Gate的扩展。
 Klaus Mølmer和Anders Sørensen在1999年提出了另一种运动状态不敏感门的技术方案\cite[]{Sørensen_Mølmer_2002},被称为\emph{Mølmer-Sørensen门(Mølmer-Sørensen Gate, MS-Gate)}。
-由于MS-Gate的更鲁棒的特征，它广泛用于囚禁离子量子计算中。在本节中，我们将详细介绍MS型双量子比特纠缠门的实现。
+由于MS-Gate的更鲁棒的特征，它广泛用于囚禁离子量子计算中。在本节将详细介绍MS型双量子比特纠缠门的实现。
 
 如果我们对离子施加二色场$\mu_b=mu, \mu_r=-\mu$，就可以得到状态相关力，相应的哈密顿量可以表述为：
 \begin{align}

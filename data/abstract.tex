@@ -5,33 +5,33 @@
 \begin{abstract}
   量子计算因其强大的计算能力和潜在的应用前景而受到广泛关注。在量子算法的配合下，量子计算机可以实现许多通过经典计算机难以实现的计算，如大素数分解、量子多体系统仿真等。
 
-  % 离子阱量子计算是一种利用离子的两个稳定能级，作为量子比特“0”和“1”的状态，并利用激光或微波来控制能级之间的跃迁实现量子逻辑门的技术。离子阱量子计算机采用被“囚禁”在真空中的离子（带单个电荷的原子）作为量子比特，相比其他技术路线，离子阱量子计算具有相干时间长、保真度高、连通性好、编程方便等优点。
-  % 离子阱量子计算的是将特定离子的两个稳定的内能级分别编码为‘0’态和‘1’态，量子态的操作一般使用激光或者微波来实现，相比其它技术路线离子阱量子算具有量子门保真度高、量子态相干时间长、比特之间连通性好、编程方便等优点。
+  离子量子计算是当前最具发展前景的量子计算平台之一，它的实现需要电子学、光学、真空、测控等多种学科领域的支持。其中量子测控系统处于十分核心的地位，它将系统涉及的电子学、光学、真空等其余各个部分联系了起来，给出特定的微波信号、激光信号等策略对量子比特进行调控并采集结果进行分析和处理，以实现量子计算的各种操作。
 
-  用脉冲激光实现量子门有着操作频谱范围广、可实现超快量子门等诸多优势。量子测控系统是量子计算系统中的一个重要组成部分，它负责对量子比特进行精确的控制和测量，以实现量子计算的各种操作。脉冲激光实现量子门的方案涉及光学、电学、真空、测控等多方面系统。
+  本文面向离子量子计算系统提出了一种强实时性、分布式、易拓展的RTMQ量子测控系统架构，给出了与之相匹配的高速通用数字PID及高速通用数字滤波器的设计和基于FPGA的实现；
+  另外，使用有限元仿真及实验的方法对离子阱系统中一种重要的测控器件——螺线管谐振腔进行了仿真、实验、建模、设计等方面的优化研究，给出了设计特定频率下的高Q谐振腔的方法和更方便易用的机械结构设计；
+  在上述基础之上，结合实际的实验系统需求实现了离子量子计算场景下基于RTMQ系统的离子阱频率稳定、激光功率稳定和激光拍频稳定等几个关键子系统的搭建和测试，展示了RTMQ量子测控系统的优越性，极大地促进了离子量子计算系统的数字化、集成化进程，为未来大规模通用量子计算奠定了测控方面的重要基础。
   
-  本文重点研究了电学系统中谐振腔，创新性地开发和引入了一种可支持分布式计算的用于量子物理实验的实时微系统（RTMQ），并且基于测控系统和光电系统对用脉冲激光实现量子门的关键子系统进行了搭建和原理验证。
-  以使用脉冲激光实现离子量子门为目标，在电学方面对微波系统中的关键器件——谐振腔进行了系统的仿真和实验研究；在测控系统方面协助开发了RTMQ系统并将其应用到了脉冲光离子量子比特门的几个关键的子系统，实现了阱频率稳定、脉冲激光拍频锁定、激光功率稳定等系统的原理和实现，用RTMQ系统及相应外设对这些系统进行了集成化、数字化的升级。
+  % 本文重点研究了电学系统中谐振腔，创新性地开发和引入了一种可支持分布式计算的用于量子物理实验的实时微系统（RTMQ），并且基于测控系统和光电系统对用脉冲激光实现量子门的关键子系统进行了搭建和原理验证。
+  % 以使用脉冲激光实现离子量子门为目标，在电学方面对微波系统中的关键器件——谐振腔进行了系统的仿真和实验研究；在测控系统方面协助开发了RTMQ系统并将其应用到了脉冲光离子量子比特门的几个关键的子系统，实现了阱频率稳定、脉冲激光拍频锁定、激光功率稳定等系统的原理和实现，用RTMQ系统及相应外设对这些系统进行了集成化、数字化的升级。
 
   % 关键词用“英文逗号”分隔，输出时会自动处理为正确的分隔符
   \thusetup{
-    keywords = {量子计算, 离子阱, 测控系统, 电子学},
+    keywords = {量子计算, 离子阱, 测控系统, FPGA},
   }
 \end{abstract}
 
 \begin{abstract*}
-  Quantum computing has attracted extensive attention due to its potentially powerful computing capabilities. With the cooperation of quantum algorithm,quantum computer can realize many calculations that are difficult to be realized by classical computers like factorization of large prime numbers, simulation of quantum many body systems. 
+  Quantum computing has attracted extensive attention due to its potentially powerful computing capabilities. With the cooperation of quantum algorithm, quantum computer can realize many calculations that are difficult to be realized by classical computers like factorization of large prime numbers, simulation of quantum many body systems. 
 
-  % Ion trap quantum computing is a technique that utilizes two stable energy levels of an ion as the states of quantum bits "0" and "1", and uses laser or microwave to control the transitions between energy levels to achieve quantum logic gates. Ion trap quantum computers use ions (atoms with a single charge) trapped in a vacuum as quantum bits. Compared to other technological routes, ion trap quantum computing has advantages such as long coherence time, high fidelity, good connectivity, and convenient programming.
-  % Ion trap quantum computing encodes two stable internal energy levels of a specific ion into a '0' state and a '1' state, respectively. The operation of quantum states is generally achieved using lasers or microwaves. Compared with other technical routes, ion trap quantum computing has advantages such as high quantum gate fidelity, long quantum state coherence time, good bit to bit connectivity, and convenient programming.
+  Ion quantum computing is one of the most promising quantum computing platforms at present. Its implementation needs the support of electronics, optics, vacuum, measurement and control and other fields. Among them, the quantum measurement and control system is in a core position. It connects the other parts of the system, such as electronics, optics, vacuum, and so on. It gives specific strategies such as microwave signal and laser signal to regulate and control the quantum bits and collect the results for analysis and processing, so as to realize various operations of quantum computing.
 
-  The use of pulsed laser to achieve quantum gates has many advantages, such as a wide operating spectrum range and the ability to achieve ultrafast quantum gates. Quantum measurement and control system is an important component of quantum computing system, which is responsible for precise control and measurement of quantum bits to achieve various operations of quantum computing. The scheme for implementing quantum gates using pulsed laser involves various systems such as optics, electronics, vacuum, measurement and control. 
-  
-  This paper focuses on the study of resonant cavities in electrical systems and innovatively develops and introduces a Real Time Microsystem for Quantum physics(RTMQ) that can support distributed computing. Based on the measurement and control system and optoelectronic system, the key subsystems for implementing quantum gates using pulsed laser are built and verified in principle.
-  We conducted systematic simulation and experimental research on the key device in microwave systems - resonant cavity - in terms of electricity, with the goal of using pulsed laser to achieve ion quantum gates; Assisted in the development of the RTMQ system in the measurement and control system and applied it to several key subsystems of the pulse photoionization quantum bit gate, achieving the principles and implementation of well frequency stability, pulse laser beat frequency locking, laser power stability, and other systems. These systems were integrated and digitized using the RTMQ system and corresponding peripherals.
+In this paper, a RTMQ quantum measurement and control system architecture with strong real-time, distributed and easy to expand is proposed for ion quantum computing system. The design and FPGA implementation of high-speed universal digital PID and high-speed universal digital filter are given;
+In addition, the simulation, experiment, modeling and design of helical resonator, an important measurement and control device in the ion trap system, are optimized by using the finite element simulation and experiment method. The design method of high-Q resonator at a specific frequency and the more convenient mechanical structure design are given;
+Based on the above, combined with the actual experimental system requirements, several key subsystems such as ion trap frequency stability, laser power stability and laser beatnote stability based on RTMQ system in the ion quantum computing scenario were built and tested, which showed the advantages of RTMQ quantum measurement and control system, greatly promoted the digitization and integration process of ion quantum computing system, and laid an important foundation for the measurement and control of large-scale universal quantum computing in the future.
+
 
   % Use comma as seperator when inputting
   \thusetup{
-    keywords* = {Quantum Computation, Ion Trap, Measurement and Control System, Electronics},
+    keywords* = {Quantum Computating, Ion Trap, Measurement and Control System, FPGA},
   }
 \end{abstract*}
