@@ -6,27 +6,27 @@
 % 这部分参考RTMQ的相关专利和文档介绍整个测控系统的情况... 
 % }
 
-离子量子计算系统的实现涉及到一些物理量的精确调控和测量，这既包括量上的精确性，也包括时间上的精确性。因此系统对测量和控制性能提出了很多新的要求，其中十分关键的一点就是对测控系统实时性的要求。为此我们提出了一套强实时、可拓展、分布式的用于量子物理实验的实时微系统(Real Time Microsystem for Quantum physics, RTMQ)，作为离子量子计算的测控系统。在接下来的小节里我将介绍现有实时系统的优缺点以及RTMQ系统的设计架构。随后介绍RTMQ系统的两个重要片上拓展——高速通用数字PID和高速通用数字滤波器的设计实现，以此构建实现离子量子计算的若干重要子系统的数字化推进。
+测控系统能将离子阱量子计算系统中的电学、光学、真空等其余各个部分联系起来，在离子阱量子计算中占据十分重要的地位。量子计算系统的实现涉及到一些物理量的精确调控和测量，这既包括量上的精确性，也包括时间上的精确性。因此系统对测量和控制性能提出了很多新的要求，其中十分关键的一点就是对测控系统实时性和可拓展性的要求。
+传统测控系统以及早些年开发的量子测控系统逐渐难以适应日益增高的量子测控需求，为此我们提出了一套强实时、可拓展、分布式的用于量子物理实验的实时微系统(Real Time Microsystem for Quantum physics, RTMQ)，作为离子量子计算的测控系统。在接下来的小节里我将介绍现有实时系统的优缺点以及RTMQ系统的设计架构及其核心的FPGA实现，接着给出与之配套的指令集与时序控制结构描述。
+随后介绍RTMQ系统的若干重要片上拓展，如、、、高速通用数字PID、高速通用数字滤波器等的设计和FPGA实现，以此作为推进离子量子计算的若干重要子系统数字化水平的重要基础。
 
 \section[现有实时测控系统]{现有实时测控系统}
 
 % 现有的实时系统一般使用主频在数百MHz至GHz量级的通用微处理器或微控制器作为控制的主体，以计时器中断和时间片分配等方式实现实时控制。这一方案成立的前提在于，所需的时间控制精度与指令执行频率之间有3-6个数量级的差异，因而通用处理器架构中存在的一些诸如分支预判、乱序执行等导致指令执行顺序不确定的因素以及中断系统中存在的现场保护、控制权交接等额外开销导致的时间控制不确定性可以忽略不计。
 
-现有实时系统以通用微处理器或微控制器为主体，通过计时器中断和时间片分配实现实时控制，前提是时间控制精度与指令执行频率差异大，可忽略处理器架构和中断系统的不确定性。然而近来随着量子技术的发展，量子物理实验系统也开始产生对数据处理、复杂流程控制和实时控制的需求。不同于传统行业，量子物理实验系统对时间控制的精度和分辨率的要求在纳秒量级、延迟要求在百纳秒至数十微秒量级，与当前微处理器的主频相当，从而前述的现有的实时控制方案难以满足需求\cite[]{junhua03}。
+现有的实时系统一般使用主频在数百MHz至GHz量级的通用微处理器或微控制器作为控制的主体，以计时器中断和时间片分配等方式实现实时控制。这一方案成立的前提是时间控制精度与指令执行频率之间有3-6个数量级的差异，可忽略处理器架构和中断系统的不确定性。然而近来随着量子技术的发展，量子物理实验系统也开始产生对数据处理、复杂流程控制和实时控制的需求。不同于传统行业，量子物理实验系统对时间控制的精度和分辨率的要求在纳秒量级、延迟要求在百纳秒至数十微秒量级\cite[]{junhua03}，与当前微处理器的主频相当，从而前述的现有的实时控制方案难以满足需求。
 
-因此早年在量子物理实验领域内，通常用FPGA（现场可编程门阵列）设计特定的时序脉冲发生器来产生高时间精度的脉冲序列，以此作为其它实验设备的触发信号，进行准确的时序控制。然而，这种方案的灵活性较差，只能产生预定的序列，无法在实验中对实验数据进行即时的处理，或根据实验的中间结果对后续的流程进行及时的调整\cite[]{junhua01}。
+因此早年在量子物理实验领域内，通常用FPGA（现场可编程门阵列）设计特定的时序脉冲发生器来产生高时间精度的脉冲序列，以此作为其它实验设备的触发信号，进行准确的时序控制。然而，这类方案的灵活性较差，只能产生预定的序列，无法在实验中对实验数据进行即时的处理，或根据实验的中间结果对后续的流程进行及时的调整\cite[]{junhua01}。
 % 近年来随着量子算法的发展，实验方案越来越复杂，实验流程中开始包含快速反馈的结构，即在实验过程中对实验目标进行测量，获得一些中间结果，而后对中间结果进行计算和处理，并进而确定后续的实验流程。中间结果的处理和后续流程的确定，一般要求在数十纳秒至数十微秒量级的时间内完成，并且执行时刻必须要严格确定。这要求实验的测控系统具有通用计算的能力，简单的时序脉冲发生器无法满足这一要求。
 随着量子算法发展，实验方案复杂，需在数十纳秒至数十微秒内处理中间结果并确定后续流程，简单的时序脉冲发生器已无法满足，实验测控系统需具备通用计算能力。
 
 % 当前领域内针对此问题的主要解决思路为，另置一与时序脉冲发生器紧密连接的通用微处理器，用来对实验数据进行即时处理和产生时序脉冲发生器的后续输出时序。这一方案能较好的满足系统规模较小且实验时序不太复杂的情形下的实时控制需求。然而，这一方案的问题之一在于，微处理器和时序脉冲发生器依然是相互独立的两个个体，而微处理器的执行时序有其内在不确定性；二者之间要保持同步，或者需要频繁地相互交换触发信号，或者需要在时序设计上预留出充足的余量以覆盖此不确定性的最坏情形，总之都会复杂化时序的设计并产生时间浪费。
-当前解决问题的思路是另置通用微处理器处理实验数据和产生时序。但该方案存在微处理器和时序脉冲发生器相互独立、同步困难的问题，会复杂化时序设计并产生时间浪费。该方案的另一问题是，系统大时需多个时序脉冲发生器和微处理器，会导致拥塞和同步性问题，而主流微处理器的架构和协议难以实现精确同步。
+当前解决问题的思路是另置通用微处理器处理实验数据和产生时序。对于离子阱量子计算体系，量子物理高级实时基础设施(ARTIQ)\cite[]{Bourdeauducq_Jördens_Zotov_Britton_Slichter_Leibrandt_Allcock_Hankin_Kermarrec_Sionneau_et_al_2016}是控制量子信息实验的硬件、门软件和软件的完整且免费开源框架。这也是目前大多数离子阱量子计算领域实验组所使用的测控系统技术方案。然而，ARTIQ的控制流架构使用在FPGA中实现的通用CPU，即所谓的软核CPU。这种方案虽然已经可以满足当前的离子阱量子实验需求，但是其进一步的拓展也受到多器件同步以及通信时延的影响而受限，并且对于对事件响应速率要求更高的超导量子比特实验难以保证可用性。针对超导量子计算的需求，来自UCSB/Google\cite[]{Chen_Sank_O’Malley_White_Barends_Chiaro_Kelly_Lucero_Mariantoni_Megrant_et_al_2012, Sank_Jeffrey_Mutus_White_Kelly_Barends_Chen_Chen_Chiaro_Dunsworth_et_al}、ETH Zurich\cite[]{}、TU Delft\cite[]{Riste_Dukalski_Watson_Lange_Tiggelman_Blanter_Lehnert_Schouten_DiCarlo,Bultink_Rol_OBrien_Fu_Dikken_Dickel_Vermeulen_de_Sterke_Bruno_Schouten_et_al_2016}和Yale\cite[]{Ofek_Petrenko_Heeres_Reinhold_Leghtas_Vlastakis_Liu_Frunzio_Girvin_Jiang_et_al_2016}的研究者们也使用FPGA开发了自己的量子测控系统，且在进行将其应用到低温系统中的探索\cite[]{Homulle_Visser_Patra_Ferrari_Prati_Sebastiano_Charbon_2017, Conway_Lamb_Colless_Hornibrook_Pauka_Waddy_Frechtling_Reilly_2016}，但是他们的这些软件都是不向整个量子计算社区开放的。
+近几年来，随着量子计算领域的蓬勃发展，很多商业公司也逐步参与到量子测控系统的研发之中。Colm A. Ryan等人\cite[]{Ryan_Johnson_Ristè_Donovan_Ohki_2017}描述了雷声BBN技术公司为超导量子比特的动态量子信息处理实验开发的硬件、网关和软件。该方案的读出和控制平台都广泛地使用FPGA，使得量子比特控制系统的重构和迭代更加方便。但是该方案依赖两个独立器件（量子数字信号发生器(QDSP)和 任意波形发生器APS）的配合完成比特的读出和控制，其进一步的规模化拓展仍然受限于设备间的通信速率及设备的运算能力。
 
-% 这一方案的另一问题在于，当系统规模较大，一个时序脉冲发生器无法控制整个系统时，就需要同时使用多个时序脉冲发生器，而一个微处理器同时处理过多的实验数据、同时控制过多的时序脉冲发生器，将不可避免的产生拥塞，这会进一步加剧前述的同步性问题。而如果同时使用多个微处理器，则不同微处理器之间的同步性又将成为问题；当前主流的微处理器架构和指令集都是针对通用计算而优化的，主流的微处理器使用的通信协议都是针对高吞吐率而优化的，二者都难以实现精确的时序同步。
-
-
-
-
-
+总体来说，现有的量子测控系统方案大都存在微处理器和时序脉冲发生器相互独立、同步困难的问题，会复杂化时序设计并产生时间浪费，影响其性能的进一步提升。
+% 该方案的另一问题是，系统大时需多个时序脉冲发生器和微处理器，会导致拥塞和同步性问题，而主流微处理器的架构和协议难以实现精确同步。
+这些方案的另一问题在于，当系统规模较大，一个时序脉冲发生器无法控制整个系统时，就需要同时使用多个时序脉冲发生器，而一个微处理器同时处理过多的实验数据、同时控制过多的时序脉冲发生器，将不可避免的产生拥塞，这会进一步加剧前述的同步性问题。而如果同时使用多个微处理器，则不同微处理器之间的同步性又将成为问题。此外，当前主流的微处理器架构和指令集都是针对通用计算而优化的，主流的微处理器使用的通信协议都是针对高吞吐率而优化的，二者都难以实现精确的时序同步。
 
 
 
@@ -36,10 +36,9 @@
 % =======================  RTMQ实时量子测控系统 ===============================
 % ============================================================================
 % ============================================================================
-\section[RTMQ实时量子测控系统]{RTMQ实时量子测控系统}
+\section[RTMQ实时量子测控系统]{RTMQ实时量子测控系统\label{section:rtmq_structure}}
 
-相对于传统测控应用领域，对于离子阱量子计算研究来说，一种实时性更强、拓展性更好、更灵活的测控系统十分重要。为了满足离子量子计算当前以及未来的测控需求，我们提出了一种实时性拓展性好、具有分布式计算能力的量子测控系统架构——RTMQ（用于量子物理实验的实时微系统，Real Time Microsystem for Quantum physics）。RTMQ系统架构提供了一种新的量子物理实验平台实时测控系统架构，解决了上述的不足。在RTMQ系统架构中，通用计算和时序控制由同一微处理器实现，因此避免了两个独立的模块之间同步性的问题；同时树状结构的系统中每个节点都具有通用计算的能力，因此可以实现计算任务的分布式处理，避免了拥塞的问题\cite[]{junhua01}。
-
+相对于传统测控应用领域，对于离子阱量子计算研究来说，一种实时性更强、拓展性更好、更灵活的测控系统十分重要。为了满足离子量子计算当前以及未来的测控需求，我们提出了一种实时性拓展性好、具有分布式计算能力的量子测控系统架构——RTMQ（用于量子物理实验的实时微系统，Real Time Microsystem for Quantum physics）。RTMQ提供了一种新的量子物理实验平台实时测控系统架构，为量子计算的实现提供更好的测控支持。在RTMQ中，通用计算和时序控制由同一微处理器实现，因此避免了两个独立的模块之间同步性的问题；同时树状结构的系统中每个节点都具有通用计算的能力，因此可以实现计算任务的分布式处理，避免了拥塞的问题\cite[]{junhua01}。接下来两小节将RTMQ的测控系统架构及其节点内部结构。
 
 
 \subsection[RTMQ实时量子测控系统架构]{RTMQ实时量子测控系统架构}
@@ -62,7 +61,8 @@ RTMQ架构主要用于基于FPGA或ASIC的兼具通用计算和高精度时序�
 
 
 
-\subsection[RTMQ实时量子测控系统架构的节点内部模块]{RTMQ实时量子测控系统架构的节点内部模块}
+\subsection[RTMQ实时量子测控系统架构的节点内部模块]{RTMQ实时量子测控系统架构的节点内部模块\label{section:rtmq_inner_module}}
+
 \begin{figure}
     \centering
     \caption[RTMQ实时量子测控系统架构节点内部模块示意图]{RTMQ实时量子测控系统架构节点内部模块示意图\label{fig:rtmq_board_inner_structure}}
@@ -71,14 +71,31 @@ RTMQ架构主要用于基于FPGA或ASIC的兼具通用计算和高精度时序�
 
 一个RTMQ节点的内部模块如图\ref{fig:rtmq_board_inner_structure}所示，包含一个32位的微处理器、一个寄存器文件、一系列外设模块和一个链路管理模块。其中微处理器包含流控制器、计时器、异常管理模块、触发管理模块和算术逻辑单元5个子模块；寄存器文件包含多个寄存器；外设可分为系统外设和功能外设，系统外设包括指令缓存、数据缓存、节点信息只读存储器以及地址栈和数据栈，功能外设用于实现具体的逻辑或时序功能，可包含多个。
 
-RTMQ架构中包含的微处理器可受指令控制进入挂起状态，而挂起状态可受计时器或触发管理模块的控制恢复正常运行，如此，微处理器的指令流便可以按一定的时间间隔对齐或与外部信号对齐。同时，节点中的系统外设和功能外设的行为受关联寄存器的读写控制，即微处理器的指令与系统各模块的功能和时序有严格的对应关系。因此，本发明提供的架构可实现实时控制与通用计算在指令流层面的结合。
+RTMQ架构中包含的微处理器可受指令控制进入挂起状态，而挂起状态可受计时器或触发管理模块的控制恢复正常运行，如此，微处理器的指令流便可以按一定的时间间隔对齐或与外部信号对齐。同时，节点中的系统外设和功能外设的行为受关联寄存器的读写控制，即微处理器的指令与系统各模块的功能和时序有严格的对应关系。因此，该架构可实现实时控制与通用计算在指令流层面的结合。
 而配置指令插入中断的机制确保了节点对其下级节点的绝对控制，即使下级节点的微处理器处于挂起状态，依然不受影响。配置指令插入中断配合具有确定通信延迟的实时通信链路系统，即可实现时序确定的跨节点的即时反馈控制。
-
 此外，RTMQ架构中每个节点都具有通用计算和时序控制能力，如此，大多数通用计算和时序生成都可以在叶节点或较近的中间结点完成，对于大规模系统不存在拥塞的问题，具有良好的可扩展性。
-% \section[测控硬件组成]{测控硬件组成}
-% \textcolor{red}{
-% 1. 展示实物板卡照片；}
-RTMQ测控板实物图如图\ref{fig:rtmq_board_real}所示。RTMQ体系的构成在上述整体硬件核心架构的基础上，还需要结合节点实时通信的链路系统\cite[]{junhua02}来完成节点内部和外部通信的同步，以及相应的实时控制和通用计算的指令集\cite[]{junhua03}来完成对系统的管理和控制。值得关注的是，从它的指令集中可以看到RTMQ测控系统系统是支持板上运算和信息处理的，这是与其它依靠时序发生器构成的测控系统本质不同的地方和优势所在。这些处理包括逻辑运算和算术运算，构成了一个微处理器。而RTMQ系统的微处理器从架构上与CPU有着本质的不同，虽然牺牲了些运算效率，RTMQ的数据处理是严格实时的。这种处理器架构同样也具有拓展性和灵活性，我们可以方便地为它拓展和定义多种运算方式，也可以为其添加外设模块等，以适应更多更复杂任务的需求。在下面几小节中，我将介绍一些基本运算及外设模块的实现和使用。
+\subsection[RTMQ测控板]{RTMQ测控板}
+
+\begin{table}
+    \centering
+    \caption[RTMQ与ARTIQ对比]{RTMQ与ARTIQ对比\label{tb:rtmq_artiq}}    
+    \begin{tabular}{L{5cm}|C{4cm}|C{4cm}}
+        \toprule
+        指标 & ARTIQ & RTMQ \\
+        \midrule
+        反馈延迟        & 十微秒 & 百纳秒 \\
+        分布式算力      & × & √ \\
+        节点自主性      & × & √ \\
+        底端FPGA兼容性  & √ & √ \\
+        ASIC兼容性      & × & √ \\
+        二次开发能力    & √ & √ \\
+        跨领域通用性    & × & √ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+RTMQ测控板实物图如图\ref{fig:rtmq_board_real}所示。RTMQ体系的构成在上述整体硬件核心架构的基础上，还需要结合相应的实时控制和通用计算的指令集\cite[]{junhua03}来完成对系统的管理和控制。另外，涉及到大规模拓展应用则还需要节点实时通信的链路系统\cite[]{junhua02}来完成节点内部和外部通信的同步。
+值得关注的是，从它的指令集中可以看到RTMQ测控系统系统是支持板上运算和信息处理的，这是与其它依靠时序发生器构成的测控系统本质不同的地方和优势所在。这些处理包括逻辑运算和算术运算，构成了一个微处理器。而RTMQ系统的微处理器从架构上与CPU有着本质的不同，虽然牺牲了些运算效率，RTMQ的数据处理是严格实时的。这种处理器架构同样也具有拓展性和灵活性，我们可以方便地为它拓展和定义多种运算方式，也可以为其添加外设模块等，以适应更多更复杂任务的需求。RTMQ与之前离子阱领域常用的ARTIQ测控系统的对比如表\ref{tb:rtmq_artiq}所示，从对比中可见相较于ARTIQ，RTMQ在反馈延迟、分布式算力、节点自主性、ASIC兼容性、跨领域通用性等方面都有着巨大的优越性。
 
 \begin{figure}
     \centering
@@ -90,16 +107,545 @@ RTMQ测控板实物图如图\ref{fig:rtmq_board_real}所示。RTMQ体系的构�
 
 % ============================================================================
 % ============================================================================
-% =======================      高速数字PID      ===============================
+% =======================      RTMQ Core       ===============================
 % ============================================================================
 % ============================================================================
 
-\section[基于FPGA的高速通用数字PID]{基于FPGA的高速通用数字PID\label{section:digital_pid}}
+\newpage
+\section[RTMQ核心模块及其FPGA实现]{RTMQ核心模块及其FPGA实现}
+% 在下面几小节中，我将介绍一些基本运算及外设模块的实现和使用。
+
+如图\ref{fig:rtmq_core}所示，RTMQ的核心主要由三部分组成：流控制器、计时器、算术逻辑单元。它的输入及输出端口定义如表\ref{tb:rtmq_core}所示。
+
+\begin{table}
+    \centering
+    \caption[RTMQ核心模块端口定义]{RTMQ核心模块端口定义\label{tb:rtmq_core}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        cfg\_ins[31:0] &  & alu\_out[128:0] &  \\
+        clk &  & f\_ftc &  \\
+        f\_cfg &  & f\_hld &  \\
+        f\_rsm &  & if\_adr[31:0] &  \\
+        if\_ins[31:0] &  &  &  \\
+        regfile[8191:0]&  &  &  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+\begin{figure}
+    \centering
+    \caption[RTMQ核心微处理器的FPGA实现结构图]{RTMQ核心微处理器的FPGA实现结构图\label{fig:rtmq_core}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_core}
+\end{figure}
+
+
+
+
+
+
+\subsection[流控制器模块及其FPGA实现]{流控制模块及其FPGA实现}
+如图\ref{fig:rtmq_flow_control}所示，如表\ref{tb:rtmq_flow_control}所示。
+\begin{table}
+    \centering
+    \caption[RTMQ核心流控制器模块端口定义]{RTMQ核心流控制器模块端口定义\label{tb:rtmq_flow_control}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        alu\_out[128:0] &  & f\_ftc &  \\
+        cfg\_ins[31:0]  &  & f\_hld &  \\
+        clk             &  & if\_adr[31:0] &  \\
+        f\_cfg          &  & instr[31:0] &  \\
+        if\_rsm         &  & reg\_ptr[31:0] &  \\
+        if\_ins[31:0]   &  &  &  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}
+    \centering
+    \caption[RTMQ核心流控制器模块的FPGA实现结构图]{RTMQ核心流控制器模块的FPGA实现结构图\label{fig:rtmq_flow_control}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_flow_control}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+\subsection[计时器模块及其FPGA实现]{计时器模块及其FPGA实现}
+如图\ref{fig:rtmq_timer}所示，如表\ref{tb:rtmq_timer}所示。
+
+\begin{table}
+    \centering
+    \caption[RTMQ核心计时器模块端口定义]{RTMQ核心计时器模块端口定义\label{tb:rtmq_timer}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        alu\_out[128:0] &  & f\_timeout     &  \\
+        clk             &  & reg\_tim[31:0] &  \\
+        f\_hld          &  & reg\_wck[31:0] &  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}
+    \centering
+    \caption[RTMQ核心计时器模块的FPGA实现结构图]{RTMQ核心计时器模块的FPGA实现结构图\label{fig:rtmq_timer}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_timer}
+\end{figure}
+
+
+
+
+
+
+
+
+\subsection[算术逻辑单元模块及其FPGA实现]{算术逻辑单元模块及其FPGA实现}
+如图\ref{fig:rtmq_alu}所示，如表\ref{tb:rtmq_alu}所示。
+
+
+\begin{table}
+    \centering
+    \caption[RTMQ核心算法逻辑单元模块端口定义]{RTMQ核心算法逻辑单元模块端口定义\label{tb:rtmq_alu}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        clk &  & alu\_out[128:0] &  \\
+        instr[31:0] &  &  &  \\
+        regfile[8191:0] &  &  &  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+\begin{figure}
+    \centering
+    \caption[RTMQ核心算术逻辑单元模块的FPGA实现结构图]{RTMQ核心算术逻辑单元模块的FPGA实现结构图\label{fig:rtmq_alu}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_alu}
+\end{figure}
+
+
+
+
+% \subsection[触发管理模块及其FPGA实现]{触发管理模块及其FPGA实现}
+
+% \subsection[异常管理模块及其FPGA实现]{异常管理模块及其FPGA实现}
+
+
+
+
+
+
+% ============================================================================
+% ============================================================================
+% ======================= RTMQ Instruction Set ===============================
+% ============================================================================
+% ============================================================================
+\newpage
+\section[RTMQ的指令集与时序控制结构描述]{RTMQ的指令集与时序控制结构描述}
+RTMQ是专为可拓展实时量子计算而设计的核心微处理器，配套设计了一种可用于实时控制和通用计算的指令集\cite[]{junhua03}。通过对寄存器的读写访问实现微系统架构中微处理器与其它逻辑功能模块之间的交互以及计时和流控制等操作构成基本的计时任务与非计时任务等与时序控制结构。该指令集与时序控制结构可以实现精确时序控制和通用计算能力在指令流层面的有机结合，其时序控制实现可准确至单个指令时钟周期。通用计算和流控制操作不会影响关键实时指令的执行时刻，能够适用于量子物理实验系统控制等对高精度时序控制和通用计算均有较高要求的领域。
+接下来几小节将从指令的定义、指令的汇编语法、指令的编码、指令的执行逻辑、计时任务与非计时任务块结构等方面介绍RTMQ系统所采用的这种指令集与时序控制结构。
+
+\subsection[指令集描述]{指令集描述\label{section:rtmq_instruction_set}}
+
+与RTMQ架构配套的可用于实时控制和通用计算的指令集中指令包含以下部分：操作码、挂起标记、目标寄存器、操作数0和操作数1；指令集中的指令主要有两类：I类指令和A类指令，其中I类指令用于将操作数0或操作数1直接写入到目标寄存器，A类指令用于将操作数0和操作数1经过操作码指定的运算后的结果写入目标寄存器。I类指令的操作码及其含义如表\ref{tb:i_instructions}所示，A类指令的操作码及其含义如表\ref{tb:a_instructions}所示。
+
+I类指令用于将立即数写入目标寄存器，仅使用1个立即数作为操作数；A类指令用于执行需要计算的操作，若操作数为寄存器，可在别名前加取反标记“!”，表示对该操作数取反后再进行计算；目标寄存器别名前亦可加取反标记，表示对运算结果取反后再写入目标寄存器；取反操作包括逻辑按位取反、数值反号以及特殊定义的取反操作，不同的指令使用不同的取反操作（逻辑按位取反操作即对操作数或计算结果的每一位进行逻辑取反；数值反号操作即对操作数或计算结果取二进制补码）。
+
+当带有挂起标记的指令被执行后，执行指令的微处理器进入挂起状态，暂停指令的获取和执行。挂起标记H可为字符“H”或“-”；若为“H”，表示当前指令带有挂起标记，微处理器执行这条指令后进入挂起状态。
+此外，指令集中的指令还包含跳转标记，其汇编指令的格式为：
+
+\begin{align}
+    OPC \qquad H \qquad F \qquad RD \qquad R0 \qquad R1
+\end{align}
+
+其中，OPC为操作码，H为挂起标记，F为跳转标记，RD为目标寄存器，R0为操作数0，R1为操作数1，操作数可为寄存器或立即数。每个寄存器对应一个别名和一个地址，分别用于在所述指令集的汇编指令和机器码中指代该寄存器。跳转标记F可为字符“F”或“-”；若为“F”，表示当前指令带有跳转标记，微处理器执行这条指令后将清空取指流水线。
+
+\begin{table}
+    \centering
+    \caption[I类指令的操作码及其含义]{I类指令的操作码及其含义\label{tb:i_instructions}}
+    \begin{tabular}{C{2cm}|C{12cm}}
+        \toprule
+        操作码 & 指令含义 \\
+        \midrule
+        LDL & 将指令携带的立即数载入目标寄存器的第19到第 0比特\\
+        LDH & 将指令携带的立即数载入目标寄存器的第31到第20比特\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}
+    \centering
+    \caption[A类指令的操作码及其含义]{A类指令的操作码及其含义\label{tb:a_instructions}}
+    \begin{tabular}{C{1.3cm}|L{7.5cm}|C{1cm}|C{1cm}|C{2cm}}
+        \toprule
+        操作码 & 指令含义 & 操作数0取反 & 操作数1取反 & 结果取反 \\
+        \hline
+        \midrule
+        ADD & 算术相加 RD = R0 + R1 & 数值反号 & 数值反号 & 数值反号 \\
+        \hline
+        AND & 按位逻辑与 RD = R0 \& R1 & 按位取反 & 按位取反 & 按位取反 \\
+        \hline
+        XOR & 按位逻辑或RD = R0 \| R1 & 按位取反 & 按位取反 & 按位取反 \\
+        \hline
+        CLU & 无符号小于，R0、R1视为无符号数，若R0 < R1则RD = 0xFFFFFFFF，否则RD = 0 & 数值反号 & 数值反号 & 按位取反 \\
+        \hline
+        CLS & 有符号小于，R0、R1视为有符号数，若R0 < R1则RD = 0xFFFFFFFF，否则RD = 0 & 数值反号 & 数值反号 & 按位取反 \\
+        \hline
+        CEQ & 等于，若R0 == R1则RD = 0xFFFFFFFF，否则RD = 0 & 数值反号 & 数值反号 & 按位取反 \\
+        \hline
+        SGN & 符号相乘，RD = R0 * sign(R1) & 数值反号 & 数值反号 & 不支持 \\
+        \hline
+        SNE & 条件赋值，当R1 < 0时RD = R0，否则RD不变 & 按位取反 & 数值反号 & 赋值条件改为R1 ≥ 0 \\
+        \hline
+        SMK & 掩码赋值，R1[i]为1时RD[i] = R0[i] ，否则RD[i]不变，Rx[i]代表Rx的第i比特 & 按位取反 & 按位取反 & 不支持 \\
+        \hline
+        MOV & 赋值，RD = R1 & 无R0 & 按位取反 & 运算结果+1\\
+        \hline
+        SLL & 逻辑左移，RD = R0 << R1[4:0]，R1[4:0]代表R1的最低5比特，若R1 < 0 则为右移，左移时最低位填充R0的最低位，右移时最高位填充0； & 按位取反 & 数值反号 & 右移时最高位填充1 \\
+        \hline
+        SLA & 算术左移，RD = R0 << R1[4:0]，若R1 < 0 则为右移，左移时最低位填充0，右移时最高位填充R0的最高位； & 按位取反 & 数值反号 & 左移时最低位填充1 \\
+        \hline
+        SLC & 循环左移，RD = R0 << R1[4:0]，若R1 < 0 则为右移，移出端移出的比特填充到移入端；& 按位取反 & 数值反号 & 移出的比特按位取反后再填充 \\
+        \hline
+        REV & 反序，RD[i] = R0[31-i]，将R0的二进制位顺序反向，将结果写入RD & 按位取反 & 无R1 & 不支持 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}
+    \centering
+    \caption[指令集的指令编码方案]{指令集的指令编码方案\label{tb:instructions_code}}
+    \begin{tabular}{C{1cm}|C{1.5cm}|C{1.5cm}|C{2cm}|C{1cm}|C{5cm}}
+    % \begin{tabular}{|c|c|c|c|c|c|}
+        \toprule
+         比特 & LDL & LDH & MOV & REV & 其它A类指令 \\
+        \midrule
+        31      & 1 & 1 & \multicolumn{3}{|c}{0} \\
+        \hline
+        30      & 1 & 0 & \multicolumn{3}{|c}{目标寄存器RD取反标记，为1则取反} \\
+        \hline
+        29      & \multicolumn{5}{|c}{挂起标记，为1则当前指令使得微处理器进入挂起状态} \\
+        \hline
+        28      & \multicolumn{5}{|c}{跳转标记，为1则微处理器清空从指令缓存取指的流水线} \\
+        \hline
+        27-24   & 立即数19-16位 & 0 & \multicolumn{3}{|c}{操作码} \\
+        \hline
+        23-16   & \multicolumn{5}{|c}{RD的地址} \\
+        \hline
+        15      & \multicolumn{2}{|c|}{立即数15位}  & 1 & 0 & 操作数R0立即数标记，为1表示R0为立即数 \\
+        \hline
+        14      & \multicolumn{2}{|c|}{立即数14位}  & 0 & 1 & R1立即数标记，为1表示R1为立即数 \\
+        \hline
+        13      & \multicolumn{2}{|c|}{立即数13位}   & 0 & \multicolumn{2}{|C{6cm}}{若R0为寄存器，则为取反标记，为1则取反；若R0为立即数，则为R0的第6位} \\
+        \hline
+        12      & \multicolumn{2}{|c|}{立即数12位}   & 操作数1取反标记，为1则取反 & 0 & 若R1为寄存器，则为取反标记；若R1为立即数，则为R1的第6位 \\
+        \hline
+        11-8    & \multicolumn{2}{|c|}{立即数11-8位}   & 0 & R0的地址 & 若R0为寄存器，则为其地址；若R0为立即数，则为其5-0位 \\
+        \hline
+        7-6     & \multicolumn{2}{|c|}{立即数7-6位}   & R1地址 & 0 & 若R0为寄存器，则为其地址；若R0为立即数，则为其5-0位\\
+        \hline
+        5-0     & \multicolumn{2}{|c|}{立即数5-0位}   & R1地址 & 0 & 若R1为寄存器，则为其地址；若R1为立即数，则为其5-0位 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+本文涉及的RTMQ为32位系统，其寄存器的位宽为32位，因此相应指令集的指令编码长度也为32位。指令集的指令编码方案如表\ref{tb:instructions_code}所示，大体有五类情况：LDL、LDH、MOV、REV及其它A类指令。几类情况的共同点为[29-28]位分别为挂起和跳转标志位以及[23-16]位为RD地址，其余各位的编码根据具体的操作而有所不同。
+其中，LDL和LDH为I类指令，两者的区别主要在于载入立即数位数的不同。其中LDL会将指令携带的立即数载入目标寄存器的第19到第0比特（20位），而LDH会将指令携带的立即数载入目标寄存器的第31到第20比特（12）位。在A类指令编码中有两个特殊的指令MOV和REV，与其余A类指令每次同时操作R0和R1两个操作数不同，这两个指令操作对象仅为一个操作数（R0或R1）。
+
+第\ref{section:rtmq_structure}节中提出的RTMQ微系统架构中包含响应指令集相关操作的寄存器的读、写访问的功能逻辑模块。当RTMQ中某一寄存器作为A类指令的操作数被读取时，与其关联的上述功能逻辑模块执行响应读取访问的逻辑功能。当某一寄存器作为A类指令或I类指令中的LDL指令的目标寄存器被写入时，与其关联的上述功能逻辑模块执行响应写入访问的逻辑功能。
+
+如第\ref{section:rtmq_inner_module}节所述，在RTMQ微系统架构中也包含与寄存器TIM关联的计时器模块与指令集相配合。具体来说，当TIM寄存器被写入时，计时器模块激活倒计时，倒计时的起始时间计数为TIM寄存器的写入值；每个系统时钟周期时间计数减1，直到为0时停止倒计时；倒计时结束时，若该微系统架构中的微处理器处于挂起状态，则解除该挂起状态。
+此外，RTMQ中包含别名为NUL、地址为0的寄存器，定义为空寄存器，对空寄存器的写入操作不产生任何效果，而其读取值恒为0。空指令“NOP H F”定义为“ADD H F NUL NUL NUL”，挂起标记H和跳转标记F可根据需要设定，除此之外空指令不产生任何其它效果。
+
+\subsection[时序控制结构：计时任务块与非计时任务块]{实例：计时任务块与非计时任务块}
+
+基于第\ref{section:rtmq_instruction_set}节中所述的指令集和RTMQ计时器模块的逻辑功能，可以定义结合精确时序控制和通用计算的程序结构，称为计时任务块，其两种等价结构如表\ref{tb:timed_program1}和表\ref{tb:timed_program2}所示。在实际实验应用中会存在与所述计时任务块在功能上等价的其它程序结构，包括但不限于将挂起标记H向上一条指令或下一条指令移动、利用其它指令写入TIM寄存器等等情况。
+
+\begin{table}
+    \centering
+    \caption[计时任务块结构]{计时任务块结构\label{tb:timed_program1}}
+    \begin{tabular}{C{7cm}|C{7cm}}
+        \toprule
+        若T为寄存器 & 若T为立即数 \\
+        \midrule
+        NOP - -& LDH - - TIM T \\
+        MOV - - TIM T & LDL - - TIM T \\
+        \dots  & \dots \\
+        （一条或多条其它指令） & （一条或多条其它指令） \\
+        NOP H - & NOP H -\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}
+    \centering
+    \caption[计时任务块另一等价结构]{计时任务块另一等价结构\label{tb:timed_program2}}
+    \begin{tabular}{C{7cm}|C{7cm}}
+        \toprule
+        若T为寄存器 & 若T为立即数 \\
+        \midrule
+        NOP H -& NOP H -\\
+        NOP - -& LDH - - TIM T\\
+        MOV - - TIM T & LDL - - TIM T\\
+        \dots  & \dots \\
+        （一条或多条其它指令） & （一条或多条其它指令）\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+若在程序中有大计算量的通用计算存在或有等待外触发等执行时间可能不确定的需求，可定义非计时任务块结构，其结构如表\ref{tb:untimed_program}所示。在实际实验应用中也会存在与“MOV - - TIM NUL”等价的其它激活计时器的短时间倒计时的方式，包括但不限于使用“ADD - - TIM NUL NUL”、“LDL - - TIM 0”等功能上等价的指令以及对初始时间计数的调整。
+
+\begin{table}
+    \centering
+    \caption[非计时任务块结构]{非计时任务块结构\label{tb:untimed_program}}
+    \begin{tabular}{C{14cm}}
+        \toprule
+        NOP H -\\
+        （一条或多条其它指令）\\
+        MOV - - TIM NUL \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+
+
+
+
+
+
+
+
+
+
+% ============================================================================
+% ============================================================================
+% =======================RTMQ System Peripheral===============================
+% ============================================================================
+% ============================================================================
+% \section[RTMQ系统外设及其FPGA实现]{RTMQ系统外设及其FPGA实现}
+% \subsection[指令缓存、数据缓存、节点信息只读储存器及其FPGA实现]{指令缓存、数据缓存、节点信息只读储存器及其FPGA实现}
+
+% \subsection[地址栈模块及其FPGA实现]{地址栈模块及其FPGA实现}
+
+% \subsection[数据栈模块及其FPGA实现]{数据栈模块及其FPGA实现}
+
+% \subsection[内存模块及其FPGA实现]{内存模块及其FPGA实现}
+
+
+% ============================================================================
+% ============================================================================
+% ======================RTMQ External Peripheral==============================
+% ============================================================================
+% ============================================================================
+
+
+\section[RTMQ重要功能外设及其FPGA实现]{RTMQ功能外设及其FPGA实现}
+
+% ============================================================================
+% =======================       UART模块       ===============================
+% ============================================================================
+\subsection[UART/ExtUART模块及其FPGA实现]{ExtUART模块及其FPGA实现}
+如图\ref{fig:rtmq_uart}所示，如表\ref{tb:rtmq_uart}所示。
+
+
+\begin{table}
+    \centering
+    \caption[RTMQ系统外设UART模块端口定义]{RTMQ系统外设UART模块端口定义\label{tb:rtmq_uart}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        alu\_out[128:0] &  & cfg\_ins[31:0] &  \\
+        clk &  & f\_cfg &  \\
+        uart\_rx &  & f\_tx\_done &  \\
+        & & uart\_tx & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}
+    \centering
+    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图\label{fig:rtmq_uart}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_uart}
+\end{figure}
+
+
+
+
+
+% ============================================================================
+% =======================        SPI模块       ===============================
+% ============================================================================
+\subsection[SPI模块及其FPGA实现]{SPI模块及其FPGA实现}
+如图\ref{fig:rtmq_spi}所示，如表\ref{tb:rtmq_spi}所示。
+
+
+\begin{table}
+    \centering
+    \caption[RTMQ系统外设SPI模块端口定义]{RTMQ系统外设SPI模块端口定义\label{tb:rtmq_spi}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        alu\_out[128:0] &  & csb &  \\
+        clk &  & f\_spi\_done &  \\
+        miso &  & mosi &  \\
+        & & reg\_sctl[31:0] & \\
+        & & reg\_sdat[31:0] & \\
+        & & sclk & \\
+        & & slv\_adr[2:0] & \\
+
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}
+    \centering
+    \caption[RTMQ功能外设SPI模块的FPGA实现结构图]{RTMQ功能外设SPI模块的FPGA实现结构图\label{fig:rtmq_spi}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_spi}
+\end{figure}
+
+
+
+
+% ============================================================================
+% =======================    AD9910管理模块     ===============================
+% ============================================================================
+\subsection[AD9910芯片管理模块及其FPGA实现]{AD9910芯片管理模块及其FPGA实现}
+如图\ref{fig:rtmq_ad9910}所示，如表\ref{tb:rtmq_ad9910}所示。
+
+
+\begin{table}
+    \centering
+    \caption[RTMQ系统外设AD9910芯片管理模块端口定义]{RTMQ系统外设AD9910芯片管理模块端口定义\label{tb:rtmq_ad9910}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        alu\_out[128:0] &  & io\_rst &  \\
+        cdds[12:0] &  & io\_upd &  \\
+        clk &  & m\_rst &  \\
+        pda\_clk &  & pdat[15:0] &  \\
+        syn\_clk & & pf[1:0] & \\
+        & & reg\_cmn[31:0] & \\
+        & & tx\_en & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+\begin{figure}
+    \centering
+    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图\label{fig:rtmq_ad9910}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_ad9910}
+\end{figure}
+
+
+
+
+
+% ============================================================================
+% =======================      ADC管理模块      ===============================
+% ============================================================================
+\subsection[ADC芯片管理模块及其FPGA实现]{ADC芯片管理模块及其FPGA实现}
+如图\ref{fig:rtmq_adc}所示，如表\ref{tb:rtmq_adc}所示。
+
+
+\begin{table}
+    \centering
+    \caption[RTMQ系统外设AD9910芯片管理模块端口定义]{RTMQ系统外设AD9910芯片管理模块端口定义\label{tb:rtmq_adc}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        adc\_in[15:0] &  & reg\_aio[15:0] &  \\
+        adc\_smp &  &  &  \\
+        clk &  &  &  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+
+
+\begin{figure}
+    \centering
+    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图\label{fig:rtmq_adc}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_adc}
+\end{figure}
+
+% \subsection[随机数发生器模块及其FPGA实现]{随机数发生器模块及其FPGA实现}
+% ============================================================================
+% =======================     通用寄存器模块    ===============================
+% ============================================================================
+\subsection[通用寄存器模块及其FPGA实现]{通用寄存器模块及其FPGA实现}
+如图\ref{fig:rtmq_universal_register}所示，如表\ref{tb:rtmq_universal_register}所示。
+
+\begin{table}
+    \centering
+    \caption[RTMQ系统外设通用寄存器模块端口定义]{RTMQ系统外设通用寄存器模块端口定义\label{tb:rtmq_universal_register}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        alu\_out[128:0] &  & f\_trg &  \\
+        clk &  & reg\_out[31:0] &  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+\begin{figure}
+    \centering
+    \caption[RTMQ用寄存器模块的FPGA实现结构图]{RTMQ用寄存器模块的FPGA实现结构图\label{fig:rtmq_universal_register}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_universal_register}
+\end{figure}
+
+
+
+
+% ============================================================================
+% =======================      高速数字PID      ===============================
+% ============================================================================
+
+\subsection[高速通用数字PID及其FPGA实现]{高速通用数字PID及其FPGA实现\label{section:digital_pid}}
 % \textcolor{red}{
 % 1. 介绍数字PID功能、逻辑图、Vivado中的实现、优势；}
 当前量子计算系统中大量采用PID控制器进行诸如激光功率稳定、激光相位稳定、激光拍频锁定等等控制系统的构建，常用的器件有如LB1005模拟伺服控制器。这类模拟控制器的确定在于稳定性较差且价格昂贵，此外它的集成度也比较差，往往需要占用较大的实验平台面积。除此之外这类模拟PID控制器往往采用机械旋钮进行参数调节，不利于进行实验系统的集成化和自动化。与之相比较，使用融合了高速通用数字PID的RTMQ测控系统可以同时完成对实验序列的操控和对设备关键参数的伺服控制。除此之外，采用也对系统完成了集成化和数字化，提高了系统的稳定性和易用性。
 
-\subsection[数字PID]{数字PID}
+\subsubsection[数字PID]{数字PID}
 数字PID控制器是一种常用的自动控制算法，用于实现对系统的闭环控制。PID控制器通过对系统的误差进行比例（Proportional）、积分（Integral）和微分（Derivative）计算，生成控制信号来调整系统的输出，以达到期望的控制效果。在量子测控系统中很多地方都需要用到闭环控制，比如激光的功率稳定、激光的波长稳定、离子阱频率稳定等。相对于模拟PID控制器，数字PID控制器具有结构简单、易于实现、控制灵活、工作稳定等优点，是RTMQ系统中的重要组成部分。
 
 PID 控制器的数学表达式可以表示为：
@@ -118,7 +664,7 @@ PID控制器的实现可以分为模拟PID和数字PID两种方式。模拟PID�
 
 在数字PID控制器的实现中，需要对积分和微分操作进行离散化处理。常用的离散化方法有矩形法和梯形法。矩形法将积分区间划分为若干个相等的子区间，每个子区间的积分值近似为矩形的面积；梯形法将积分区间划分为若干个相等的子区间，每个子区间的积分值近似为梯形的面积。这一步骤在嵌入式系统中通常使用模拟数字转换（ADC）芯片来完成。
 
-\subsection[数字PID的增量表达式]{数字PID的增量表达式}
+\subsubsection[数字PID的增量表达式]{数字PID的增量表达式}
 硬件资源在FPGA中是十分宝贵的资源，而乘法器这样的器件往往会占用大量的硬件资源。因此在满足时序要求的情况下我们希望能够尽量减少乘法器的使用，PID的增量表达式就是一种可以有效减少PID硬件电路实现过程中乘法器需求个数的方式，下面将介绍这种方法。
 
 \begin{figure}
@@ -147,16 +693,41 @@ PID控制器的实现可以分为模拟PID和数字PID两种方式。模拟PID�
 
 按照上述式\eqref{eq:increment_pid}表示的增量式算法，数字PID实现的结构示意图如图\ref{fig:digital_pid_structure_16bits_s}所示。接口主要有参考$ref$、参数$k_0, k_1, k_2$等可配置输入，反馈信号$y_t$等系统回路输入，以及$u_t$等系统控制输出。用到的器件包括加法器/减法器（图示中红、橙色模块）、乘法器（图示中蓝色模块）、寄存器（图示中靛色模块）。
 
-\subsection[高速通用数字PID的FPGA实现]{高速通用数字PID的FPGA实现}
+\subsubsection[高速通用数字PID的FPGA实现]{高速通用数字PID的FPGA实现}
 
 % 增量式PID最终在FPGA中实现的结构图如图\ref{fig:digital_pid_structure_16bits}所示。
 
-根据图\ref{fig:digital_pid_structure_16bits_s}所示的结构，可以在FPGA中实现硬件的PID。其中主要涉及到的数字加法器、数字乘法器，分别采用的是超前进位加法器和Booth乘法器。对于高速时序电路，尤其是要满足与RTMQ的实时性匹配等相关需求，在开发过程中需要注意流水线的设置和对齐，最终的实现硬件框图如图\ref{fig:digital_pid_structure_16bits}所示，其硬件输出测试和仿真对比如\ref{fig:pid_compare}图所示。从图\ref{fig:pid_compare}中可见，在Vivado中实现的高速PID硬件电路在$k_i=1, k_d=1$的情况下经过大概1000ns后即可以将系统的输出稳定在参考值1000附近，与直接使用MATLAB进行数字PID仿真输出结果一致。
+根据图\ref{fig:digital_pid_structure_16bits_s}所示的结构，可以在FPGA中实现硬件的PID。
+其中主要涉及到的数字加法器、数字乘法器，分别采用的是超前进位加法器和Booth乘法器。对于高速时序电路，尤其是要满足与RTMQ的实时性匹配等相关需求，在开发过程中需要注意流水线的设置和对齐，最终的实现硬件框图如图\ref{fig:digital_pid_structure_16bits}所示，模块端口定义如表\ref{tb:rtmq_pid}所示。其硬件输出测试和仿真对比如\ref{fig:pid_compare}图所示。从图\ref{fig:pid_compare}中可见，在Vivado中实现的高速PID硬件电路在$k_i=1, k_d=1$的情况下经过大概1000ns后即可以将系统的输出稳定在参考值1000附近，与直接使用MATLAB进行数字PID仿真输出结果一致。
+
+\begin{table}
+    \centering
+    \caption[RTMQ系统外设高速通用PID模块端口定义]{RTMQ系统外设高速通用PID模块端口定义\label{tb:rtmq_pid}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        i\_clkp &  & o\_ut[31:0] &  \\
+        i\_k0[15:0] &  &  &  \\
+        i\_k1[15:0] &  &  &  \\
+        i\_k2[15:0] &  &  &  \\
+        i\_max[31:0] & &  & \\
+        i\_min[31:0] & &  & \\
+        i\_rstn & &  & \\
+        i\_rt[15:0] & &  & \\
+        i\_shift[4:0] & &  & \\
+        i\_yt[15:0] & &  & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
 
 \begin{figure}
     \centering
     \caption[16位数字PID的FPGA实现结构图]{16位数字PID的FPGA实现结构图上\label{fig:digital_pid_structure_16bits}}
-    \includegraphics[width=1.0\linewidth]{rtmq/digital_pid_structure_16bits}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_pid}
 \end{figure}
 
 \begin{figure}
@@ -172,24 +743,16 @@ PID控制器的实现可以分为模拟PID和数字PID两种方式。模拟PID�
 
 
 
-
-% ============================================================================
 % ============================================================================
 % =======================     高速数字滤波器    ===============================
 % ============================================================================
-% ============================================================================
-\section[基于FPGA的高速通用数字滤波器]{基于FPGA的高速通用数字滤波器\label{section:digital_iir}}
+\subsection[高速通用数字滤波器及其FPGA实现]{高速通用数字滤波器及其FPGA实现\label{section:digital_iir}}
 
 在量子计算的实现过程中，对于噪声的抗争从未停止。而对抗噪声的一种十分有效的方式就是使用各种各样的滤波器来对信号进行过滤以提高有用信号的质量。本质来讲，滤波器是一种选频装置，可以使信号中特定的频率成分通过，而极大地衰减其它频率成分。利用滤波器的这种选频作用，可以滤除干扰噪声或进行频谱分析。
 当前实验系统中广泛出现滤波器为模拟滤波器，但是随着量子测控系统的数字化集成化进行逐步加深，在很多内部信号的处理上也有相当多的滤波需求，比如消除ADC芯片采样的噪声等。我们特别地在RTMQ系统板卡上实现了相匹配的高速通用数字滤波器，来进一步实现对量子物理实验系统信号的控制和优化。
 
 
-% \subsection[数字滤波器]{数字滤波器}
-% \textcolor{red}{
-% 1. 介绍数字滤波器功能、种类、基本原理，比如有限冲激响应滤波器、无限冲激响应滤波器等等；}
-
-
-\subsection[无限冲激响应滤波器IIR]{无限冲激响应滤波器IIR}
+\subsubsection[无限冲激响应滤波器IIR]{无限冲激响应滤波器IIR}
 数字滤波器的基本原理是利用离散系统的特性对输入信号进行加工和处理，改变输入信号的频率特性，从而达到选频、提高信噪比、消除干扰等目的。数字滤波器一般由延迟单元、加法器、乘法器、寄存器等基本运算单元组成。不同类型的数字滤波器有不同的实现方法和应用领域。在通信、语音处理、图像处理、信号处理等领域，数字滤波器都有着广泛的应用。整个离子阱系统中很多模块都有滤波器的需求以获取更高质量的信号来控制量子比特。为此，整个RTMQ系统中需要实现数字滤波器以供系统设计和实现使用。
 
 有限冲击响应滤波器（FIR滤波器）的冲激响应在有限时间内衰减为零，其输出仅取决于当前和过去的输入信号值。FIR滤波器在保证幅度特性的同时，很容易做到严格的线性相位特性。无限冲击响应滤波器（IIR滤波器）的冲激响应理论上应会无限持续，其输出不仅取决于当前和过去的输入信号值，也取决于过去的信号输出值。
@@ -213,20 +776,40 @@ IIR滤波器的冲激响应理论上应会无限持续，其输出不仅取决�
 \end{figure}
 
 
-\subsection[高速通用数字IIR滤波器的FPGA实现]{数字IIR滤波器的FPGA实现}
+\subsubsection[高速通用数字IIR滤波器的FPGA实现]{数字IIR滤波器的FPGA实现}
 
-根据图\ref{fig:iir_filter_s}给出的结构图和公式\eqref{eq:iir_filter}，可以将其在FPGA中进行实现和验证。数字IIR滤波器在FPGA中的实现结果的结构图如图\ref{fig:iir_filter_vivado}所示，整体结构中超如了若干的流水线用于对齐$x(n)$和$y(n)$的时序。除此之外，流水线也被用于满足电路的时延要求。需要注意的是，由于上一时刻的输出结果$y(n-1)$需要参与到下一时刻的输出结果的计算中，因此从计算结果到迭代反馈之间仅能有一级流水线存在，否则输出结果就会出错。也即从乘法器输入到乘法器输出，以及加法器输入到加法器输出并反馈到乘法器输入这个回路中只能存在一级流水线。正因此，这个IIR滤波器无法工作在较高的频率上，需要在板上额外配置工作频率，该32位通用IIR滤波器设计在FPGA板上的工作频率为25MHz。
+根据图\ref{fig:iir_filter_s}给出的结构图和公式\eqref{eq:iir_filter}，可以将其在FPGA中进行实现和验证。数字IIR滤波器在FPGA中的实现结果的结构图如图\ref{fig:iir_filter_vivado}所示，其模块端口定义如表\ref{tb:rtmq_iir_filter}所示。整体结构中插入了若干的流水线用于对齐$x(n)$和$y(n)$的时序。除此之外，流水线也被用于满足电路的时延要求。需要注意的是，由于上一时刻的输出结果$y(n-1)$需要参与到下一时刻的输出结果的计算中，因此从计算结果到迭代反馈之间仅能有一级流水线存在，否则输出结果就会出错。也即从乘法器输入到乘法器输出，以及加法器输入到加法器输出并反馈到乘法器输入这个回路中只能存在一级流水线。正因此，这个IIR滤波器无法工作在较高的频率上，需要在板上额外配置工作频率，该32位通用IIR滤波器设计在FPGA板上的工作频率为25MHz。
+
+
+\begin{table}
+    \centering
+    \caption[RTMQ系统外设高速通用PID模块端口定义]{RTMQ系统外设高速通用PID模块端口定义\label{tb:rtmq_iir_filter}}    
+    \begin{tabular}{L{3cm}L{3.5cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        i\_clkp &  & o\_filter[31:0] &  \\
+        i\_factor\_a[15:0] &  &  &  \\
+        i\_factor\_b[15:0] &  &  &  \\
+        i\_filter[15:0] &  &  &  \\
+        i\_rstn & &  & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
 
 \begin{figure}
     \centering
     \caption[IIR滤波器实现结果的结构图]{IIR滤波器实现结果的结构图（Vivado）\label{fig:iir_filter_vivado}}
-    \includegraphics[width=1.0\linewidth]{rtmq/iir_filter_vivado}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_iir_filter}
 \end{figure}
 
 
 
 
-\subsection[滤波器形状测量]{滤波器形状测量}
+\subsubsection[滤波器形状测量]{滤波器形状测量}
 数字滤波器的形状设计可以采用MATLAB中的滤波器设计器来完成。在量子计算的试验系统中常常要应对的是高频信号噪声，低通滤波器是十分常见的需求，因此下面以低通滤波器为例进行说明。如图\ref{fig:filter_design_real1}，通过MATLAB设计了一个截止频率在100kHz附近的巴特沃斯型迭代滤波器，结果为一个3阶的迭代滤波器，参数为：$a_0=16777216;
 a_1=-33470572;
 a_2=16693565;
@@ -256,3 +839,5 @@ b_3=0$。可以看到设计的理论截止频率（100kHz）和数字滤波器�
 %     \caption[IIR滤波器设计仿真和不同参数下测试结果]{IIR滤波器设计仿真和不同参数下测试结果\label{fig:iir_filter_shape}}
 %     \includegraphics[width=1.0\linewidth]{rtmq/iir_filter_shape}
 % \end{figure}
+
+\section[章末小结]{章末小结}

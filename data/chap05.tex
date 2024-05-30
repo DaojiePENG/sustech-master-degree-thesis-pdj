@@ -180,7 +180,7 @@ K. G. Johnson等人\cite[]{Johnson_Wong_Campos_Restelli_Landsman_Neyenhuis_Mizra
 \section[基于RTMQ的脉冲激光拍频稳定]{基于RTMQ的脉冲激光拍频稳定\label{section:pulsed_laser_locking}}
 
 % \textcolor{red}{这部分叙述主要参考文献\cite[]{Islam_Campbell_Choi_Clark_Conover_Debnath_Edwards_Fields_Hayes_Hucul_et_al_2014}}
-量子信息通常会被编码在量子系统的不同能级结构中，比如第\ref{section:yb_computation}节中介绍的镱离子的内能级。这些能级能量差一般在微波或者光学波段，其量子比特状态通常可以用外部场操纵，例如微波或光场。在能级与外部场的耦合下，可以驱动量子状态发生改变，也即实现\emph{量子比特操控}。锁模（脉冲）激光器是可以实现此目的的通用仪器，其宽带光谱同时具有射频(RF)和微波结构。这种激光器已被用于控制原子\cite[]{Hayes_Matsukevich_Maunz_Hucul_Quraishi_Olmschenk_Campbell_Mizrahi_Senko_Monroe_2010}、分子\cite[]{Peer_Shapiro_Stowe_Shapiro_Ye_2007}和固态量子系统\cite[]{Greve_Press_McMahon_Yamamoto_2013}。本节中，我将介绍一种简单的技术来稳定这些光源的拍频，以便操作和控制通用量子比特系统\cite[]{ladd2010quantum}。
+量子信息通常会被编码在量子系统的不同能级结构中，比如第\ref{section:yb_computation}节中介绍的镱离子的内能级。这些能级能量差一般在微波或者光学波段，其量子比特状态通常可以用外部场操纵，例如微波或光场。在能级与外部场的耦合下，可以驱动量子状态发生改变，也即实现\emph{量子比特操控}。锁模（脉冲）激光器是可以实现此目的的通用仪器，其宽带光谱同时具有射频(RF)和微波结构。这种激光器已被用于控制原子\cite[]{Hayes_Matsukevich_Maunz_Hucul_Quraishi_Olmschenk_Campbell_Mizrahi_Senko_Monroe_2010}、分子\cite[]{Peer_Shapiro_Stowe_Shapiro_Ye_2007}和固态量子系统\cite[]{Greve_Press_McMahon_Yamamoto_2013}。本节将介绍一种基于RTMQ量子测控系统的简单技术来稳定这些光源的拍频，以便操作和控制通用量子比特系统\cite[]{ladd2010quantum}。
 
 \subsection[脉冲激光拍频稳定原理]{脉冲激光拍频稳定原理}
 
@@ -437,6 +437,7 @@ DDS数字对应的\emph{频率步长}为$f_{resolution}=\frac{400\textnormal{MHz
 
 从图\ref{fig:beat_note_lockable_range_bits}中可见在移位0-6之间时基本符合可锁频率幅度岁位移数依次增大2倍这个规律，而到6之后可锁频率幅度便基本保持稳定了。从中可以得出在当前配置下，整个系统的最大可锁频率幅度约为450kHz。这个数值的限制因素主要可能有两个原因：1. 频率调制分辨率过低，导致无法稳定到目标频率上；2. 数字PID带宽影响；3. 系统中存在限制带宽的器件。联系到为了提升调制品质和减少噪声影响，我们的数字系统在PID前添加了一个数字低通滤波器，它的带宽约为450kHz。因此该数字低通滤波器应该是这个结果的主要影响因素。不过由于450kHz的可锁频率范围完全够用了，可以不用再这方面进行进一步优化。如果需要更宽的可锁频率范围，可以通过重新设计该数字低通滤波器的形状和带宽来方便地实现。
 
+\section[章末小结]{章末小结}
 
 
 
