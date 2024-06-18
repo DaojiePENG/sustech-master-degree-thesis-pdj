@@ -116,7 +116,9 @@ RTMQ测控板实物图如图\ref{fig:rtmq_board_real}所示。RTMQ体系的构�
 \section[RTMQ核心模块及其FPGA实现]{RTMQ核心模块及其FPGA实现}
 % 在下面几小节中，我将介绍一些基本运算及外设模块的实现和使用。
 
-如图\ref{fig:rtmq_core}所示，RTMQ的核心主要由三部分组成：流控制器、计时器、算术逻辑单元。它的输入及输出端口定义如表\ref{tb:rtmq_core}所示。\textcolor{green}{具体内容描述待补充。}
+RTMQ核心模块是一个专为实时量子计算设计的一个微处理器，具备完成强实时的数据处理能力，它在整个RTMQ测控系统重占据着十分核心的位置。如图\ref{fig:rtmq_core}所示，RTMQ的核心主要由三部分组成：流控制器、计时器、算术逻辑单元，它的输入及输出端口定义如表\ref{tb:rtmq_core}所示。本小节接下来的内容将介绍组成RTMQ核心模块的三个重要子模块流控制器、计时器、算术逻辑单元的逻辑功能和在Vivado中的FPGA实现。
+
+% \textcolor{green}{具体内容描述待补充。}
 
 \begin{table}
     \centering
@@ -129,7 +131,7 @@ RTMQ测控板实物图如图\ref{fig:rtmq_board_real}所示。RTMQ体系的构�
         \hline
         cfg\_ins[31:0]  & 配置指令 & alu\_out[128:0] & 算术逻辑单元结果 \\
         clk             & 系统时钟 & f\_ftc & IF流水线获取标志 \\
-        f\_cfg          & 配置覆盖标志 & f\_hld & 核心HOLD状态标志 \\
+        f\_cfg          & 配置指令覆盖标志 & f\_hld & 核心HOLD状态标志 \\
         f\_rsm          & 外部恢复标志 & if\_adr[31:0] & IF地址 \\
         if\_ins[31:0]   & IF输入 &  &  \\
         regfile[8191:0] & 寄存器文件 &  &  \\
@@ -146,79 +148,20 @@ RTMQ测控板实物图如图\ref{fig:rtmq_board_real}所示。RTMQ体系的构�
 
 
 
+\subsection[算术逻辑单元模块及其FPGA实现]{算术逻辑单元模块及其FPGA实现\label{section:rtmq_core_alu}}
 
+算数逻辑单元模块式RTMQ微处理器核心的关键组成部分，它能够解析当前的输入指令进行运算处理并输出运算结果。如第\ref{section:rtmq_instruction_set}节所述，RTMQ算术逻辑单元的指令有两种，分别是A类指令和I类指令，两类指令的操作码及其含义分别如表\ref{tb:a_instructions}和表\ref{tb:i_instructions}所示，编码方案如表\ref{tb:instructions_code}所示。
 
+该模块通过四级流水线处理了指令所要求的操作，将结果写入目的寄存器中同时给出一些辅助作用信号。
+在第一级流水线中，对根据输入的regfile生成片选器选出R0和R1指向的操作数寄存器的数据用于后续的数据处理，同时将R0和R1的地址提取出来给出输出：alu\_r0a、alu\_r1a；如果是A类指令，则将R0和R1指向的操作数寄存器的数据片选结果保存到下级流水线使用；如果是I类指令，则不做特别操作。
+在第二级流水线中，对R0和R1的数据根据不同的指令内容进行算术运算和逻辑运算的判断给出后续要执行的具体运算操作指示。
+在第三级流水线中，根据不同指令情况进行运算，如算术比较、逻辑左右移位、算术左右移位、比特级翻转等，给出输出一些运算中间结果输出等待后续选用，同时给出目的寄存器地址输出：alu\_rda。
+在第四级流水线中，根据A类或I类指令的具体需求给出相应的运算结果；对于A类指令给出模块运算结果和结果的掩码：alu\_res，alu\_msk；对于I类指令给出立即数的目的寄存器地址和操作目标段：imm\_rda、imm\_seg，并直接使用指令中的数据给出imm\_res。最终的算数逻辑单元模块输出结构alu\_out为：\{alu\_res, alu\_msk, alu\_rda, alu\_r0a, alu\_r1a,
+imm\_res, imm\_rda, imm\_seg\}。
 
-\subsection[流控制器模块及其FPGA实现]{流控制模块及其FPGA实现}
-如图\ref{fig:rtmq_flow_control}所示，如表\ref{tb:rtmq_flow_control}所示。\textcolor{green}{具体内容描述待补充。}
-\begin{table}
-    \centering
-    \caption[RTMQ核心流控制器模块端口定义]{RTMQ核心流控制器模块端口定义\label{tb:rtmq_flow_control}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        alu\_out[128:0] & 算术逻辑单元结果 & f\_ftc & IF流水线获取标志 \\
-        cfg\_ins[31:0]  & 配置指令 & f\_hld & HOLD状态标志 \\
-        clk             & 系统时钟 & if\_adr[31:0] & IF获取地址 \\
-        f\_cfg          & 配置覆盖标志 & instr[31:0] & 当前指令 \\
-        f\_rsm          & 外部恢复标志 & reg\_ptr[31:0] & 当前指令地址 \\
-        if\_ins[31:0]   & IF输入 &  &  \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+算数逻辑单元模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_alu}所示，其具体的接口定义如表\ref{tb:rtmq_alu}所示。
 
-\begin{figure}
-    \centering
-    \caption[RTMQ核心流控制器模块的FPGA实现结构图]{RTMQ核心流控制器模块的FPGA实现结构图\label{fig:rtmq_flow_control}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_flow_control}
-\end{figure}
-
-
-
-
-
-
-
-
-
-
-\subsection[计时器模块及其FPGA实现]{计时器模块及其FPGA实现}
-如图\ref{fig:rtmq_timer}所示，如表\ref{tb:rtmq_timer}所示。\textcolor{green}{具体内容描述待补充。}
-
-\begin{table}
-    \centering
-    \caption[RTMQ核心计时器模块端口定义]{RTMQ核心计时器模块端口定义\label{tb:rtmq_timer}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        alu\_out[128:0] & 算术逻辑单元结果 & f\_timeout& 计时结束标志，用于从HOLD状态恢复 \\
-        clk             & 系统时钟 & reg\_tim[31:0] & 墙时钟高段，指示从系统上电起的周期数 \\
-        f\_hld          & HOLD状态标志 & reg\_wck[31:0] & 墙时钟低段，指示从系统上电起的周期数 \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{figure}
-    \centering
-    \caption[RTMQ核心计时器模块的FPGA实现结构图]{RTMQ核心计时器模块的FPGA实现结构图\label{fig:rtmq_timer}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_timer}
-\end{figure}
-
-
-
-
-
-
-
-
-\subsection[算术逻辑单元模块及其FPGA实现]{算术逻辑单元模块及其FPGA实现}
-如图\ref{fig:rtmq_alu}所示，如表\ref{tb:rtmq_alu}所示。\textcolor{green}{具体内容描述待补充。}
+% \textcolor{green}{具体内容描述待补充。}
 
 
 \begin{table}
@@ -243,6 +186,94 @@ RTMQ测控板实物图如图\ref{fig:rtmq_board_real}所示。RTMQ体系的构�
     \caption[RTMQ核心算术逻辑单元模块的FPGA实现结构图]{RTMQ核心算术逻辑单元模块的FPGA实现结构图\label{fig:rtmq_alu}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_alu}
 \end{figure}
+
+
+
+
+\subsection[流控制器模块及其FPGA实现]{流控制模块及其FPGA实现}
+
+流控制器模块是确保RTMQ实时性的关键设计，也是其与经典CPU相比的不同所在。它接受ALU结果alu\_out、指令获取、外部恢复标志、配置指令及其覆盖标志等输入，给出regfile中的地址指针、获取指令地址、当前的指令内容、指令抓取标志、HOLD状态标志等输出。
+
+当配置指令覆盖标志、HOLD标志、指令中HOLD标志其中任何一个为“1”时，指令获取标志f\_ftc输出都为“0”（f\_nftc\_cmb为“1”）。
+在f\_ftc不为零的情况下刷新一次指令获取流水线，同时指令获取地址if\_adr默认自动+1，另外也可以使用I类或A类指令对if\_adr进行赋值操作以实现指令跳转功能，这里I类指令只能实现较短的指令跳转，更大范围的指令跳转需要使用A类指令。
+流控制器模块会根据不同情况选择输出不同的指令，共有四种情况：正常、配置、挂起、恢复。正常情况下输出的指令就是输入的指令，不做任何改变；如果进行了指令配置，那么输出的指令就是配置的指令内容；如果处于挂起状态，则输出指令为空；如果处于从HOLD状态中恢复的情况，则输出的指令为进入挂起状态前缓存的指令（进入HOLD状态时会对本应执行的指令进行缓存操作）。
+
+对于寄存器文件中的地址指针reg\_ptr，默认情况下指针缓存ptr\_buf保持不变；如果进行了刷新操作，则将当前指针地址reg\_ptr存入指针缓存中；如果是进入挂起状态下，则将当前指针保存在缓存中。
+默认会对指令地址进行3周期的缓存处理保存在ptr\_dly中，指针寄存器每次会读取ptr\_dly高位值，每访问一次就将高位的缓存指令推出，将新输入的指令推入低位；如果是刷新或挂起状态，则指针不变；如果是从挂起状态恢复，则指针重新恢复为挂起前的位置。
+
+通过上述的逻辑，流控制器可以根据情况实现对ALU模块指令的选择输出、挂起和恢复等操作，且保证了每一条指令的执行、跳转、恢复等具有明确的操作时钟周期，可以用来满足量子测控系统对实时性的要求。流控制器模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_flow_control}所示，其具体的接口定义如表\ref{tb:rtmq_flow_control}所示。
+
+% \textcolor{green}{具体内容描述待补充。}
+
+\begin{table}
+    \centering
+    \caption[RTMQ核心流控制器模块端口定义]{RTMQ核心流控制器模块端口定义\label{tb:rtmq_flow_control}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        alu\_out[128:0] & 算术逻辑单元结果 & f\_ftc & IF流水线获取标志 \\
+        cfg\_ins[31:0]  & 配置指令 & f\_hld & HOLD状态标志 \\
+        clk             & 系统时钟 & if\_adr[31:0] & IF获取地址 \\
+        f\_cfg          & 配置覆盖标志 & instr[31:0] & 当前指令内容 \\
+        f\_rsm          & 外部恢复标志 & reg\_ptr[31:0] & regfile中的地址指针 \\
+        if\_ins[31:0]   & IF输入 &  &  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}
+    \centering
+    \caption[RTMQ核心流控制器模块的FPGA实现结构图]{RTMQ核心流控制器模块的FPGA实现结构图\label{fig:rtmq_flow_control}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_flow_control}
+\end{figure}
+
+
+
+
+
+\subsection[计时器模块及其FPGA实现]{计时器模块及其FPGA实现}
+计时器模块主要用于为RTMQ核心提供时间参考，它的输入是ALU结果alu\_out和挂起状态标志f\_hold，输出是系统以系统周期为单位的上电时间周期数[reg\_tim（墙时钟高段）, reg\_wck（墙时钟低段）]和计时结束的恢复信号f\_timeout。
+其结构如图\ref{fig:rtmq_timer_structure}所示，。计时器模块会保存从测控板上电开始的系统时间周期数以供其它模块获取和参考。另外也可以通过alu\_out的内容使用I类或者A类指令进行倒计时配置，配置完成后就会自动开始倒计时，计时结束时会给出一个可用于系统状态恢复的信号f\_timeout。
+
+计时器模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_timer}所示，其具体的接口定义如表\ref{tb:rtmq_timer}所示。
+
+\begin{figure}
+    \centering
+    \caption[RTMQ核心计时器模块的FPGA实现框图]{RTMQ核心计时器模块的FPGA实现框图\label{fig:rtmq_timer_structure}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_timer_structure}
+\end{figure}
+
+\begin{table}
+    \centering
+    \caption[RTMQ核心计时器模块端口定义]{RTMQ核心计时器模块端口定义\label{tb:rtmq_timer}}    
+    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+        \toprule
+        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+        \midrule
+        Port & Define & Port & Define\\
+        \hline
+        alu\_out[128:0] & 算术逻辑单元结果 & f\_timeout& 计时结束标志，用于从HOLD状态恢复 \\
+        clk             & 系统时钟 & reg\_tim[31:0] & 墙时钟高段，指示从系统上电起的周期数 \\
+        f\_hld          & HOLD状态标志 & reg\_wck[31:0] & 墙时钟低段，指示从系统上电起的周期数 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}
+    \centering
+    \caption[RTMQ核心计时器模块的FPGA实现结构图]{RTMQ核心计时器模块的FPGA实现结构图（Vivado）。\label{fig:rtmq_timer}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_timer}
+\end{figure}
+
+
+
+
+
+
+
 
 
 
@@ -443,7 +474,7 @@ I类指令用于将立即数写入目标寄存器，仅使用1个立即数作为
 % ======================     RTMQ Link System   ==============================
 % ============================================================================
 % ============================================================================
-
+\newpage
 \section[RTMQ节点间的实时通信链路系统描述]{RTMQ节点间的实时通信链路系统描述}
 
 RTMQ实时量子测控系统架构具有强大的可拓展性，不同板卡节点之间可以实现完全的实时通信，这种通信的实现依赖于一种专门设计的链路系统。
@@ -706,7 +737,7 @@ RTMQ节点间的通信以帧为单位，帧包含魔术字、跳转数、帧类�
 % =======================   RTMQ Peripheral    ===============================
 % ============================================================================
 % ============================================================================
-RTMQ量子测控系统的整体构成不仅需要一个专为实时可拓展量子计算设计的微处理器核心，还需要其它功能性模块的参与。因此与RTMQ架构相配套的功能性模块的设计开发必不可少，其中比较重要的有通用寄存器模块、UART或SPI等通信模块、与外部芯片的管理模块、用于实验系统反馈控制的高速通用数字PID模块和高速通用数字IIR滤波器模块等，这些模块的设计和基于FPGA的实现将在本节接下来的几小节中进行介绍。
+RTMQ量子测控系统的整体构成不仅需要一个专为实时可拓展量子计算设计的微处理器核心，还需要其它功能性模块的参与。因此与RTMQ架构相配套的功能性模块的设计开发必不可少，其中比较重要的有通用寄存器模块、用于节点之间及与上位机通信的UART或SPI等通信模块、用于外部芯片的管理模块、用于实验系统反馈控制的高速通用数字PID模块和用于过滤噪声提高信号质量的高速通用数字IIR滤波器模块等，这些模块的设计和基于FPGA的实现将在本节接下来的几小节中进行介绍。
 
 % \subsection[RTMQ的重要系统外设及其FPGA实现]{RTMQ的重要系统外设及其FPGA实现}
 % % ============================================================================
@@ -731,7 +762,9 @@ RTMQ量子测控系统的整体构成不仅需要一个专为实时可拓展量�
 
 \subsection[通用寄存器模块及其FPGA实现]{通用寄存器模块及其FPGA实现}
 % =======================     通用寄存器模块    ===============================
+通用寄存器（General-Purpose Registers）是微处理器的一个重要功能外设，用于存储和操作微处理器中的数据。它可以用于临时存储指令和数据，以支持计算、逻辑操作和数据传输等操作，是微处理器与其它功能性外设联系的纽带。RTMQ核心的算数和逻辑运算操作、内部数据的传递和结果的储存、地址计算等都需要借助通用寄存器来实现。除此之外，通用寄存器也可以提供接口给其它功能性外设对其进行参数传递和读取，提高参数传递的速度和灵活性。接下来将介绍RTMQ系统中的通用寄存器模块及其FPGA实现结果。
 
+通用寄存器的功能是根据微处理器请求的寄存器地址对相应的寄存器进行高速的读或写操作。RTMQ中的通用寄存器接收来自算术逻辑单元的结果alu\_out，给出寄存器的数据输出reg\_out和副作用触发信号f\_trg。其中alu\_out的输出结构alu\_out为：\{alu\_res, alu\_msk, alu\_rda, alu\_r0a, alu\_r1a, imm\_res, imm\_rda, imm\_seg\}，信号具体含义如第\ref{section:rtmq_core_alu}节所述；reg\_out是寄存器的数据输出；f\_trg是寄存器的副作用触发信号，可以用来为寄存器的特定应用定义一些额外的功能。RTMQ\_AcsFlg模块的功能是根据alu\_out中寄存器地址位的值给出对该地址的寄存器的读写信号，
 
 如图\ref{fig:rtmq_universal_register}所示，如表\ref{tb:rtmq_universal_register}所示。\textcolor{green}{具体内容描述待补充。}
 
@@ -761,8 +794,39 @@ RTMQ量子测控系统的整体构成不仅需要一个专为实时可拓展量�
 
 \subsection[UART模块及其FPGA实现]{UART模块及其FPGA实现}
 % =======================       UART模块       ===============================
+通信模块是RTMQ系统与上位机以及RTMQ系统节点之间相互传递信息的重要模块，其中UART通信模块在整个RTMQ系统中有着十分广泛的应用。UART模块即通用异步收发器(Universal Asynchronous Receiver/Transmitter)，特点是通信线路简单，适用于远距离通信，但传输速度慢。因此该种通信方式主要应用于RTMQ系统节点与上位之间的通信以及RTMQ节点之间同步信息传递。接下来将介绍RTMQ系统中的UART模块及其FPGA实现结果。
 
-如图\ref{fig:rtmq_uart}所示，如表\ref{tb:rtmq_uart}所示。\textcolor{green}{具体内容描述待补充。}
+% \subsubsection[UART模块原理]{UART模块原理}
+UART是一种串行、异步、全双工的通信协议，它的数据通信格式如表\ref{tb:rtmq_uart_data}所示。根据UART协议，初始时总线处于空闲状态，即信号线为高电平“1”（空闲位）；每次传输开始时对方先发出一个低电平“0”（起始位）；起始位之后就是数据位，可以是6、7、8、9位等等，先发送低位再发送高位，使用低电平表示‘0’高电平表示‘0’（有效数据位）；根据事先规定，数据位加上这一位后，使得“1”的位数应为偶数(偶校验)或奇数(奇校验)，以此来校验数据传送的正确性（奇偶校验位）；一次字符数据传输结束后给出若干位高电平指示本字节传输结束，可以是1位、1.5位、2位等（停止位）。
+
+\begin{table}
+    \centering
+    \caption[UART数据通信格式]{UART数据通信格式。起始位之前和停止位之后是空闲位；最低位LSB到最高位MSB之间为有效数据位；奇偶校验位在MSB之后。\label{tb:rtmq_uart_data}}    
+    \begin{tabular}{C{0.9cm}|C{0.85cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.85cm}|C{0.9cm}C{0.9cm}|C{0.9cm}}
+        % \begin{tabular}{cccccccccccccc}
+        \toprule
+        &\multicolumn{12}{c}{第n个字节数据流}& \\
+        \midrule
+        1 & 0 & X & X & X & X & X & X & X & X & X & X & 1 & 1 \\
+        \hline
+        空闲位 & 起始位 & LSB & & & & & & & & MSB & 奇偶校验位 & 停止位 & 空闲位 \\ 
+        % & \multirow{10}{*}{有效数据位} &  &  & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+通过UART通信协议的理解，UART模块的组成主要有两部分：发送模块和接收模块。另外，该模块的开发也要结合RTMQ核心模块的处理方式，以使得RTMQ核心能够直接通过其通用寄存器对UART进行控制。模块的实现结构如图\ref{fig:rtmq_uart_structure}所示，主要用到的模块有寄存器、RTMQ通用寄存器模块、UART发送模块、UART接收模块等，另外对接收的信息进行了逻辑处理以保证输出始终为可供RTMQ核心使用的合法数据。接口主要有RTMQ算术逻辑单元输入、UART接收输入、配置指令输出、配置指令覆盖标志、发送信号、发送结束标志等。
+
+\begin{figure}
+    \centering
+    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图\label{fig:rtmq_uart_structure}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_uart_structure}
+\end{figure}
+
+% \subsubsection[UART模块的FPGA实现]{UART模块的FPGA实现}
+
+UART通信模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_uart}所示，其具体的接口定义如表\ref{tb:rtmq_uart}所示。
+% \textcolor{green}{具体内容描述待补充。}
 
 
 \begin{table}
@@ -775,7 +839,7 @@ RTMQ量子测控系统的整体构成不仅需要一个专为实时可拓展量�
         Port & Define & Port & Define\\
         \hline
         alu\_out[128:0] & 算术逻辑单元结果  & cfg\_ins[31:0] & 模块配置指令 \\
-        clk             & 系统时钟          & f\_cfg & 模块配置覆盖标志 \\
+        clk             & 系统时钟          & f\_cfg & 配置指令覆盖标志 \\
         uart\_rx        & UART接受信号Rx    & f\_tx\_done & 发送信号结束标志 \\
         &               & uart\_tx          & UART发送信号Tx\\
         \bottomrule
@@ -784,36 +848,39 @@ RTMQ量子测控系统的整体构成不仅需要一个专为实时可拓展量�
 
 \begin{figure}
     \centering
-    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图\label{fig:rtmq_uart}}
+    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图（Vivado）。\label{fig:rtmq_uart}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_uart}
 \end{figure}
 
 
 
 
-\subsection[SPI模块及其FPGA实现]{SPI模块及其FPGA实现}
+\subsection[SPIMaster模块及其FPGA实现]{SPIMaster模块及其FPGA实现}
 % =======================        SPI模块       ===============================
 
+RTMQ系统中不仅涉及与上位机和不同RTMQ节点间相互的通信，还需要与一些如板上的其它功能芯片进行高速通信。在高速通信的场景下UART通信协议的应用很受限，因此需要一种可以支持高速通信的协议来满足需求——SPI（串行外围设备接口，Serial Perripheral Interface）。SPI是一种高速、全双工、同步的通信总线，它常用于EEPROM、Flash、实时时钟(RTC)、数模转换器(ADC)、数字信号处理器(DSP) 以及数字信号解码器之间。RTMQ系统的微处理器即采用SPI进行外部功能拓展设备的管理，如与板上集成的AD9910芯片间的通信等。
 
-如图\ref{fig:rtmq_spi}所示，如表\ref{tb:rtmq_spi}所示。\textcolor{green}{具体内容描述待补充。}
+SPI通信模块在Vivado中的FPGA实现如图\ref{fig:rtmq_spi}所示，其具体的接口定义如表\ref{tb:rtmq_spi}所示。
+
+\textcolor{green}{具体内容描述待补充。}
 
 
 \begin{table}
     \centering
-    \caption[RTMQ系统外设SPI模块端口定义]{RTMQ系统外设SPI模块端口定义\label{tb:rtmq_spi}}    
+    \caption[RTMQ系统外设SPIMaster模块端口定义]{RTMQ系统外设SPIMaster模块端口定义\label{tb:rtmq_spi}}    
     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
         \toprule
         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
         \midrule
         Port & Define & Port & Define\\
         \hline
-        alu\_out[128:0] &  & csb &  \\
-        clk &  & f\_spi\_done &  \\
-        miso &  & mosi &  \\
+        alu\_out[128:0] & 算术逻辑单元结果 & csb &  \\
+        clk & 系统时钟 & f\_spi\_done & SPI Rx/Tx结束标志 \\
+        miso & 主收从发信号 & mosi & 主发从收信号 \\
         & & reg\_sctl[31:0] & \\
         & & reg\_sdat[31:0] & \\
-        & & sclk & \\
-        & & slv\_adr[2:0] & \\
+        & & sclk & 主设备产生的时钟信号 \\
+        & & slv\_adr[2:0] & 目标从设备地址\\
 
         \bottomrule
     \end{tabular}
@@ -821,7 +888,7 @@ RTMQ量子测控系统的整体构成不仅需要一个专为实时可拓展量�
 
 \begin{figure}
     \centering
-    \caption[RTMQ功能外设SPI模块的FPGA实现结构图]{RTMQ功能外设SPI模块的FPGA实现结构图\label{fig:rtmq_spi}}
+    \caption[RTMQ功能外设SPIMaster模块的FPGA实现结构图]{RTMQ功能外设SPIMaster模块的FPGA实现结构图\label{fig:rtmq_spi}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_spi}
 \end{figure}
 
@@ -892,7 +959,7 @@ RTMQ量子测控系统的整体构成不仅需要一个专为实时可拓展量�
 
 \begin{figure}
     \centering
-    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图\label{fig:rtmq_adc}}
+    \caption[RTMQ功能外设ADC模块的FPGA实现结构图]{RTMQ功能外设ADC模块的FPGA实现结构图\label{fig:rtmq_adc}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_adc}
 \end{figure}
 
@@ -932,8 +999,8 @@ PID控制器的实现可以分为模拟PID和数字PID两种方式。模拟PID�
 
 \begin{figure}
     \centering
-    \caption[数字PID结构示意图]{数字PID结构示意图。MULT：乘法器；Reg：寄存器；ADD：加法器；SUB：减法器；$y_t, u_t$：输入和输出信号；$ref$：参考值输入；$k_0, k_1, k_2$：增量表达下的PID控制参数。\label{fig:digital_pid_structure_16bits_s}}
-    \includegraphics[width=1.0\linewidth]{rtmq/digital_pid_structure_16bits_s}
+    \caption[数字PID结构示意图]{数字PID结构示意图。MULT：乘法器模块；Reg：寄存器模块；ADD：加法器模块；SUB：减法器模块；LIM：限幅器模块；$y_t, u_t$：输入和输出信号；$ref$：参考值输入；$k_0, k_1, k_2$：增量表达下的PID控制参数。\label{fig:rtmq_pid_structure}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_pid_structure}
 \end{figure}
 
 离散化后的PID表达式为：
@@ -954,13 +1021,13 @@ PID控制器的实现可以分为模拟PID和数字PID两种方式。模拟PID�
     u(n)=u(n-1)+\Delta u(n)=u(n-1)+k_0 e(n)+k_1 e(n-1)+k_2 e(n-2)\label{eq:increment_pid}
 \end{align}
 
-按照上述式\eqref{eq:increment_pid}表示的增量式算法，数字PID实现的结构示意图如图\ref{fig:digital_pid_structure_16bits_s}所示。接口主要有参考$ref$、参数$k_0, k_1, k_2$等可配置输入，反馈信号$y_t$等系统回路输入，以及$u_t$等系统控制输出。用到的器件包括加法器/减法器（图示中红、橙色模块）、乘法器（图示中蓝色模块）、寄存器（图示中靛色模块）。
+按照上述式\eqref{eq:increment_pid}表示的增量式算法，数字PID实现的结构示意图如图\ref{fig:rtmq_pid_structure}所示。接口主要有参考$ref$、参数$k_0, k_1, k_2$、输出移位和限幅$shift, min, max$等可配置输入，反馈信号$y_t$等系统回路输入，以及$u_t$等系统控制输出。用到的器件包括加法器/减法器模块、乘法器模块、寄存器模块。
 
 \subsubsection[高速通用数字PID的FPGA实现]{高速通用数字PID的FPGA实现}
 
 % 增量式PID最终在FPGA中实现的结构图如图\ref{fig:digital_pid_structure_16bits}所示。
 
-根据图\ref{fig:digital_pid_structure_16bits_s}所示的结构，可以在FPGA中实现硬件的PID。
+根据图\ref{fig:rtmq_pid_structure}所示的结构，可以在FPGA中实现硬件的PID。
 其中主要涉及到的数字加法器、数字乘法器，分别采用的是超前进位加法器和Booth乘法器。对于高速时序电路，尤其是要满足与RTMQ的实时性匹配等相关需求，在开发过程中需要注意流水线的设置和对齐，最终的实现硬件框图如图\ref{fig:digital_pid_structure_16bits}所示，模块端口定义如表\ref{tb:rtmq_pid}所示。其硬件输出测试和仿真对比如\ref{fig:pid_compare}图所示。从图\ref{fig:pid_compare}中可见，在Vivado中实现的高速PID硬件电路在$k_i=1, k_d=1$的情况下经过大概1000ns后即可以将系统的输出稳定在参考值1000附近，与直接使用MATLAB进行数字PID仿真输出结果一致。
 
 \begin{table}
@@ -1026,17 +1093,17 @@ IIR滤波器的冲激响应理论上应会无限持续，其输出不仅取决�
 
 
 其中，$y(n)$表示输出信号，$x(n)$表示输入信号，$a_k$和$b_k$表示滤波器系数。本质上来说，IIR滤波器就是将输入和过去的输出按照某种方式加权计算获得最终输出结果的。对于一个给定阶数和数字位数的IIR滤波器，它的形状完全取决于系数$a_k$和$b_k$。因此，为了维持通用性，在硬件实现的过程中，我们应该把系数（$a_k, b_k$）设计为可外部软件配置的。
-以四阶为例，通用四阶IIR滤波器的结构框图如图\ref{fig:iir_filter_s}所示，图中$a_0-a_3, b_0-b_3$为IIR滤波器的可配置系数，主要用到的模块有寄存器、乘法器、加法器等。
+以四阶为例，通用四阶IIR滤波器的结构框图如图\ref{fig:rtmq_iir_structure}所示，图中$a_0-a_3, b_0-b_3$为IIR滤波器的可配置系数，主要用到的模块有寄存器、乘法器、加法器等。
 \begin{figure}
     \centering
-    \caption[IIR滤波器结构框图]{IIR滤波器结构框图\label{fig:iir_filter_s}}
-    \includegraphics[width=1.0\linewidth]{rtmq/iir_filter_s}
+    \caption[IIR滤波器结构框图]{IIR滤波器结构框图。MULT：乘法器模块；Reg：寄存器模块；ADD：加法器模块；$i_filter, o_filter$：滤波器输入输出信号；$i_factor_a,i_factor_b$：IIR滤波器参数集合输入。\label{fig:rtmq_iir_structure}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_iir_structure}
 \end{figure}
 
 
 \subsubsection[高速通用数字IIR滤波器的FPGA实现]{数字IIR滤波器的FPGA实现}
 
-根据图\ref{fig:iir_filter_s}给出的结构图和公式\eqref{eq:iir_filter}，可以将其在FPGA中进行实现和验证。数字IIR滤波器在FPGA中的实现结果的结构图如图\ref{fig:iir_filter_vivado}所示，其模块端口定义如表\ref{tb:rtmq_iir_filter}所示。整体结构中插入了若干的流水线用于对齐$x(n)$和$y(n)$的时序。除此之外，流水线也被用于满足电路的时延要求。需要注意的是，由于上一时刻的输出结果$y(n-1)$需要参与到下一时刻的输出结果的计算中，因此从计算结果到迭代反馈之间仅能有一级流水线存在，否则输出结果就会出错。也即从乘法器输入到乘法器输出，以及加法器输入到加法器输出并反馈到乘法器输入这个回路中只能存在一级流水线。正因此，这个IIR滤波器无法工作在较高的频率上，需要在板上额外配置工作频率，该32位通用IIR滤波器设计在FPGA板上的工作频率为25MHz。
+根据图\ref{fig:rtmq_iir_structure}给出的结构图和公式\eqref{eq:iir_filter}，可以将其在FPGA中进行实现和验证。数字IIR滤波器在FPGA中的实现结果的结构图如图\ref{fig:iir_filter_vivado}所示，其模块端口定义如表\ref{tb:rtmq_iir_filter}所示。整体结构中插入了若干的流水线用于对齐$x(n)$和$y(n)$的时序。除此之外，流水线也被用于满足电路的时延要求。需要注意的是，由于上一时刻的输出结果$y(n-1)$需要参与到下一时刻的输出结果的计算中，因此从计算结果到迭代反馈之间仅能有一级流水线存在，否则输出结果就会出错。也即从乘法器输入到乘法器输出，以及加法器输入到加法器输出并反馈到乘法器输入这个回路中只能存在一级流水线。正因此，这个IIR滤波器无法工作在较高的频率上，需要在板上额外配置工作频率，该32位通用IIR滤波器设计在FPGA板上的工作频率为25MHz。
 
 
 \begin{table}
