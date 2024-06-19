@@ -74,8 +74,7 @@ RTMQ架构主要用于基于FPGA或ASIC的兼具通用计算和高精度时序�
 
 RTMQ架构中包含的微处理器可受指令控制进入挂起状态，而挂起状态可受计时器或触发管理模块的控制恢复正常运行，如此，微处理器的指令流便可以按一定的时间间隔对齐或与外部信号对齐。同时，节点中的系统外设和功能外设的行为受关联寄存器的读写控制，即微处理器的指令与系统各模块的功能和时序有严格的对应关系。因此，该架构可实现实时控制与通用计算在指令流层面的结合。
 而配置指令插入中断的机制确保了节点对其下级节点的绝对控制，即使下级节点的微处理器处于挂起状态，依然不受影响。配置指令插入中断配合具有确定通信延迟的实时通信链路系统，即可实现时序确定的跨节点的即时反馈控制。
-此外，RTMQ架构中每个节点都具有通用计算和时序控制能力，如此，大多数通用计算和时序生成都可以在叶节点或较近的中间结点完成，对于大规模系统不存在拥塞的问题，具有良好的可扩展性。
-\subsection[RTMQ测控板]{RTMQ测控板}
+此外，RTMQ架构中每个节点都具有通用计算和时序控制能力，如此，大多数通用计算和时序生成都可以在叶节点或较近的中间结点完成，对于大规模系统不存在拥塞的问题，具有良好的可扩展性。RTMQ与之前离子阱领域常用的ARTIQ测控系统的对比如表\ref{tb:rtmq_artiq}所示，从对比中可见相较于ARTIQ，RTMQ在反馈延迟、分布式算力、节点自主性、ASIC兼容性、跨领域通用性等方面都有着巨大的优越性。
 
 \begin{table}
     \centering
@@ -95,14 +94,6 @@ RTMQ架构中包含的微处理器可受指令控制进入挂起状态，而挂�
     \end{tabular}
 \end{table}
 
-RTMQ测控板实物图如图\ref{fig:rtmq_board_real}所示。RTMQ体系的构成在上述整体硬件核心架构的基础上，还需要结合相应的实时控制和通用计算的指令集\cite[]{junhua03}来完成对系统的管理和控制。另外，涉及到大规模拓展应用则还需要节点实时通信的链路系统\cite[]{junhua02}来完成节点内部和外部通信的同步。
-值得关注的是，从它的指令集中可以看到RTMQ测控系统系统是支持板上运算和信息处理的，这是与其它依靠时序发生器构成的测控系统本质不同的地方和优势所在。这些处理包括逻辑运算和算术运算，构成了一个微处理器。而RTMQ系统的微处理器从架构上与CPU有着本质的不同，虽然牺牲了些运算效率，RTMQ的数据处理是严格实时的。这种处理器架构同样也具有拓展性和灵活性，我们可以方便地为它拓展和定义多种运算方式，也可以为其添加外设模块等，以适应更多更复杂任务的需求。RTMQ与之前离子阱领域常用的ARTIQ测控系统的对比如表\ref{tb:rtmq_artiq}所示，从对比中可见相较于ARTIQ，RTMQ在反馈延迟、分布式算力、节点自主性、ASIC兼容性、跨领域通用性等方面都有着巨大的优越性。
-
-\begin{figure}
-    \centering
-    \caption[RTMQ测控板去壳单板实物图]{RTMQ测控板去壳单板实物图\label{fig:rtmq_board_real}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_board_real}
-\end{figure}
 
 
 
@@ -194,7 +185,7 @@ imm\_res, imm\_rda, imm\_seg\}。
 
 流控制器模块是确保RTMQ实时性的关键设计，也是其与经典CPU相比的不同所在。它接受ALU结果alu\_out、指令获取、外部恢复标志、配置指令及其覆盖标志等输入，给出regfile中的地址指针、获取指令地址、当前的指令内容、指令抓取标志、HOLD状态标志等输出。
 
-当配置指令覆盖标志、HOLD标志、指令中HOLD标志其中任何一个为“1”时，指令获取标志f\_ftc输出都为“0”（f\_nftc\_cmb为“1”）。
+RTMQ流控制器模块设计结构如图\ref{fig:rtmq_flow_controller_structure}所示，当配置指令覆盖标志、HOLD标志、指令中HOLD标志其中任何一个为“1”时，指令获取标志f\_ftc输出都为“0”（f\_nftc\_cmb为“1”）。
 在f\_ftc不为零的情况下刷新一次指令获取流水线，同时指令获取地址if\_adr默认自动+1，另外也可以使用I类或A类指令对if\_adr进行赋值操作以实现指令跳转功能，这里I类指令只能实现较短的指令跳转，更大范围的指令跳转需要使用A类指令。
 流控制器模块会根据不同情况选择输出不同的指令，共有四种情况：正常、配置、挂起、恢复。正常情况下输出的指令就是输入的指令，不做任何改变；如果进行了指令配置，那么输出的指令就是配置的指令内容；如果处于挂起状态，则输出指令为空；如果处于从HOLD状态中恢复的情况，则输出的指令为进入挂起状态前缓存的指令（进入HOLD状态时会对本应执行的指令进行缓存操作）。
 
@@ -204,6 +195,12 @@ imm\_res, imm\_rda, imm\_seg\}。
 通过上述的逻辑，流控制器可以根据情况实现对ALU模块指令的选择输出、挂起和恢复等操作，且保证了每一条指令的执行、跳转、恢复等具有明确的操作时钟周期，可以用来满足量子测控系统对实时性的要求。流控制器模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_flow_control}所示，其具体的接口定义如表\ref{tb:rtmq_flow_control}所示。
 
 % \textcolor{green}{具体内容描述待补充。}
+
+\begin{figure}
+    \centering
+    \caption[RTMQ核心流控制器模块的设计结构图]{RTMQ核心流控制器模块的设计结构图\label{fig:rtmq_flow_controller_structure}}
+    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_flow_controller_structure}
+\end{figure}
 
 \begin{table}
     \centering
@@ -731,448 +728,450 @@ RTMQ节点间的通信以帧为单位，帧包含魔术字、跳转数、帧类�
 当需要对整个系统中所有节点进行配置时，可以先逐个配置所有的叶节点，再逐个配置其下级节点已经全部完成配置的中间结点，以此类推，直到最后配置根节点，如此，可以保证系统中所有的节点在配置完成后，状态不会受到额外的干扰。
 
 
-\section[RTMQ的重要功能外设及其FPGA实现]{RTMQ的重要功能外设及其FPGA实现}
-% ============================================================================
-% ============================================================================
-% =======================   RTMQ Peripheral    ===============================
-% ============================================================================
-% ============================================================================
-RTMQ量子测控系统的整体构成不仅需要一个专为实时可拓展量子计算设计的微处理器核心，还需要其它功能性模块的参与。因此与RTMQ架构相配套的功能性模块的设计开发必不可少，其中比较重要的有通用寄存器模块、用于节点之间及与上位机通信的UART或SPI等通信模块、用于外部芯片的管理模块、用于实验系统反馈控制的高速通用数字PID模块和用于过滤噪声提高信号质量的高速通用数字IIR滤波器模块等，这些模块的设计和基于FPGA的实现将在本节接下来的几小节中进行介绍。
-
-% \subsection[RTMQ的重要系统外设及其FPGA实现]{RTMQ的重要系统外设及其FPGA实现}
+% \section[RTMQ的重要功能外设及其FPGA实现]{RTMQ的重要功能外设及其FPGA实现}
 % % ============================================================================
-% % =======================RTMQ System Peripheral===============================
+% % ============================================================================
+% % =======================   RTMQ Peripheral    ===============================
+% % ============================================================================
+% % ============================================================================
+% RTMQ量子测控系统的整体构成不仅需要一个专为实时可拓展量子计算设计的微处理器核心，还需要其它功能性模块的参与。因此与RTMQ架构相配套的功能性模块的设计开发必不可少，其中比较重要的有通用寄存器模块、用于节点之间及与上位机通信的UART或SPI等通信模块、用于外部芯片的管理模块、用于实验系统反馈控制的高速通用数字PID模块和用于过滤噪声提高信号质量的高速通用数字IIR滤波器模块等，这些模块的设计和基于FPGA的实现将在本节接下来的几小节中进行介绍。
+
+% % \subsection[RTMQ的重要系统外设及其FPGA实现]{RTMQ的重要系统外设及其FPGA实现}
+% % % ============================================================================
+% % % =======================RTMQ System Peripheral===============================
+% % % ============================================================================
+
+% % \subsubsection[指令缓存、数据缓存、节点信息只读储存器及其FPGA实现]{指令缓存、数据缓存、节点信息只读储存器及其FPGA实现}
+
+% % \subsubsection[地址栈模块及其FPGA实现]{地址栈模块及其FPGA实现}
+
+% % \subsubsection[数据栈模块及其FPGA实现]{数据栈模块及其FPGA实现}
+
+% % \subsubsection[内存模块及其FPGA实现]{内存模块及其FPGA实现}
+
+
+
+
+% % \subsection[RTMQ重要功能外设及其FPGA实现]{RTMQ重要功能外设及其FPGA实现}
+% % ============================================================================
+% % ======================RTMQ External Peripheral==============================
 % % ============================================================================
 
-% \subsubsection[指令缓存、数据缓存、节点信息只读储存器及其FPGA实现]{指令缓存、数据缓存、节点信息只读储存器及其FPGA实现}
+% \subsection[通用寄存器模块及其FPGA实现]{通用寄存器模块及其FPGA实现}
+% % =======================     通用寄存器模块    ===============================
+% 通用寄存器（General-Purpose Registers）是微处理器的一个重要功能外设，用于存储和操作微处理器中的数据。它可以用于临时存储指令和数据，以支持计算、逻辑操作和数据传输等操作，是微处理器与其它功能性外设联系的纽带。RTMQ核心的算数和逻辑运算操作、内部数据的传递和结果的储存、地址计算等都需要借助通用寄存器来实现。除此之外，通用寄存器也可以提供接口给其它功能性外设对其进行参数传递和读取，提高参数传递的速度和灵活性。接下来将介绍RTMQ系统中的通用寄存器模块及其FPGA实现结果。
+
+% 通用寄存器的功能是根据微处理器请求的寄存器地址对相应的寄存器进行高速的读或写操作。RTMQ中的通用寄存器接收来自算术逻辑单元的结果alu\_out，给出寄存器的数据输出reg\_out和副作用触发信号f\_trg。其中alu\_out的输出结构alu\_out为：\{alu\_res, alu\_msk, alu\_rda, alu\_r0a, alu\_r1a, imm\_res, imm\_rda, imm\_seg\}，信号具体含义如第\ref{section:rtmq_core_alu}节所述；reg\_out是寄存器的数据输出；f\_trg是寄存器的副作用触发信号，可以用来为寄存器的特定应用定义一些额外的功能。RTMQ\_AcsFlg模块的功能是根据alu\_out中寄存器地址位的值给出对该地址的寄存器的读写信号，
+
+% 如图\ref{fig:rtmq_universal_register}所示，如表\ref{tb:rtmq_universal_register}所示。\textcolor{green}{具体内容描述待补充。}
+
+% \begin{table}
+%     \centering
+%     \caption[RTMQ系统外设通用寄存器模块端口定义]{RTMQ系统外设通用寄存器模块端口定义\label{tb:rtmq_universal_register}}    
+%     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         alu\_out[128:0] & 算术逻辑单元结果  & f\_trg & 副作用触发信号 \\
+%         clk             & 系统时钟          & reg\_out[31:0] & 寄存器数据输出 \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
 
-% \subsubsection[地址栈模块及其FPGA实现]{地址栈模块及其FPGA实现}
 
-% \subsubsection[数据栈模块及其FPGA实现]{数据栈模块及其FPGA实现}
-
-% \subsubsection[内存模块及其FPGA实现]{内存模块及其FPGA实现}
-
-
-
-
-% \subsection[RTMQ重要功能外设及其FPGA实现]{RTMQ重要功能外设及其FPGA实现}
-% ============================================================================
-% ======================RTMQ External Peripheral==============================
-% ============================================================================
-
-\subsection[通用寄存器模块及其FPGA实现]{通用寄存器模块及其FPGA实现}
-% =======================     通用寄存器模块    ===============================
-通用寄存器（General-Purpose Registers）是微处理器的一个重要功能外设，用于存储和操作微处理器中的数据。它可以用于临时存储指令和数据，以支持计算、逻辑操作和数据传输等操作，是微处理器与其它功能性外设联系的纽带。RTMQ核心的算数和逻辑运算操作、内部数据的传递和结果的储存、地址计算等都需要借助通用寄存器来实现。除此之外，通用寄存器也可以提供接口给其它功能性外设对其进行参数传递和读取，提高参数传递的速度和灵活性。接下来将介绍RTMQ系统中的通用寄存器模块及其FPGA实现结果。
-
-通用寄存器的功能是根据微处理器请求的寄存器地址对相应的寄存器进行高速的读或写操作。RTMQ中的通用寄存器接收来自算术逻辑单元的结果alu\_out，给出寄存器的数据输出reg\_out和副作用触发信号f\_trg。其中alu\_out的输出结构alu\_out为：\{alu\_res, alu\_msk, alu\_rda, alu\_r0a, alu\_r1a, imm\_res, imm\_rda, imm\_seg\}，信号具体含义如第\ref{section:rtmq_core_alu}节所述；reg\_out是寄存器的数据输出；f\_trg是寄存器的副作用触发信号，可以用来为寄存器的特定应用定义一些额外的功能。RTMQ\_AcsFlg模块的功能是根据alu\_out中寄存器地址位的值给出对该地址的寄存器的读写信号，
-
-如图\ref{fig:rtmq_universal_register}所示，如表\ref{tb:rtmq_universal_register}所示。\textcolor{green}{具体内容描述待补充。}
-
-\begin{table}
-    \centering
-    \caption[RTMQ系统外设通用寄存器模块端口定义]{RTMQ系统外设通用寄存器模块端口定义\label{tb:rtmq_universal_register}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        alu\_out[128:0] & 算术逻辑单元结果  & f\_trg & 副作用触发信号 \\
-        clk             & 系统时钟          & reg\_out[31:0] & 寄存器数据输出 \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-
-\begin{figure}
-    \centering
-    \caption[RTMQ用寄存器模块的FPGA实现结构图]{RTMQ用寄存器模块的FPGA实现结构图\label{fig:rtmq_universal_register}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_universal_register}
-\end{figure}
-
-
-
-\subsection[UART模块及其FPGA实现]{UART模块及其FPGA实现}
-% =======================       UART模块       ===============================
-通信模块是RTMQ系统与上位机以及RTMQ系统节点之间相互传递信息的重要模块，其中UART通信模块在整个RTMQ系统中有着十分广泛的应用。UART模块即通用异步收发器(Universal Asynchronous Receiver/Transmitter)，特点是通信线路简单，适用于远距离通信，但传输速度慢。因此该种通信方式主要应用于RTMQ系统节点与上位之间的通信以及RTMQ节点之间同步信息传递。接下来将介绍RTMQ系统中的UART模块及其FPGA实现结果。
-
-% \subsubsection[UART模块原理]{UART模块原理}
-UART是一种串行、异步、全双工的通信协议，它的数据通信格式如表\ref{tb:rtmq_uart_data}所示。根据UART协议，初始时总线处于空闲状态，即信号线为高电平“1”（空闲位）；每次传输开始时对方先发出一个低电平“0”（起始位）；起始位之后就是数据位，可以是6、7、8、9位等等，先发送低位再发送高位，使用低电平表示‘0’高电平表示‘0’（有效数据位）；根据事先规定，数据位加上这一位后，使得“1”的位数应为偶数(偶校验)或奇数(奇校验)，以此来校验数据传送的正确性（奇偶校验位）；一次字符数据传输结束后给出若干位高电平指示本字节传输结束，可以是1位、1.5位、2位等（停止位）。
-
-\begin{table}
-    \centering
-    \caption[UART数据通信格式]{UART数据通信格式。起始位之前和停止位之后是空闲位；最低位LSB到最高位MSB之间为有效数据位；奇偶校验位在MSB之后。\label{tb:rtmq_uart_data}}    
-    \begin{tabular}{C{0.9cm}|C{0.85cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.85cm}|C{0.9cm}C{0.9cm}|C{0.9cm}}
-        % \begin{tabular}{cccccccccccccc}
-        \toprule
-        &\multicolumn{12}{c}{第n个字节数据流}& \\
-        \midrule
-        1 & 0 & X & X & X & X & X & X & X & X & X & X & 1 & 1 \\
-        \hline
-        空闲位 & 起始位 & LSB & & & & & & & & MSB & 奇偶校验位 & 停止位 & 空闲位 \\ 
-        % & \multirow{10}{*}{有效数据位} &  &  & \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-通过UART通信协议的理解，UART模块的组成主要有两部分：发送模块和接收模块。另外，该模块的开发也要结合RTMQ核心模块的处理方式，以使得RTMQ核心能够直接通过其通用寄存器对UART进行控制。模块的实现结构如图\ref{fig:rtmq_uart_structure}所示，主要用到的模块有寄存器、RTMQ通用寄存器模块、UART发送模块、UART接收模块等，另外对接收的信息进行了逻辑处理以保证输出始终为可供RTMQ核心使用的合法数据。接口主要有RTMQ算术逻辑单元输入、UART接收输入、配置指令输出、配置指令覆盖标志、发送信号、发送结束标志等。
-
-\begin{figure}
-    \centering
-    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图\label{fig:rtmq_uart_structure}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_uart_structure}
-\end{figure}
-
-% \subsubsection[UART模块的FPGA实现]{UART模块的FPGA实现}
-
-UART通信模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_uart}所示，其具体的接口定义如表\ref{tb:rtmq_uart}所示。
-% \textcolor{green}{具体内容描述待补充。}
-
-
-\begin{table}
-    \centering
-    \caption[RTMQ系统外设UART模块端口定义]{RTMQ系统外设UART模块端口定义\label{tb:rtmq_uart}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        alu\_out[128:0] & 算术逻辑单元结果  & cfg\_ins[31:0] & 模块配置指令 \\
-        clk             & 系统时钟          & f\_cfg & 配置指令覆盖标志 \\
-        uart\_rx        & UART接受信号Rx    & f\_tx\_done & 发送信号结束标志 \\
-        &               & uart\_tx          & UART发送信号Tx\\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{figure}
-    \centering
-    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图（Vivado）。\label{fig:rtmq_uart}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_uart}
-\end{figure}
-
-
-
-
-\subsection[SPIMaster模块及其FPGA实现]{SPIMaster模块及其FPGA实现}
-% =======================        SPI模块       ===============================
-
-RTMQ系统中不仅涉及与上位机和不同RTMQ节点间相互的通信，还需要与一些如板上的其它功能芯片进行高速通信。在高速通信的场景下UART通信协议的应用很受限，因此需要一种可以支持高速通信的协议来满足需求——SPI（串行外围设备接口，Serial Perripheral Interface）。SPI是一种高速、全双工、同步的通信总线，它常用于EEPROM、Flash、实时时钟(RTC)、数模转换器(ADC)、数字信号处理器(DSP) 以及数字信号解码器之间。RTMQ系统的微处理器即采用SPI进行外部功能拓展设备的管理，如与板上集成的AD9910芯片间的通信等。
-
-SPI通信模块在Vivado中的FPGA实现如图\ref{fig:rtmq_spi}所示，其具体的接口定义如表\ref{tb:rtmq_spi}所示。
-
-\textcolor{green}{具体内容描述待补充。}
-
-
-\begin{table}
-    \centering
-    \caption[RTMQ系统外设SPIMaster模块端口定义]{RTMQ系统外设SPIMaster模块端口定义\label{tb:rtmq_spi}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        alu\_out[128:0] & 算术逻辑单元结果 & csb &  \\
-        clk & 系统时钟 & f\_spi\_done & SPI Rx/Tx结束标志 \\
-        miso & 主收从发信号 & mosi & 主发从收信号 \\
-        & & reg\_sctl[31:0] & \\
-        & & reg\_sdat[31:0] & \\
-        & & sclk & 主设备产生的时钟信号 \\
-        & & slv\_adr[2:0] & 目标从设备地址\\
-
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{figure}
-    \centering
-    \caption[RTMQ功能外设SPIMaster模块的FPGA实现结构图]{RTMQ功能外设SPIMaster模块的FPGA实现结构图\label{fig:rtmq_spi}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_spi}
-\end{figure}
-
-
-
-\subsection[AD9910芯片管理模块及其FPGA实现]{AD9910芯片管理模块及其FPGA实现}
-% =======================    AD9910管理模块     ===============================
-
-
-如图\ref{fig:rtmq_ad9910}所示，如表\ref{tb:rtmq_ad9910}所示。\textcolor{green}{具体内容描述待补充。}
-
-
-\begin{table}
-    \centering
-    \caption[RTMQ系统外设AD9910芯片管理模块端口定义]{RTMQ系统外设AD9910芯片管理模块端口定义\label{tb:rtmq_ad9910}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        alu\_out[128:0] & 算术逻辑单元结果  & io\_rst & 输入输出充值信号 \\
-        cdds[12:0]      & DDS控制信号       & io\_upd & 输入输出更新信号 \\
-        clk             & 系统时钟          & m\_rst & 主机重置信号 \\
-        pda\_clk        & PD时钟            & pdat[15:0] & 并行数据 \\
-        syn\_clk        & 同步时钟          & pf[1:0] & 并行数据目标 \\
-                        &                   & reg\_cmn[31:0] & 时钟相位检测\\
-                        &                   & tx\_en & 发送使能信号\\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-
-\begin{figure}
-    \centering
-    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图\label{fig:rtmq_ad9910}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_ad9910}
-\end{figure}
-
-
-
-
-\subsection[ADC芯片管理模块及其FPGA实现]{ADC芯片管理模块及其FPGA实现}
-% =======================      ADC管理模块      ===============================
-
-
-如图\ref{fig:rtmq_adc}所示，如表\ref{tb:rtmq_adc}所示。\textcolor{green}{具体内容描述待补充。}
-
-
-\begin{table}
-    \centering
-    \caption[RTMQ系统外设AD9910芯片管理模块端口定义]{RTMQ系统外设AD9910芯片管理模块端口定义\label{tb:rtmq_adc}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        adc\_in[15:0]   & ADC采样数据   & reg\_aio[15:0] & ADC输出数据 \\
-        adc\_smp        & ADC采样时钟   &  &  \\
-        clk             & 系统时钟      &  &  \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-
-
-
-\begin{figure}
-    \centering
-    \caption[RTMQ功能外设ADC模块的FPGA实现结构图]{RTMQ功能外设ADC模块的FPGA实现结构图\label{fig:rtmq_adc}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_adc}
-\end{figure}
-
-% \subsubsection[随机数发生器模块及其FPGA实现]{随机数发生器模块及其FPGA实现}
-
-
-
-\subsection[高速通用数字PID及其FPGA实现]{高速通用数字PID及其FPGA实现\label{section:digital_pid}}
-% ============================================================================
-% =======================      高速数字PID      ===============================
-% ============================================================================
-
-
-当前量子计算系统中大量采用PID控制器进行诸如激光功率稳定、激光相位稳定、激光拍频锁定等等控制系统的构建，常用的器件有如LB1005模拟伺服控制器。这类模拟控制器的确定在于稳定性较差且价格昂贵，此外它的集成度也比较差，往往需要占用较大的实验平台面积。除此之外这类模拟PID控制器往往采用机械旋钮进行参数调节，不利于进行实验系统的集成化和自动化。与之相比较，使用融合了高速通用数字PID的RTMQ测控系统可以同时完成对实验序列的操控和对设备关键参数的伺服控制。除此之外，采用也对系统完成了集成化和数字化，提高了系统的稳定性和易用性。
-
-\subsubsection[数字PID]{数字PID}
-数字PID控制器是一种常用的自动控制算法，用于实现对系统的闭环控制。PID控制器通过对系统的误差进行比例（Proportional）、积分（Integral）和微分（Derivative）计算，生成控制信号来调整系统的输出，以达到期望的控制效果。在量子测控系统中很多地方都需要用到闭环控制，比如激光的功率稳定、激光的波长稳定、离子阱频率稳定等。相对于模拟PID控制器，数字PID控制器具有结构简单、易于实现、控制灵活、工作稳定等优点，是RTMQ系统中的重要组成部分。
-
-PID 控制器的数学表达式可以表示为：
-\begin{align}
-    u(t)= K_p e(t) + K_i \int_{0}^{t} e(\tau) d\tau + K_d \frac{d e(t)}{dt}
-\end{align}
-
-其中，$u(t)$是控制器的输出，$e(t)$是系统的误差，$K_p$、$K_i$和$K_d$分别是比例系数、积分系数和微分系数。
- 
-PID控制器的实现可以分为模拟PID和数字PID两种方式。模拟PID是通过模拟电路实现的，而数字PID是通过数字计算实现的。数字PID控制器通常使用微处理器或计算机来实现，其基本结构包括采样、计算和输出三个部分。数字 PID 控制器的实现步骤如下：
-\begin{itemize}
-    \item 采样：对系统的输入和输出进行采样，获取当前时刻的误差值e(t)；
-    \item 计算：根据采样得到的误差值，按照 PID 控制器的数学表达式计算控制信号u(t)；
-    \item 输出：将计算得到的控制信号输出到执行机构，调整系统的输出；
-\end{itemize}
-
-在数字PID控制器的实现中，需要对积分和微分操作进行离散化处理。常用的离散化方法有矩形法和梯形法。矩形法将积分区间划分为若干个相等的子区间，每个子区间的积分值近似为矩形的面积；梯形法将积分区间划分为若干个相等的子区间，每个子区间的积分值近似为梯形的面积。这一步骤在嵌入式系统中通常使用模拟数字转换（ADC）芯片来完成。
-
-\subsubsection[数字PID的增量表达式]{数字PID的增量表达式}
-硬件资源在FPGA中是十分宝贵的资源，而乘法器这样的器件往往会占用大量的硬件资源。因此在满足时序要求的情况下我们希望能够尽量减少乘法器的使用，PID的增量表达式就是一种可以有效减少PID硬件电路实现过程中乘法器需求个数的方式，下面将介绍这种方法。
-
-\begin{figure}
-    \centering
-    \caption[数字PID结构示意图]{数字PID结构示意图。MULT：乘法器模块；Reg：寄存器模块；ADD：加法器模块；SUB：减法器模块；LIM：限幅器模块；$y_t, u_t$：输入和输出信号；$ref$：参考值输入；$k_0, k_1, k_2$：增量表达下的PID控制参数。\label{fig:rtmq_pid_structure}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_pid_structure}
-\end{figure}
-
-离散化后的PID表达式为：
-\begin{align}
-    u(n)=k_p e(n)+k_i\sum_{j=-}^{n}e(j)+k_d[e(n)-e(n-1)]\\
-    u(n-1)=k_p e(n-1)+k_i \sum_{j=0}^{n-1}e(j)+k_d [e(n-1)-e(n-2)]
-\end{align}
-
-由上面两式可以导出：
-
-\begin{align}
-    \Delta u(n)=&u(n)-u(n-1)\\
-    =&k_0 e(n)+k_1 e(n-1)+k_2 e(n-2)
-\end{align}
-
-其中$k_0=k_p+k_i+k_d,\ k_1=-k_p-2k_d,\ k_2=k_d$，这个式子被称为PID的增量算法。采用这种形式的好处是避免了计算PID原始表达式中的无限积分项。在这种增量式的方式下，PID的控制输出可以表达为：
-\begin{align}
-    u(n)=u(n-1)+\Delta u(n)=u(n-1)+k_0 e(n)+k_1 e(n-1)+k_2 e(n-2)\label{eq:increment_pid}
-\end{align}
-
-按照上述式\eqref{eq:increment_pid}表示的增量式算法，数字PID实现的结构示意图如图\ref{fig:rtmq_pid_structure}所示。接口主要有参考$ref$、参数$k_0, k_1, k_2$、输出移位和限幅$shift, min, max$等可配置输入，反馈信号$y_t$等系统回路输入，以及$u_t$等系统控制输出。用到的器件包括加法器/减法器模块、乘法器模块、寄存器模块。
-
-\subsubsection[高速通用数字PID的FPGA实现]{高速通用数字PID的FPGA实现}
-
-% 增量式PID最终在FPGA中实现的结构图如图\ref{fig:digital_pid_structure_16bits}所示。
-
-根据图\ref{fig:rtmq_pid_structure}所示的结构，可以在FPGA中实现硬件的PID。
-其中主要涉及到的数字加法器、数字乘法器，分别采用的是超前进位加法器和Booth乘法器。对于高速时序电路，尤其是要满足与RTMQ的实时性匹配等相关需求，在开发过程中需要注意流水线的设置和对齐，最终的实现硬件框图如图\ref{fig:digital_pid_structure_16bits}所示，模块端口定义如表\ref{tb:rtmq_pid}所示。其硬件输出测试和仿真对比如\ref{fig:pid_compare}图所示。从图\ref{fig:pid_compare}中可见，在Vivado中实现的高速PID硬件电路在$k_i=1, k_d=1$的情况下经过大概1000ns后即可以将系统的输出稳定在参考值1000附近，与直接使用MATLAB进行数字PID仿真输出结果一致。
-
-\begin{table}
-    \centering
-    \caption[RTMQ系统外设高速通用PID模块端口定义]{RTMQ系统外设高速通用PID模块端口定义\label{tb:rtmq_pid}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        i\_clkp         & 系统时钟  & o\_ut[31:0] & PID输出结果 \\
-        i\_k0[15:0]     & PID参数k0 &  &  \\
-        i\_k1[15:0]     & PID参数k1 &  &  \\
-        i\_k2[15:0]     & PID参数k2 &  &  \\
-        i\_max[31:0]    & PID输出最高限幅 &  & \\
-        i\_min[31:0]    & PID输出最低限幅 &  & \\
-        i\_rstn         & PID重置信号 &  & \\
-        i\_rt[15:0]     & PID的系统输入信号 &  & \\
-        i\_shift[4:0]   & PID输出结果的偏移量 &  & \\
-        i\_yt[15:0]     & PID的反馈输入信号 &  & \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-
-\begin{figure}
-    \centering
-    \caption[16位数字PID的FPGA实现结构图]{16位数字PID的FPGA实现结构图上\label{fig:digital_pid_structure_16bits}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_pid}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \caption[16位数字PID的FPGA实现结果与仿真结果对比]{16位数字PID的FPGA实现结果与仿真结果对比。初始系统输出和调节输出都为0，参考数值为1000，$k_i=1, k_d=1$，Vivado综合输出时长为3500ns，仿真持续时间为1000$T_c$（系统仿真迭代次数）。\label{fig:pid_compare}}
-    \includegraphics[width=1.0\linewidth]{rtmq/pid_compare}
-\end{figure}
-
-整个PID控制器使用了一个减法器、三个加法器、三个乘法器和若干寄存器。图\ref{fig:digital_pid_structure_16bits}是一个16位输入的数字PID，它的输出是32位的，该实例模块总共包含9级流水线，工作频率可达200MHz以上。对更低或者更高位数的数字PID控制器，可以通过替换相应位数的加减运算和乘法模块，并调整相应的寄存器位宽来方便地得到。
-
-
-\subsection[高速通用数字IIR滤波器及其FPGA实现]{高速通用数字IIR滤波器及其FPGA实现\label{section:digital_iir}}
-% ============================================================================
-% =======================     高速数字滤波器    ===============================
-% ============================================================================
-
-
-在量子计算的实现过程中，对于噪声的抗争从未停止。而对抗噪声的一种十分有效的方式就是使用各种各样的滤波器来对信号进行过滤以提高有用信号的质量。本质来讲，滤波器是一种选频装置，可以使信号中特定的频率成分通过，而极大地衰减其它频率成分。利用滤波器的这种选频作用，可以滤除干扰噪声或进行频谱分析。
-当前实验系统中广泛出现滤波器为模拟滤波器，但是随着量子测控系统的数字化集成化进行逐步加深，在很多内部信号的处理上也有相当多的滤波需求，比如消除ADC芯片采样的噪声等。我们特别地在RTMQ系统板卡上实现了相匹配的高速通用数字IIR滤波器，来进一步实现对量子物理实验系统信号的控制和优化。
-
-
-\subsubsection[无限冲激响应滤波器IIR]{无限冲激响应滤波器IIR}
-数字滤波器的基本原理是利用离散系统的特性对输入信号进行加工和处理，改变输入信号的频率特性，从而达到选频、提高信噪比、消除干扰等目的。数字滤波器一般由延迟单元、加法器、乘法器、寄存器等基本运算单元组成。不同类型的数字滤波器有不同的实现方法和应用领域。在通信、语音处理、图像处理、信号处理等领域，数字滤波器都有着广泛的应用。整个离子阱系统中很多模块都有滤波器的需求以获取更高质量的信号来控制量子比特。为此，整个RTMQ系统中需要实现数字滤波器以供系统设计和实现使用。
-
-有限冲击响应滤波器（FIR滤波器）的冲激响应在有限时间内衰减为零，其输出仅取决于当前和过去的输入信号值。FIR滤波器在保证幅度特性的同时，很容易做到严格的线性相位特性。无限冲击响应滤波器（IIR滤波器）的冲激响应理论上应会无限持续，其输出不仅取决于当前和过去的输入信号值，也取决于过去的信号输出值。
-
-有限冲击响应滤波器（FIR滤波器）的优点是具有线性相位、稳定性好、容易实现等，缺点是阶数较高时，运算量较大，对存储空间要求较高。无限冲击响应滤波器（IIR滤波器）的优点是阶数较低时，运算量较小，对存储空间要求较低，缺点是相位非线性、稳定性较差、设计复杂等。实际滤波器设计经验表明，实现相同形状的滤波效果，IIR滤波器所需的计算资源远小于FIR滤波器。鉴于硬件实现是对资源十分敏感的，因此我们选用IIR滤波器来进行实现。
-
-IIR滤波器的冲激响应理论上应会无限持续，其输出不仅取决于当前和过去的输入信号值，也取决于过去的信号输出值，用差分方程来表示一个滤波器，其表达式为：
-\begin{align}
-    y(n)=\sum_{k=1}^Na_ky(n-k)+\sum_{k=0}^Nb_kx(n-k)\label{eq:iir_filter}
-\end{align}
-
-
-其中，$y(n)$表示输出信号，$x(n)$表示输入信号，$a_k$和$b_k$表示滤波器系数。本质上来说，IIR滤波器就是将输入和过去的输出按照某种方式加权计算获得最终输出结果的。对于一个给定阶数和数字位数的IIR滤波器，它的形状完全取决于系数$a_k$和$b_k$。因此，为了维持通用性，在硬件实现的过程中，我们应该把系数（$a_k, b_k$）设计为可外部软件配置的。
-以四阶为例，通用四阶IIR滤波器的结构框图如图\ref{fig:rtmq_iir_structure}所示，图中$a_0-a_3, b_0-b_3$为IIR滤波器的可配置系数，主要用到的模块有寄存器、乘法器、加法器等。
-\begin{figure}
-    \centering
-    \caption[IIR滤波器结构框图]{IIR滤波器结构框图。MULT：乘法器模块；Reg：寄存器模块；ADD：加法器模块；$i_filter, o_filter$：滤波器输入输出信号；$i_factor_a,i_factor_b$：IIR滤波器参数集合输入。\label{fig:rtmq_iir_structure}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_iir_structure}
-\end{figure}
-
-
-\subsubsection[高速通用数字IIR滤波器的FPGA实现]{数字IIR滤波器的FPGA实现}
-
-根据图\ref{fig:rtmq_iir_structure}给出的结构图和公式\eqref{eq:iir_filter}，可以将其在FPGA中进行实现和验证。数字IIR滤波器在FPGA中的实现结果的结构图如图\ref{fig:iir_filter_vivado}所示，其模块端口定义如表\ref{tb:rtmq_iir_filter}所示。整体结构中插入了若干的流水线用于对齐$x(n)$和$y(n)$的时序。除此之外，流水线也被用于满足电路的时延要求。需要注意的是，由于上一时刻的输出结果$y(n-1)$需要参与到下一时刻的输出结果的计算中，因此从计算结果到迭代反馈之间仅能有一级流水线存在，否则输出结果就会出错。也即从乘法器输入到乘法器输出，以及加法器输入到加法器输出并反馈到乘法器输入这个回路中只能存在一级流水线。正因此，这个IIR滤波器无法工作在较高的频率上，需要在板上额外配置工作频率，该32位通用IIR滤波器设计在FPGA板上的工作频率为25MHz。
-
-
-\begin{table}
-    \centering
-    \caption[RTMQ系统外设高速通用PID模块端口定义]{RTMQ系统外设高速通用PID模块端口定义\label{tb:rtmq_iir_filter}}    
-    \begin{tabular}{L{3cm}L{3.5cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        i\_clkp             & 系统时钟 & o\_filter[31:0] & 滤波器输出 \\
-        i\_factor\_a[127:0] & 四阶滤波器参数a0[31:0]-a3[31:0] &  &  \\
-        i\_factor\_b[127:0] & 四阶滤波器参数b0[31:0]-b3[31:0] &  &  \\
-        i\_filter[31:0]     & 滤波器输入 &  &  \\
-        i\_rstn             & &  & \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-
-\begin{figure}
-    \centering
-    \caption[IIR滤波器实现结果的结构图]{IIR滤波器实现结果的结构图（Vivado）\label{fig:iir_filter_vivado}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_iir_filter}
-\end{figure}
-
-
-
-
-\subsubsection[滤波器形状测量]{滤波器形状测量}
-数字滤波器的形状设计可以采用MATLAB中的滤波器设计器来完成。在量子计算的实验系统中常常要应对的是高频信号噪声，低通滤波器是十分常见的需求，因此下面以低通滤波器为例进行说明。如图\ref{fig:filter_design_real1}，通过MATLAB设计了一个截止频率在100kHz附近的巴特沃斯型迭代滤波器，结果为一个3阶的迭代滤波器，参数为：$a_0=16777216;
-a_1=-33470572;
-a_2=16693565;
-a_3=0;
-b_0=52;
-b_1=105;
-b_2=52;
-b_3=0$。可以看到设计的理论截止频率（100kHz）和数字滤波器实际的截止频率（13.17kHz）有较大的差异。其原因主要有两方面：1. 数字滤波器的设计本身实际上是对模拟滤波器的近似，因而结果不绝对准确；2. 实际在FPGA中的硬件滤波器运算位宽有限，爹地啊过程中存在截断效应；3. 对数据的表征不够精确，测试的过程中用到模数转换（16位）等中间数字过程。
-
-\begin{figure}
-    \centering
-    \caption[IIR滤波器设计仿真和实际测试结果]{IIR滤波器设计仿真和实际测试结果\label{fig:filter_design_real1}}
-    \includegraphics[width=1.0\linewidth]{rtmq/filter_design_real1}
-\end{figure}
-
-在理论结果绘制中，对滤波器的结果进行类似FPGA硬件中的人工截断，得到的模拟结果如图\ref{fig:filter_design_real2}所示。可以看到此时理论设计的截止频率结果与实际硬件数字PID的截止频率结果变得更加接近了。尽管仍然存在一定的差异，已经可以给出比较有意义的指导信息了。整体上来看，硬件实现的数字滤波器在配置为低通滤波器的时候带宽会被压窄。因此如果需要100kHz的带宽，则需要在设计时适当放大这个带宽需求。最终实际的滤波器带宽可以通过测量来进一步验证是否符合使用要求，如果不符合则可以重新设计和测试。值得一提的是，在实现了通用的硬件IIR滤波的基础上，重新设计和配置$a_0-a_3, b_0-b_3$等参数是十分方便快捷的，仅需更改可配置寄存器的值即可。
-
-\begin{figure}
-    \centering
-    \caption[IIR滤波器考虑截断的仿真和实际测试结果]{IIR滤波器考虑截断的仿真和实际测试结果\label{fig:filter_design_real2}}
-    \includegraphics[width=1.0\linewidth]{rtmq/filter_design_real2}
-\end{figure}
-
-% IIR滤波器形状测量如图\ref{fig:iir_filter_shape}所示。
 % \begin{figure}
 %     \centering
-%     \caption[IIR滤波器设计仿真和不同参数下测试结果]{IIR滤波器设计仿真和不同参数下测试结果\label{fig:iir_filter_shape}}
-%     \includegraphics[width=1.0\linewidth]{rtmq/iir_filter_shape}
+%     \caption[RTMQ用寄存器模块的FPGA实现结构图]{RTMQ用寄存器模块的FPGA实现结构图\label{fig:rtmq_universal_register}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_universal_register}
 % \end{figure}
 
 
-\newpage
+
+% \subsection[UART模块及其FPGA实现]{UART模块及其FPGA实现}
+% % =======================       UART模块       ===============================
+% 通信模块是RTMQ系统与上位机以及RTMQ系统节点之间相互传递信息的重要模块，其中UART通信模块在整个RTMQ系统中有着十分广泛的应用。UART模块即通用异步收发器(Universal Asynchronous Receiver/Transmitter)，特点是通信线路简单，适用于远距离通信，但传输速度慢。因此该种通信方式主要应用于RTMQ系统节点与上位之间的通信以及RTMQ节点之间同步信息传递。接下来将介绍RTMQ系统中的UART模块及其FPGA实现结果。
+
+% % \subsubsection[UART模块原理]{UART模块原理}
+% UART是一种串行、异步、全双工的通信协议，它的数据通信格式如表\ref{tb:rtmq_uart_data}所示。根据UART协议，初始时总线处于空闲状态，即信号线为高电平“1”（空闲位）；每次传输开始时对方先发出一个低电平“0”（起始位）；起始位之后就是数据位，可以是6、7、8、9位等等，先发送低位再发送高位，使用低电平表示‘0’高电平表示‘0’（有效数据位）；根据事先规定，数据位加上这一位后，使得“1”的位数应为偶数(偶校验)或奇数(奇校验)，以此来校验数据传送的正确性（奇偶校验位）；一次字符数据传输结束后给出若干位高电平指示本字节传输结束，可以是1位、1.5位、2位等（停止位）。
+
+% \begin{table}
+%     \centering
+%     \caption[UART数据通信格式]{UART数据通信格式。起始位之前和停止位之后是空闲位；最低位LSB到最高位MSB之间为有效数据位；奇偶校验位在MSB之后。\label{tb:rtmq_uart_data}}    
+%     \begin{tabular}{C{0.9cm}|C{0.85cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.4cm}C{0.85cm}|C{0.9cm}C{0.9cm}|C{0.9cm}}
+%         % \begin{tabular}{cccccccccccccc}
+%         \toprule
+%         &\multicolumn{12}{c}{第n个字节数据流}& \\
+%         \midrule
+%         1 & 0 & X & X & X & X & X & X & X & X & X & X & 1 & 1 \\
+%         \hline
+%         空闲位 & 起始位 & LSB & & & & & & & & MSB & 奇偶校验位 & 停止位 & 空闲位 \\ 
+%         % & \multirow{10}{*}{有效数据位} &  &  & \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+% 通过UART通信协议的理解，UART模块的组成主要有两部分：发送模块和接收模块。另外，该模块的开发也要结合RTMQ核心模块的处理方式，以使得RTMQ核心能够直接通过其通用寄存器对UART进行控制。模块的实现结构如图\ref{fig:rtmq_uart_structure}所示，主要用到的模块有寄存器、RTMQ通用寄存器模块、UART发送模块、UART接收模块等，另外对接收的信息进行了逻辑处理以保证输出始终为可供RTMQ核心使用的合法数据。接口主要有RTMQ算术逻辑单元输入、UART接收输入、配置指令输出、配置指令覆盖标志、发送信号、发送结束标志等。
+
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图\label{fig:rtmq_uart_structure}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_uart_structure}
+% \end{figure}
+
+% % \subsubsection[UART模块的FPGA实现]{UART模块的FPGA实现}
+
+% UART通信模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_uart}所示，其具体的接口定义如表\ref{tb:rtmq_uart}所示。
+% % \textcolor{green}{具体内容描述待补充。}
+
+
+% \begin{table}
+%     \centering
+%     \caption[RTMQ系统外设UART模块端口定义]{RTMQ系统外设UART模块端口定义\label{tb:rtmq_uart}}    
+%     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         alu\_out[128:0] & 算术逻辑单元结果  & cfg\_ins[31:0] & 模块配置指令 \\
+%         clk             & 系统时钟          & f\_cfg & 配置指令覆盖标志 \\
+%         uart\_rx        & UART接受信号Rx    & f\_tx\_done & 发送信号结束标志 \\
+%         &               & uart\_tx          & UART发送信号Tx\\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图（Vivado）。\label{fig:rtmq_uart}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_uart}
+% \end{figure}
+
+
+
+
+% \subsection[SPIMaster模块及其FPGA实现]{SPIMaster模块及其FPGA实现}
+% % =======================        SPI模块       ===============================
+
+% RTMQ系统中不仅涉及与上位机和不同RTMQ节点间相互的通信，还需要与一些如板上的其它功能芯片进行高速通信。在高速通信的场景下UART通信协议的应用很受限，因此需要一种可以支持高速通信的协议来满足需求——SPI（串行外围设备接口，Serial Perripheral Interface）。SPI是一种高速、全双工、同步的通信总线，它常用于EEPROM、Flash、实时时钟(RTC)、数模转换器(ADC)、数字信号处理器(DSP) 以及数字信号解码器之间。RTMQ系统的微处理器即采用SPI进行外部功能拓展设备的管理，如与板上集成的AD9910芯片间的通信等。
+
+% SPI通信模块在Vivado中的FPGA实现如图\ref{fig:rtmq_spi}所示，其具体的接口定义如表\ref{tb:rtmq_spi}所示。
+
+% \textcolor{green}{具体内容描述待补充。}
+
+
+% \begin{table}
+%     \centering
+%     \caption[RTMQ系统外设SPIMaster模块端口定义]{RTMQ系统外设SPIMaster模块端口定义\label{tb:rtmq_spi}}    
+%     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         alu\_out[128:0] & 算术逻辑单元结果 & csb &  \\
+%         clk & 系统时钟 & f\_spi\_done & SPI Rx/Tx结束标志 \\
+%         miso & 主收从发信号 & mosi & 主发从收信号 \\
+%         & & reg\_sctl[31:0] & \\
+%         & & reg\_sdat[31:0] & \\
+%         & & sclk & 主设备产生的时钟信号 \\
+%         & & slv\_adr[2:0] & 目标从设备地址\\
+
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ功能外设SPIMaster模块的FPGA实现结构图]{RTMQ功能外设SPIMaster模块的FPGA实现结构图\label{fig:rtmq_spi}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_spi}
+% \end{figure}
+
+
+
+% \subsection[AD9910芯片管理模块及其FPGA实现]{AD9910芯片管理模块及其FPGA实现}
+% % =======================    AD9910管理模块     ===============================
+
+
+% 如图\ref{fig:rtmq_ad9910}所示，如表\ref{tb:rtmq_ad9910}所示。\textcolor{green}{具体内容描述待补充。}
+
+
+% \begin{table}
+%     \centering
+%     \caption[RTMQ系统外设AD9910芯片管理模块端口定义]{RTMQ系统外设AD9910芯片管理模块端口定义\label{tb:rtmq_ad9910}}    
+%     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         alu\_out[128:0] & 算术逻辑单元结果  & io\_rst & 输入输出充值信号 \\
+%         cdds[12:0]      & DDS控制信号       & io\_upd & 输入输出更新信号 \\
+%         clk             & 系统时钟          & m\_rst & 主机重置信号 \\
+%         pda\_clk        & PD时钟            & pdat[15:0] & 并行数据 \\
+%         syn\_clk        & 同步时钟          & pf[1:0] & 并行数据目标 \\
+%                         &                   & reg\_cmn[31:0] & 时钟相位检测\\
+%                         &                   & tx\_en & 发送使能信号\\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图\label{fig:rtmq_ad9910}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_ad9910}
+% \end{figure}
+
+
+
+
+% \subsection[ADC芯片管理模块及其FPGA实现]{ADC芯片管理模块及其FPGA实现}
+% % =======================      ADC管理模块      ===============================
+
+
+% 如图\ref{fig:rtmq_adc}所示，如表\ref{tb:rtmq_adc}所示。\textcolor{green}{具体内容描述待补充。}
+
+
+% \begin{table}
+%     \centering
+%     \caption[RTMQ系统外设AD9910芯片管理模块端口定义]{RTMQ系统外设AD9910芯片管理模块端口定义\label{tb:rtmq_adc}}    
+%     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         adc\_in[15:0]   & ADC采样数据   & reg\_aio[15:0] & ADC输出数据 \\
+%         adc\_smp        & ADC采样时钟   &  &  \\
+%         clk             & 系统时钟      &  &  \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+
+
+
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ功能外设ADC模块的FPGA实现结构图]{RTMQ功能外设ADC模块的FPGA实现结构图\label{fig:rtmq_adc}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_adc}
+% \end{figure}
+
+% % \subsubsection[随机数发生器模块及其FPGA实现]{随机数发生器模块及其FPGA实现}
+
+
+
+% \subsection[高速通用数字PID及其FPGA实现]{高速通用数字PID及其FPGA实现\label{section:digital_pid}}
+% % ============================================================================
+% % =======================      高速数字PID      ===============================
+% % ============================================================================
+
+
+% 当前量子计算系统中大量采用PID控制器进行诸如激光功率稳定、激光相位稳定、激光拍频锁定等等控制系统的构建，常用的器件有如LB1005模拟伺服控制器。这类模拟控制器的确定在于稳定性较差且价格昂贵，此外它的集成度也比较差，往往需要占用较大的实验平台面积。除此之外这类模拟PID控制器往往采用机械旋钮进行参数调节，不利于进行实验系统的集成化和自动化。与之相比较，使用融合了高速通用数字PID的RTMQ测控系统可以同时完成对实验序列的操控和对设备关键参数的伺服控制。除此之外，采用也对系统完成了集成化和数字化，提高了系统的稳定性和易用性。
+
+% \subsubsection[数字PID]{数字PID}
+% 数字PID控制器是一种常用的自动控制算法，用于实现对系统的闭环控制。PID控制器通过对系统的误差进行比例（Proportional）、积分（Integral）和微分（Derivative）计算，生成控制信号来调整系统的输出，以达到期望的控制效果。在量子测控系统中很多地方都需要用到闭环控制，比如激光的功率稳定、激光的波长稳定、离子阱频率稳定等。相对于模拟PID控制器，数字PID控制器具有结构简单、易于实现、控制灵活、工作稳定等优点，是RTMQ系统中的重要组成部分。
+
+% PID 控制器的数学表达式可以表示为：
+% \begin{align}
+%     u(t)= K_p e(t) + K_i \int_{0}^{t} e(\tau) d\tau + K_d \frac{d e(t)}{dt}
+% \end{align}
+
+% 其中，$u(t)$是控制器的输出，$e(t)$是系统的误差，$K_p$、$K_i$和$K_d$分别是比例系数、积分系数和微分系数。
+ 
+% PID控制器的实现可以分为模拟PID和数字PID两种方式。模拟PID是通过模拟电路实现的，而数字PID是通过数字计算实现的。数字PID控制器通常使用微处理器或计算机来实现，其基本结构包括采样、计算和输出三个部分。数字 PID 控制器的实现步骤如下：
+% \begin{itemize}
+%     \item 采样：对系统的输入和输出进行采样，获取当前时刻的误差值e(t)；
+%     \item 计算：根据采样得到的误差值，按照 PID 控制器的数学表达式计算控制信号u(t)；
+%     \item 输出：将计算得到的控制信号输出到执行机构，调整系统的输出；
+% \end{itemize}
+
+% 在数字PID控制器的实现中，需要对积分和微分操作进行离散化处理。常用的离散化方法有矩形法和梯形法。矩形法将积分区间划分为若干个相等的子区间，每个子区间的积分值近似为矩形的面积；梯形法将积分区间划分为若干个相等的子区间，每个子区间的积分值近似为梯形的面积。这一步骤在嵌入式系统中通常使用模拟数字转换（ADC）芯片来完成。
+
+% \subsubsection[数字PID的增量表达式]{数字PID的增量表达式}
+% 硬件资源在FPGA中是十分宝贵的资源，而乘法器这样的器件往往会占用大量的硬件资源。因此在满足时序要求的情况下我们希望能够尽量减少乘法器的使用，PID的增量表达式就是一种可以有效减少PID硬件电路实现过程中乘法器需求个数的方式，下面将介绍这种方法。
+
+% \begin{figure}
+%     \centering
+%     \caption[数字PID结构示意图]{数字PID结构示意图。MULT：乘法器模块；Reg：寄存器模块；ADD：加法器模块；SUB：减法器模块；LIM：限幅器模块；$y_t, u_t$：输入和输出信号；$ref$：参考值输入；$k_0, k_1, k_2$：增量表达下的PID控制参数。\label{fig:rtmq_pid_structure}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_pid_structure}
+% \end{figure}
+
+% 离散化后的PID表达式为：
+% \begin{align}
+%     u(n)=k_p e(n)+k_i\sum_{j=-}^{n}e(j)+k_d[e(n)-e(n-1)]\\
+%     u(n-1)=k_p e(n-1)+k_i \sum_{j=0}^{n-1}e(j)+k_d [e(n-1)-e(n-2)]
+% \end{align}
+
+% 由上面两式可以导出：
+
+% \begin{align}
+%     \Delta u(n)=&u(n)-u(n-1)\\
+%     =&k_0 e(n)+k_1 e(n-1)+k_2 e(n-2)
+% \end{align}
+
+% 其中$k_0=k_p+k_i+k_d,\ k_1=-k_p-2k_d,\ k_2=k_d$，这个式子被称为PID的增量算法。采用这种形式的好处是避免了计算PID原始表达式中的无限积分项。在这种增量式的方式下，PID的控制输出可以表达为：
+% \begin{align}
+%     u(n)=u(n-1)+\Delta u(n)=u(n-1)+k_0 e(n)+k_1 e(n-1)+k_2 e(n-2)\label{eq:increment_pid}
+% \end{align}
+
+% 按照上述式\eqref{eq:increment_pid}表示的增量式算法，数字PID实现的结构示意图如图\ref{fig:rtmq_pid_structure}所示。接口主要有参考$ref$、参数$k_0, k_1, k_2$、输出移位和限幅$shift, min, max$等可配置输入，反馈信号$y_t$等系统回路输入，以及$u_t$等系统控制输出。用到的器件包括加法器/减法器模块、乘法器模块、寄存器模块。
+
+% \subsubsection[高速通用数字PID的FPGA实现]{高速通用数字PID的FPGA实现}
+
+% % 增量式PID最终在FPGA中实现的结构图如图\ref{fig:digital_pid_structure_16bits}所示。
+
+% 根据图\ref{fig:rtmq_pid_structure}所示的结构，可以在FPGA中实现硬件的PID。
+% 其中主要涉及到的数字加法器、数字乘法器，分别采用的是超前进位加法器和Booth乘法器。对于高速时序电路，尤其是要满足与RTMQ的实时性匹配等相关需求，在开发过程中需要注意流水线的设置和对齐，最终的实现硬件框图如图\ref{fig:digital_pid_structure_16bits}所示，模块端口定义如表\ref{tb:rtmq_pid}所示。其硬件输出测试和仿真对比如\ref{fig:pid_compare}图所示。从图\ref{fig:pid_compare}中可见，在Vivado中实现的高速PID硬件电路在$k_i=1, k_d=1$的情况下经过大概1000ns后即可以将系统的输出稳定在参考值1000附近，与直接使用MATLAB进行数字PID仿真输出结果一致。
+
+% \begin{table}
+%     \centering
+%     \caption[RTMQ系统外设高速通用PID模块端口定义]{RTMQ系统外设高速通用PID模块端口定义\label{tb:rtmq_pid}}    
+%     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         i\_clkp         & 系统时钟  & o\_ut[31:0] & PID输出结果 \\
+%         i\_k0[15:0]     & PID参数k0 &  &  \\
+%         i\_k1[15:0]     & PID参数k1 &  &  \\
+%         i\_k2[15:0]     & PID参数k2 &  &  \\
+%         i\_max[31:0]    & PID输出最高限幅 &  & \\
+%         i\_min[31:0]    & PID输出最低限幅 &  & \\
+%         i\_rstn         & PID重置信号 &  & \\
+%         i\_rt[15:0]     & PID的系统输入信号 &  & \\
+%         i\_shift[4:0]   & PID输出结果的偏移量 &  & \\
+%         i\_yt[15:0]     & PID的反馈输入信号 &  & \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+
+% \begin{figure}
+%     \centering
+%     \caption[16位数字PID的FPGA实现结构图]{16位数字PID的FPGA实现结构图上\label{fig:digital_pid_structure_16bits}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_pid}
+% \end{figure}
+
+% \begin{figure}
+%     \centering
+%     \caption[16位数字PID的FPGA实现结果与仿真结果对比]{16位数字PID的FPGA实现结果与仿真结果对比。初始系统输出和调节输出都为0，参考数值为1000，$k_i=1, k_d=1$，Vivado综合输出时长为3500ns，仿真持续时间为1000$T_c$（系统仿真迭代次数）。\label{fig:pid_compare}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/pid_compare}
+% \end{figure}
+
+% 整个PID控制器使用了一个减法器、三个加法器、三个乘法器和若干寄存器。图\ref{fig:digital_pid_structure_16bits}是一个16位输入的数字PID，它的输出是32位的，该实例模块总共包含9级流水线，工作频率可达200MHz以上。对更低或者更高位数的数字PID控制器，可以通过替换相应位数的加减运算和乘法模块，并调整相应的寄存器位宽来方便地得到。
+
+
+% \subsection[高速通用数字IIR滤波器及其FPGA实现]{高速通用数字IIR滤波器及其FPGA实现\label{section:digital_iir}}
+% % ============================================================================
+% % =======================     高速数字滤波器    ===============================
+% % ============================================================================
+
+
+% 在量子计算的实现过程中，对于噪声的抗争从未停止。而对抗噪声的一种十分有效的方式就是使用各种各样的滤波器来对信号进行过滤以提高有用信号的质量。本质来讲，滤波器是一种选频装置，可以使信号中特定的频率成分通过，而极大地衰减其它频率成分。利用滤波器的这种选频作用，可以滤除干扰噪声或进行频谱分析。
+% 当前实验系统中广泛出现滤波器为模拟滤波器，但是随着量子测控系统的数字化集成化进行逐步加深，在很多内部信号的处理上也有相当多的滤波需求，比如消除ADC芯片采样的噪声等。我们特别地在RTMQ系统板卡上实现了相匹配的高速通用数字IIR滤波器，来进一步实现对量子物理实验系统信号的控制和优化。
+
+
+% \subsubsection[无限冲激响应滤波器IIR]{无限冲激响应滤波器IIR}
+% 数字滤波器的基本原理是利用离散系统的特性对输入信号进行加工和处理，改变输入信号的频率特性，从而达到选频、提高信噪比、消除干扰等目的。数字滤波器一般由延迟单元、加法器、乘法器、寄存器等基本运算单元组成。不同类型的数字滤波器有不同的实现方法和应用领域。在通信、语音处理、图像处理、信号处理等领域，数字滤波器都有着广泛的应用。整个离子阱系统中很多模块都有滤波器的需求以获取更高质量的信号来控制量子比特。为此，整个RTMQ系统中需要实现数字滤波器以供系统设计和实现使用。
+
+% 有限冲击响应滤波器（FIR滤波器）的冲激响应在有限时间内衰减为零，其输出仅取决于当前和过去的输入信号值。FIR滤波器在保证幅度特性的同时，很容易做到严格的线性相位特性。无限冲击响应滤波器（IIR滤波器）的冲激响应理论上应会无限持续，其输出不仅取决于当前和过去的输入信号值，也取决于过去的信号输出值。
+
+% 有限冲击响应滤波器（FIR滤波器）的优点是具有线性相位、稳定性好、容易实现等，缺点是阶数较高时，运算量较大，对存储空间要求较高。无限冲击响应滤波器（IIR滤波器）的优点是阶数较低时，运算量较小，对存储空间要求较低，缺点是相位非线性、稳定性较差、设计复杂等。实际滤波器设计经验表明，实现相同形状的滤波效果，IIR滤波器所需的计算资源远小于FIR滤波器。鉴于硬件实现是对资源十分敏感的，因此我们选用IIR滤波器来进行实现。
+
+% IIR滤波器的冲激响应理论上应会无限持续，其输出不仅取决于当前和过去的输入信号值，也取决于过去的信号输出值，用差分方程来表示一个滤波器，其表达式为：
+% \begin{align}
+%     y(n)=\sum_{k=1}^Na_ky(n-k)+\sum_{k=0}^Nb_kx(n-k)\label{eq:iir_filter}
+% \end{align}
+
+
+% 其中，$y(n)$表示输出信号，$x(n)$表示输入信号，$a_k$和$b_k$表示滤波器系数。本质上来说，IIR滤波器就是将输入和过去的输出按照某种方式加权计算获得最终输出结果的。对于一个给定阶数和数字位数的IIR滤波器，它的形状完全取决于系数$a_k$和$b_k$。因此，为了维持通用性，在硬件实现的过程中，我们应该把系数（$a_k, b_k$）设计为可外部软件配置的。
+% 以四阶为例，通用四阶IIR滤波器的结构框图如图\ref{fig:rtmq_iir_structure}所示，图中$a_0-a_3, b_0-b_3$为IIR滤波器的可配置系数，主要用到的模块有寄存器、乘法器、加法器等。
+% \begin{figure}
+%     \centering
+%     \caption[IIR滤波器结构框图]{IIR滤波器结构框图。MULT：乘法器模块；Reg：寄存器模块；ADD：加法器模块；$i_filter, o_filter$：滤波器输入输出信号；$i_factor_a,i_factor_b$：IIR滤波器参数集合输入。\label{fig:rtmq_iir_structure}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_iir_structure}
+% \end{figure}
+
+
+% \subsubsection[高速通用数字IIR滤波器的FPGA实现]{数字IIR滤波器的FPGA实现}
+
+% 根据图\ref{fig:rtmq_iir_structure}给出的结构图和公式\eqref{eq:iir_filter}，可以将其在FPGA中进行实现和验证。数字IIR滤波器在FPGA中的实现结果的结构图如图\ref{fig:iir_filter_vivado}所示，其模块端口定义如表\ref{tb:rtmq_iir_filter}所示。整体结构中插入了若干的流水线用于对齐$x(n)$和$y(n)$的时序。除此之外，流水线也被用于满足电路的时延要求。需要注意的是，由于上一时刻的输出结果$y(n-1)$需要参与到下一时刻的输出结果的计算中，因此从计算结果到迭代反馈之间仅能有一级流水线存在，否则输出结果就会出错。也即从乘法器输入到乘法器输出，以及加法器输入到加法器输出并反馈到乘法器输入这个回路中只能存在一级流水线。正因此，这个IIR滤波器无法工作在较高的频率上，需要在板上额外配置工作频率，该32位通用IIR滤波器设计在FPGA板上的工作频率为25MHz。
+
+
+% \begin{table}
+%     \centering
+%     \caption[RTMQ系统外设高速通用PID模块端口定义]{RTMQ系统外设高速通用PID模块端口定义\label{tb:rtmq_iir_filter}}    
+%     \begin{tabular}{L{3cm}L{3.5cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         i\_clkp             & 系统时钟 & o\_filter[31:0] & 滤波器输出 \\
+%         i\_factor\_a[127:0] & 四阶滤波器参数a0[31:0]-a3[31:0] &  &  \\
+%         i\_factor\_b[127:0] & 四阶滤波器参数b0[31:0]-b3[31:0] &  &  \\
+%         i\_filter[31:0]     & 滤波器输入 &  &  \\
+%         i\_rstn             & &  & \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+
+% \begin{figure}
+%     \centering
+%     \caption[IIR滤波器实现结果的结构图]{IIR滤波器实现结果的结构图（Vivado）\label{fig:iir_filter_vivado}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_iir_filter}
+% \end{figure}
+
+
+
+
+% \subsubsection[滤波器形状测量]{滤波器形状测量}
+% 数字滤波器的形状设计可以采用MATLAB中的滤波器设计器来完成。在量子计算的实验系统中常常要应对的是高频信号噪声，低通滤波器是十分常见的需求，因此下面以低通滤波器为例进行说明。如图\ref{fig:filter_design_real1}，通过MATLAB设计了一个截止频率在100kHz附近的巴特沃斯型迭代滤波器，结果为一个3阶的迭代滤波器，参数为：$a_0=16777216;
+% a_1=-33470572;
+% a_2=16693565;
+% a_3=0;
+% b_0=52;
+% b_1=105;
+% b_2=52;
+% b_3=0$。可以看到设计的理论截止频率（100kHz）和数字滤波器实际的截止频率（13.17kHz）有较大的差异。其原因主要有两方面：1. 数字滤波器的设计本身实际上是对模拟滤波器的近似，因而结果不绝对准确；2. 实际在FPGA中的硬件滤波器运算位宽有限，爹地啊过程中存在截断效应；3. 对数据的表征不够精确，测试的过程中用到模数转换（16位）等中间数字过程。
+
+% \begin{figure}
+%     \centering
+%     \caption[IIR滤波器设计仿真和实际测试结果]{IIR滤波器设计仿真和实际测试结果\label{fig:filter_design_real1}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/filter_design_real1}
+% \end{figure}
+
+% 在理论结果绘制中，对滤波器的结果进行类似FPGA硬件中的人工截断，得到的模拟结果如图\ref{fig:filter_design_real2}所示。可以看到此时理论设计的截止频率结果与实际硬件数字PID的截止频率结果变得更加接近了。尽管仍然存在一定的差异，已经可以给出比较有意义的指导信息了。整体上来看，硬件实现的数字滤波器在配置为低通滤波器的时候带宽会被压窄。因此如果需要100kHz的带宽，则需要在设计时适当放大这个带宽需求。最终实际的滤波器带宽可以通过测量来进一步验证是否符合使用要求，如果不符合则可以重新设计和测试。值得一提的是，在实现了通用的硬件IIR滤波的基础上，重新设计和配置$a_0-a_3, b_0-b_3$等参数是十分方便快捷的，仅需更改可配置寄存器的值即可。
+
+% \begin{figure}
+%     \centering
+%     \caption[IIR滤波器考虑截断的仿真和实际测试结果]{IIR滤波器考虑截断的仿真和实际测试结果\label{fig:filter_design_real2}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/filter_design_real2}
+% \end{figure}
+
+% % IIR滤波器形状测量如图\ref{fig:iir_filter_shape}所示。
+% % \begin{figure}
+% %     \centering
+% %     \caption[IIR滤波器设计仿真和不同参数下测试结果]{IIR滤波器设计仿真和不同参数下测试结果\label{fig:iir_filter_shape}}
+% %     \includegraphics[width=1.0\linewidth]{rtmq/iir_filter_shape}
+% % \end{figure}
+
+
+% \newpage
+
+
 \section[章末小结]{章末小结}
 
-在量子计算实验系统中，测控系统占据着十分关键的位置。对于离子阱量子计算系统来说，它将系统中涉及到的电学、光学、真空等其余各个子系统联系起来，给出各类光电信号对离子比特进行操控以实现量子计算。为了满足量子计算发展过程中日益增高的量子测控需求，本章提出了一套强实时、可拓展、分布式的用于量子物理实验的实时微系统——RTMQ。
+在量子计算实验系统中，测控系统占据着十分关键的位置。对于离子阱量子计算系统来说，它将系统中涉及到的电学、光学、真空等其余各个子系统联系起来，给出各类光电信号对离子比特进行操控以实现量子计算。为了满足量子计算发展过程中日益增高的量子测控需求，本章介绍了一套强实时、可拓展、分布式的用于量子物理实验的实时微系统——RTMQ。RTMQ是专为量子物理实验设计的一套测控系统方案，它包含了一种专门设计的用于满足实时信息处理的微处理器架构以及配套的指令集，此外还有服务于节点拓展的通信链路系统。
 
-RTMQ是专为量子物理实验设计的一套测控系统方案，它包含了一种专门设计的用于满足实时信息处理的微处理器架构以及配套的指令集，此外还有服务于节点拓展的通信链路系统。
 本章首先明确了量子测控系统的两个主要挑战：信息处理实时性和大规模拓展性，并分析了现有传统以及量子测控系统的优缺点。
-随后介绍了RTMQ量子测控系统的整体架构以及每个RTMQ节点的内部模块，同时也给出了RTMQ的测控板实现及主要功能器件说明，还有微处理器的核心模块的流控制器、计时器、算术逻辑单元等三个子模块的FPGA实现。
+随后介绍了RTMQ量子测控系统的整体架构以及每个RTMQ节点的内部模块，同时也给出了RTMQ的测控板实现及主要功能器件说明，
+还有微处理器的核心模块的流控制器、计时器、算术逻辑单元等三个子模块的FPGA实现。
 接着描述了RTMQ微处理器所配套设计的指令集，介绍了指令集的汇编指令格式以及其I类和A类两类指令的操作码、指令功能和编码方式，并给出了其时序控制结构实例。
-最后给出了RTMQ的一些重要系统外设和功能外设的FPGA实现，特别地，重点介绍了高速通用数字PID和四阶高速通用数字IIR滤波器的设计及FPGA的实现，以支撑后续章节（第\ref{section:implementation}章）对离子阱量子计算重要子系统的搭建和测试。
+值得关注的是，从它的指令集中可以看到RTMQ测控系统系统是支持板上运算和信息处理的，这是与其它依靠时序发生器构成的测控系统本质不同的地方和优势所在。这些处理包括逻辑运算和算术运算，构成了一个微处理器。而RTMQ系统的微处理器从架构上与CPU有着本质的不同，虽然牺牲了些运算效率，RTMQ的数据处理是严格实时的。这种处理器架构同样也具有拓展性和灵活性，我们可以方便地为它拓展和定义多种运算方式，也可以为其添加外设模块等，以适应更多更复杂任务的需求。对RTMQ量子测控系统的理解为后续设计测控板硬件及离子阱量子计算重要子系统的搭建和测试（第\ref{section:implementation}章）打下了基础。
