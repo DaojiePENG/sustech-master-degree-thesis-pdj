@@ -103,169 +103,167 @@ RTMQ架构中包含的微处理器可受指令控制进入挂起状态，而挂�
 % ============================================================================
 % ============================================================================
 
-\newpage
-\section[RTMQ核心模块及其FPGA实现]{RTMQ核心模块及其FPGA实现}
-% 在下面几小节中，我将介绍一些基本运算及外设模块的实现和使用。
 
-RTMQ核心模块是一个专为实时量子计算设计的一个微处理器，具备完成强实时的数据处理能力，它在整个RTMQ测控系统重占据着十分核心的位置。如图\ref{fig:rtmq_core}所示，RTMQ的核心主要由三部分组成：流控制器、计时器、算术逻辑单元，它的输入及输出端口定义如表\ref{tb:rtmq_core}所示。本小节接下来的内容将介绍组成RTMQ核心模块的三个重要子模块流控制器、计时器、算术逻辑单元的逻辑功能和在Vivado中的FPGA实现。
+% \section[RTMQ核心模块及其FPGA实现]{RTMQ核心模块及其FPGA实现}
+% % 在下面几小节中，我将介绍一些基本运算及外设模块的实现和使用。
 
-% \textcolor{green}{具体内容描述待补充。}
+% RTMQ核心模块是一个专为实时量子计算设计的一个微处理器，具备完成强实时的数据处理能力，它在整个RTMQ测控系统重占据着十分核心的位置。如图\ref{fig:rtmq_core}所示，RTMQ的核心主要由三部分组成：流控制器、计时器、算术逻辑单元，它的输入及输出端口定义如表\ref{tb:rtmq_core}所示。本小节接下来的内容将介绍组成RTMQ核心模块的三个重要子模块流控制器、计时器、算术逻辑单元的逻辑功能和在Vivado中的FPGA实现。
 
-\begin{table}
-    \centering
-    \caption[RTMQ核心模块端口定义]{RTMQ核心模块端口定义。IF：指令获取（Instruction Fetch）。\label{tb:rtmq_core}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        cfg\_ins[31:0]  & 配置指令 & alu\_out[128:0] & 算术逻辑单元结果 \\
-        clk             & 系统时钟 & f\_ftc & IF流水线获取标志 \\
-        f\_cfg          & 配置指令覆盖标志 & f\_hld & 核心HOLD状态标志 \\
-        f\_rsm          & 外部恢复标志 & if\_adr[31:0] & IF地址 \\
-        if\_ins[31:0]   & IF输入 &  &  \\
-        regfile[8191:0] & 寄存器文件 &  &  \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+% % \textcolor{green}{具体内容描述待补充。}
 
-
-\begin{figure}
-    \centering
-    \caption[RTMQ核心微处理器的FPGA实现结构图]{RTMQ核心微处理器的FPGA实现结构图\label{fig:rtmq_core}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_core}
-\end{figure}
+% \begin{table}
+%     \centering
+%     \caption[RTMQ核心模块端口定义]{RTMQ核心模块端口定义。IF：指令获取（Instruction Fetch）。\label{tb:rtmq_core}}    
+%     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         cfg\_ins[31:0]  & 配置指令 & alu\_out[128:0] & 算术逻辑单元结果 \\
+%         clk             & 系统时钟 & f\_ftc & IF流水线获取标志 \\
+%         f\_cfg          & 配置指令覆盖标志 & f\_hld & 核心HOLD状态标志 \\
+%         f\_rsm          & 外部恢复标志 & if\_adr[31:0] & IF地址 \\
+%         if\_ins[31:0]   & IF输入 &  &  \\
+%         regfile[8191:0] & 寄存器文件 &  &  \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
 
 
-
-\subsection[算术逻辑单元模块及其FPGA实现]{算术逻辑单元模块及其FPGA实现\label{section:rtmq_core_alu}}
-
-算数逻辑单元模块式RTMQ微处理器核心的关键组成部分，它能够解析当前的输入指令进行运算处理并输出运算结果。如第\ref{section:rtmq_instruction_set}节所述，RTMQ算术逻辑单元的指令有两种，分别是A类指令和I类指令，两类指令的操作码及其含义分别如表\ref{tb:a_instructions}和表\ref{tb:i_instructions}所示，编码方案如表\ref{tb:instructions_code}所示。
-
-该模块通过四级流水线处理了指令所要求的操作，将结果写入目的寄存器中同时给出一些辅助作用信号。
-在第一级流水线中，对根据输入的regfile生成片选器选出R0和R1指向的操作数寄存器的数据用于后续的数据处理，同时将R0和R1的地址提取出来给出输出：alu\_r0a、alu\_r1a；如果是A类指令，则将R0和R1指向的操作数寄存器的数据片选结果保存到下级流水线使用；如果是I类指令，则不做特别操作。
-在第二级流水线中，对R0和R1的数据根据不同的指令内容进行算术运算和逻辑运算的判断给出后续要执行的具体运算操作指示。
-在第三级流水线中，根据不同指令情况进行运算，如算术比较、逻辑左右移位、算术左右移位、比特级翻转等，给出输出一些运算中间结果输出等待后续选用，同时给出目的寄存器地址输出：alu\_rda。
-在第四级流水线中，根据A类或I类指令的具体需求给出相应的运算结果；对于A类指令给出模块运算结果和结果的掩码：alu\_res，alu\_msk；对于I类指令给出立即数的目的寄存器地址和操作目标段：imm\_rda、imm\_seg，并直接使用指令中的数据给出imm\_res。最终的算数逻辑单元模块输出结构alu\_out为：\{alu\_res, alu\_msk, alu\_rda, alu\_r0a, alu\_r1a,
-imm\_res, imm\_rda, imm\_seg\}。
-
-算数逻辑单元模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_alu}所示，其具体的接口定义如表\ref{tb:rtmq_alu}所示。
-
-% \textcolor{green}{具体内容描述待补充。}
-
-
-\begin{table}
-    \centering
-    \caption[RTMQ核心算术逻辑单元模块端口定义]{RTMQ核心算术逻辑单元模块端口定义\label{tb:rtmq_alu}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        clk &  & alu\_out[128:0] & 算术逻辑单元结果 \\
-        instr[31:0] & 当前指令 &  &  \\
-        regfile[8191:0] & 寄存器文件 &  &  \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-
-\begin{figure}
-    \centering
-    \caption[RTMQ核心算术逻辑单元模块的FPGA实现结构图]{RTMQ核心算术逻辑单元模块的FPGA实现结构图\label{fig:rtmq_alu}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_alu}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ核心微处理器的FPGA实现结构图]{RTMQ核心微处理器的FPGA实现结构图\label{fig:rtmq_core}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_core}
+% \end{figure}
 
 
 
+% \subsection[算术逻辑单元模块及其FPGA实现]{算术逻辑单元模块及其FPGA实现\label{section:rtmq_core_alu}}
 
-\subsection[流控制器模块及其FPGA实现]{流控制模块及其FPGA实现}
+% 算数逻辑单元模块式RTMQ微处理器核心的关键组成部分，它能够解析当前的输入指令进行运算处理并输出运算结果。如第\ref{section:rtmq_instruction_set}节所述，RTMQ算术逻辑单元的指令有两种，分别是A类指令和I类指令，两类指令的操作码及其含义分别如表\ref{tb:a_instructions}和表\ref{tb:i_instructions}所示，编码方案如表\ref{tb:instructions_code}所示。
 
-流控制器模块是确保RTMQ实时性的关键设计，也是其与经典CPU相比的不同所在。它接受ALU结果alu\_out、指令获取、外部恢复标志、配置指令及其覆盖标志等输入，给出regfile中的地址指针、获取指令地址、当前的指令内容、指令抓取标志、HOLD状态标志等输出。
+% 该模块通过四级流水线处理了指令所要求的操作，将结果写入目的寄存器中同时给出一些辅助作用信号。
+% 在第一级流水线中，对根据输入的regfile生成片选器选出R0和R1指向的操作数寄存器的数据用于后续的数据处理，同时将R0和R1的地址提取出来给出输出：alu\_r0a、alu\_r1a；如果是A类指令，则将R0和R1指向的操作数寄存器的数据片选结果保存到下级流水线使用；如果是I类指令，则不做特别操作。
+% 在第二级流水线中，对R0和R1的数据根据不同的指令内容进行算术运算和逻辑运算的判断给出后续要执行的具体运算操作指示。
+% 在第三级流水线中，根据不同指令情况进行运算，如算术比较、逻辑左右移位、算术左右移位、比特级翻转等，给出输出一些运算中间结果输出等待后续选用，同时给出目的寄存器地址输出：alu\_rda。
+% 在第四级流水线中，根据A类或I类指令的具体需求给出相应的运算结果；对于A类指令给出模块运算结果和结果的掩码：alu\_res，alu\_msk；对于I类指令给出立即数的目的寄存器地址和操作目标段：imm\_rda、imm\_seg，并直接使用指令中的数据给出imm\_res。最终的算数逻辑单元模块输出结构alu\_out为：\{alu\_res, alu\_msk, alu\_rda, alu\_r0a, alu\_r1a,
+% imm\_res, imm\_rda, imm\_seg\}。
 
-RTMQ流控制器模块设计结构如图\ref{fig:rtmq_flow_controller_structure}所示，当配置指令覆盖标志、HOLD标志、指令中HOLD标志其中任何一个为“1”时，指令获取标志f\_ftc输出都为“0”（f\_nftc\_cmb为“1”）。
-在f\_ftc不为零的情况下刷新一次指令获取流水线，同时指令获取地址if\_adr默认自动+1，另外也可以使用I类或A类指令对if\_adr进行赋值操作以实现指令跳转功能，这里I类指令只能实现较短的指令跳转，更大范围的指令跳转需要使用A类指令。
-流控制器模块会根据不同情况选择输出不同的指令，共有四种情况：正常、配置、挂起、恢复。正常情况下输出的指令就是输入的指令，不做任何改变；如果进行了指令配置，那么输出的指令就是配置的指令内容；如果处于挂起状态，则输出指令为空；如果处于从HOLD状态中恢复的情况，则输出的指令为进入挂起状态前缓存的指令（进入HOLD状态时会对本应执行的指令进行缓存操作）。
+% 算数逻辑单元模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_alu}所示，其具体的接口定义如表\ref{tb:rtmq_alu}所示。
 
-对于寄存器文件中的地址指针reg\_ptr，默认情况下指针缓存ptr\_buf保持不变；如果进行了刷新操作，则将当前指针地址reg\_ptr存入指针缓存中；如果是进入挂起状态下，则将当前指针保存在缓存中。
-默认会对指令地址进行3周期的缓存处理保存在ptr\_dly中，指针寄存器每次会读取ptr\_dly高位值，每访问一次就将高位的缓存指令推出，将新输入的指令推入低位；如果是刷新或挂起状态，则指针不变；如果是从挂起状态恢复，则指针重新恢复为挂起前的位置。
+% % \textcolor{green}{具体内容描述待补充。}
 
-通过上述的逻辑，流控制器可以根据情况实现对ALU模块指令的选择输出、挂起和恢复等操作，且保证了每一条指令的执行、跳转、恢复等具有明确的操作时钟周期，可以用来满足量子测控系统对实时性的要求。流控制器模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_flow_control}所示，其具体的接口定义如表\ref{tb:rtmq_flow_control}所示。
 
-% \textcolor{green}{具体内容描述待补充。}
+% \begin{table}
+%     \centering
+%     \caption[RTMQ核心算术逻辑单元模块端口定义]{RTMQ核心算术逻辑单元模块端口定义\label{tb:rtmq_alu}}    
+%     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         clk &  & alu\_out[128:0] & 算术逻辑单元结果 \\
+%         instr[31:0] & 当前指令 &  &  \\
+%         regfile[8191:0] & 寄存器文件 &  &  \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
 
-\begin{figure}
-    \centering
-    \caption[RTMQ核心流控制器模块的设计结构图]{RTMQ核心流控制器模块的设计结构图\label{fig:rtmq_flow_controller_structure}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_flow_controller_structure}
-\end{figure}
 
-\begin{table}
-    \centering
-    \caption[RTMQ核心流控制器模块端口定义]{RTMQ核心流控制器模块端口定义\label{tb:rtmq_flow_control}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        alu\_out[128:0] & 算术逻辑单元结果 & f\_ftc & IF流水线获取标志 \\
-        cfg\_ins[31:0]  & 配置指令 & f\_hld & HOLD状态标志 \\
-        clk             & 系统时钟 & if\_adr[31:0] & IF获取地址 \\
-        f\_cfg          & 配置覆盖标志 & instr[31:0] & 当前指令内容 \\
-        f\_rsm          & 外部恢复标志 & reg\_ptr[31:0] & regfile中的地址指针 \\
-        if\_ins[31:0]   & IF输入 &  &  \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{figure}
-    \centering
-    \caption[RTMQ核心流控制器模块的FPGA实现结构图]{RTMQ核心流控制器模块的FPGA实现结构图\label{fig:rtmq_flow_control}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_flow_control}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ核心算术逻辑单元模块的FPGA实现结构图]{RTMQ核心算术逻辑单元模块的FPGA实现结构图\label{fig:rtmq_alu}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_alu}
+% \end{figure}
 
 
 
 
+% \subsection[流控制器模块及其FPGA实现]{流控制模块及其FPGA实现}
 
-\subsection[计时器模块及其FPGA实现]{计时器模块及其FPGA实现}
-计时器模块主要用于为RTMQ核心提供时间参考，它的输入是ALU结果alu\_out和挂起状态标志f\_hold，输出是系统以系统周期为单位的上电时间周期数[reg\_tim（墙时钟高段）, reg\_wck（墙时钟低段）]和计时结束的恢复信号f\_timeout。
-其结构如图\ref{fig:rtmq_timer_structure}所示，。计时器模块会保存从测控板上电开始的系统时间周期数以供其它模块获取和参考。另外也可以通过alu\_out的内容使用I类或者A类指令进行倒计时配置，配置完成后就会自动开始倒计时，计时结束时会给出一个可用于系统状态恢复的信号f\_timeout。
+% 流控制器模块是确保RTMQ实时性的关键设计，也是其与经典CPU相比的不同所在。它接受ALU结果alu\_out、指令获取、外部恢复标志、配置指令及其覆盖标志等输入，给出regfile中的地址指针、获取指令地址、当前的指令内容、指令抓取标志、HOLD状态标志等输出。
 
-计时器模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_timer}所示，其具体的接口定义如表\ref{tb:rtmq_timer}所示。
+% RTMQ流控制器模块设计结构如图\ref{fig:rtmq_flow_controller_structure}所示，当配置指令覆盖标志、HOLD标志、指令中HOLD标志其中任何一个为“1”时，指令获取标志f\_ftc输出都为“0”（f\_nftc\_cmb为“1”）。
+% 在f\_ftc不为零的情况下刷新一次指令获取流水线，同时指令获取地址if\_adr默认自动+1，另外也可以使用I类或A类指令对if\_adr进行赋值操作以实现指令跳转功能，这里I类指令只能实现较短的指令跳转，更大范围的指令跳转需要使用A类指令。
+% 流控制器模块会根据不同情况选择输出不同的指令，共有四种情况：正常、配置、挂起、恢复。正常情况下输出的指令就是输入的指令，不做任何改变；如果进行了指令配置，那么输出的指令就是配置的指令内容；如果处于挂起状态，则输出指令为空；如果处于从HOLD状态中恢复的情况，则输出的指令为进入挂起状态前缓存的指令（进入HOLD状态时会对本应执行的指令进行缓存操作）。
 
-\begin{figure}
-    \centering
-    \caption[RTMQ核心计时器模块的FPGA实现框图]{RTMQ核心计时器模块的FPGA实现框图\label{fig:rtmq_timer_structure}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_timer_structure}
-\end{figure}
+% 对于寄存器文件中的地址指针reg\_ptr，默认情况下指针缓存ptr\_buf保持不变；如果进行了刷新操作，则将当前指针地址reg\_ptr存入指针缓存中；如果是进入挂起状态下，则将当前指针保存在缓存中。
+% 默认会对指令地址进行3周期的缓存处理保存在ptr\_dly中，指针寄存器每次会读取ptr\_dly高位值，每访问一次就将高位的缓存指令推出，将新输入的指令推入低位；如果是刷新或挂起状态，则指针不变；如果是从挂起状态恢复，则指针重新恢复为挂起前的位置。
 
-\begin{table}
-    \centering
-    \caption[RTMQ核心计时器模块端口定义]{RTMQ核心计时器模块端口定义\label{tb:rtmq_timer}}    
-    \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
-        \toprule
-        \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
-        \midrule
-        Port & Define & Port & Define\\
-        \hline
-        alu\_out[128:0] & 算术逻辑单元结果 & f\_timeout& 计时结束标志，用于从HOLD状态恢复 \\
-        clk             & 系统时钟 & reg\_tim[31:0] & 墙时钟高段，指示从系统上电起的周期数 \\
-        f\_hld          & HOLD状态标志 & reg\_wck[31:0] & 墙时钟低段，指示从系统上电起的周期数 \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+% 通过上述的逻辑，流控制器可以根据情况实现对ALU模块指令的选择输出、挂起和恢复等操作，且保证了每一条指令的执行、跳转、恢复等具有明确的操作时钟周期，可以用来满足量子测控系统对实时性的要求。流控制器模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_flow_control}所示，其具体的接口定义如表\ref{tb:rtmq_flow_control}所示。
 
-\begin{figure}
-    \centering
-    \caption[RTMQ核心计时器模块的FPGA实现结构图]{RTMQ核心计时器模块的FPGA实现结构图（Vivado）。\label{fig:rtmq_timer}}
-    \includegraphics[width=1.0\linewidth]{rtmq/rtmq_timer}
-\end{figure}
+% % \textcolor{green}{具体内容描述待补充。}
+
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ核心流控制器模块的设计结构图]{RTMQ核心流控制器模块的设计结构图\label{fig:rtmq_flow_controller_structure}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_flow_controller_structure}
+% \end{figure}
+
+% \begin{table}
+%     \centering
+%     \caption[RTMQ核心流控制器模块端口定义]{RTMQ核心流控制器模块端口定义\label{tb:rtmq_flow_control}}    
+%     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         alu\_out[128:0] & 算术逻辑单元结果 & f\_ftc & IF流水线获取标志 \\
+%         cfg\_ins[31:0]  & 配置指令 & f\_hld & HOLD状态标志 \\
+%         clk             & 系统时钟 & if\_adr[31:0] & IF获取地址 \\
+%         f\_cfg          & 配置覆盖标志 & instr[31:0] & 当前指令内容 \\
+%         f\_rsm          & 外部恢复标志 & reg\_ptr[31:0] & regfile中的地址指针 \\
+%         if\_ins[31:0]   & IF输入 &  &  \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ核心流控制器模块的FPGA实现结构图]{RTMQ核心流控制器模块的FPGA实现结构图\label{fig:rtmq_flow_control}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_flow_control}
+% \end{figure}
 
 
+
+
+
+% \subsection[计时器模块及其FPGA实现]{计时器模块及其FPGA实现}
+% 计时器模块主要用于为RTMQ核心提供时间参考，它的输入是ALU结果alu\_out和挂起状态标志f\_hold，输出是系统以系统周期为单位的上电时间周期数[reg\_tim（墙时钟高段）, reg\_wck（墙时钟低段）]和计时结束的恢复信号f\_timeout。
+% 其结构如图\ref{fig:rtmq_timer_structure}所示，。计时器模块会保存从测控板上电开始的系统时间周期数以供其它模块获取和参考。另外也可以通过alu\_out的内容使用I类或者A类指令进行倒计时配置，配置完成后就会自动开始倒计时，计时结束时会给出一个可用于系统状态恢复的信号f\_timeout。
+
+% 计时器模块在Vivado中的FPGA实现结果如图\ref{fig:rtmq_timer}所示，其具体的接口定义如表\ref{tb:rtmq_timer}所示。
+
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ核心计时器模块的FPGA实现框图]{RTMQ核心计时器模块的FPGA实现框图\label{fig:rtmq_timer_structure}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_timer_structure}
+% \end{figure}
+
+% \begin{table}
+%     \centering
+%     \caption[RTMQ核心计时器模块端口定义]{RTMQ核心计时器模块端口定义\label{tb:rtmq_timer}}    
+%     \begin{tabular}{L{2.5cm}L{4cm}|L{2.5cm}L{4cm}}
+%         \toprule
+%         \multicolumn{2}{c|}{Input} & \multicolumn{2}{c}{Output} \\
+%         \midrule
+%         Port & Define & Port & Define\\
+%         \hline
+%         alu\_out[128:0] & 算术逻辑单元结果 & f\_timeout& 计时结束标志，用于从HOLD状态恢复 \\
+%         clk             & 系统时钟 & reg\_tim[31:0] & 墙时钟高段，指示从系统上电起的周期数 \\
+%         f\_hld          & HOLD状态标志 & reg\_wck[31:0] & 墙时钟低段，指示从系统上电起的周期数 \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+% \begin{figure}
+%     \centering
+%     \caption[RTMQ核心计时器模块的FPGA实现结构图]{RTMQ核心计时器模块的FPGA实现结构图（Vivado）。\label{fig:rtmq_timer}}
+%     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_timer}
+% \end{figure}
 
 
 
@@ -275,21 +273,26 @@ RTMQ流控制器模块设计结构如图\ref{fig:rtmq_flow_controller_structure}
 
 
 
-% \subsection[触发管理模块及其FPGA实现]{触发管理模块及其FPGA实现}
-
-% \subsection[异常管理模块及其FPGA实现]{异常管理模块及其FPGA实现}
 
 
+% % \subsection[触发管理模块及其FPGA实现]{触发管理模块及其FPGA实现}
+
+% % \subsection[异常管理模块及其FPGA实现]{异常管理模块及其FPGA实现}
 
 
 
 
-% ============================================================================
-% ============================================================================
-% ======================= RTMQ Instruction Set ===============================
-% ============================================================================
-% ============================================================================
-\newpage
+
+
+% % ============================================================================
+% % ============================================================================
+% % ======================= RTMQ Instruction Set ===============================
+% % ============================================================================
+% % ============================================================================
+% \newpage
+
+
+
 \section[RTMQ的指令集与时序控制结构描述]{RTMQ的指令集与时序控制结构描述}
 RTMQ是专为可拓展实时量子计算而设计的核心微处理器，其配套设计了一种可用于实时控制和通用计算的指令集\cite[]{junhua03}。通过对寄存器的读写访问实现微系统架构中微处理器与其它逻辑功能模块之间的交互以及计时和流控制等操作构成基本的计时任务与非计时任务等与时序控制结构。该指令集与时序控制结构可以实现精确时序控制和通用计算能力在指令流层面的有机结合，其时序控制实现可准确至单个指令时钟周期。通用计算和流控制操作不会影响关键实时指令的执行时刻，能够适用于量子物理实验系统控制等对高精度时序控制和通用计算均有较高要求的领域。
 接下来几小节将从指令的定义、指令的汇编语法、指令的编码、指令的执行逻辑、计时任务与非计时任务块结构等方面介绍RTMQ系统所采用的这种指令集与时序控制结构。
@@ -588,57 +591,9 @@ RTMQ节点间的通信以帧为单位，帧包含魔术字、跳转数、帧类�
 
 \subsection[实时通信链路系统实施例]{实时通信链路系统实施例}
 
-
 基于上述介绍的RTMQ节点间实时通信的链路系统，本节给出其在一个由7个节点组成的实验系统中具体的实施案例。该实验测控系统由13个RTMQ节点构成，包含1个直接与控制整个系统上位机连接的根节点。该根节点具有2个下级节点，分别记为节点1、节点2；其中节点1包含1个下级节点，节点1.1；节点2包含3个下级节点，节点2.1、节点2.2,、节点2.3。所有节点之间通过速率为10Mbps、包含1个停止位和8个数据位的UART链路连接。
-% 通信帧的魔术字位宽为4位，取值0xA，跳转数的位宽为3位，载荷位宽为32位，从而帧的总位宽为40位。
 
-基于此系统，下面给出一个跨节点实时反馈的实施案例。假设节点2需要根据节点1采集到的数据决定后续执行流程，若小于阈值，则执行函数a，否则执行函数b。
-
-\begin{table}
-    \centering
-    \caption[跨节点实时反馈的案例实施步骤]{跨节点实时反馈的案例实施步骤\label{tb:rtmq_notes_synchronize}}
-    \begin{tabular}{C{3cm}|C{11cm}}
-        \toprule
-        节点 & 节点步骤操作 \\
-        \midrule
-        节点1步骤 & 操作\\
-        \hline
-        1.1 & 采集数据\\
-        1.2 & RTCF的配置C1设为选项P1.0\\
-        1.3 & RTCF的配置C4设为：帧类型：数据帧，跳转数：0\\
-        1.4 & 向RTD0写入采集到的数据\\
-        \midrule
-        根节点步骤 & 操作 \\
-        \hline
-        R.1 & 当FIFO1非空时，从RTD1读取节点1发来的数据\\
-        R.2 & RTCF的配置C3.2设为选项P3.2.0\\
-        R.3 & RTCF的配置C4设为：帧类型：指令帧，跳转数：0\\
-        R.4 & 向RTD2写入指令，若读取到的数据小于阈值，指令为调用函数a，否则指令为调用函数b\\
-        \midrule
-        节点2步骤 & 操作 \\
-        \hline
-        2.1 & 在收到来自根节点的指令前处于挂起状态 \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-如表\ref{tb:rtmq_notes_synchronize}所示，节点1按顺序执行以下步骤：
-步骤1.1：采集数据；
-步骤1.2：RTCF的配置C1设为选项P1.0；
-步骤1.3：RTCF的配置C4设为：帧类型：数据帧，跳转数：0；
-步骤1.4：向RTD0写入采集到的数据；
-根节点按顺序执行以下步骤：
-步骤R.1：当FIFO1非空时，从RTD1读取节点1发来的数据；
-步骤R.2：RTCF的配置C3.2设为选项P3.2.0；
-步骤R.3：RTCF的配置C4设为：帧类型：指令帧，跳转数：0；
-步骤R.4：向RTD2写入指令，若读取到的数据小于阈值，指令为“调用函数a”，否则指令为“调用函数b”；
-节点2在收到来自根节点的指令前，处于挂起状态。
-
-
-前述实施案例的原理为UART链路传递一个字节需要传递1个起始位、8个数据位和1个停止位，合计10个比特，因此传递1个通信帧的时间开销为精确的5us，解决方案A中的跨节点反馈操作的通信开销为10us。其优势在于各节点所执行的指令序列没有任何不确定性，整个反馈控制的总开销可以精确到单个时钟周期，符合实时控制的要求。
-
-
-基于此系统，下面给出同步多个下级节点的执行时序的实施案例。假设节点2的3个下级节点需要严格同时开始执行某功能，比如同时对三个离子进行态初始化操作。
+基于此系统，下面给出一个同步多个下级节点的执行时序的实施案例。假设节点2的3个下级节点需要严格同时开始执行某功能，比如同时对三个离子进行态初始化操作。
 
 \begin{table}
     \centering
@@ -678,54 +633,101 @@ RTMQ节点间的通信以帧为单位，帧包含魔术字、跳转数、帧类�
 
 前述实施案例的原理为节点间传递1帧的开销为精确的5us，利用广播逻辑模块，可以使得节点2的物理链路1-3模块同时进入发送状态，从而节点2.1、节点2.2和节点2.3同时收到“解除挂起状态”的指令，同时开始执行后续任务。其优势在于可以精确控制不同节点严格同步执行各种任务，且利用广播模块可以轻松拓展到几百上千个节点数，可以很好地满足该同步触发类应用场景的要求。
 
+% \subsubsection[short]{title}
+% 基于此系统，下面给出一个跨节点实时反馈的实施案例。假设节点2需要根据节点1采集到的数据决定后续执行流程，若小于阈值，则执行函数a，否则执行函数b。
+
+% \begin{table}
+%     \centering
+%     \caption[跨节点实时反馈的案例实施步骤]{跨节点实时反馈的案例实施步骤\label{tb:rtmq_notes_synchronize}}
+%     \begin{tabular}{C{3cm}|C{11cm}}
+%         \toprule
+%         节点 & 节点步骤操作 \\
+%         \midrule
+%         节点1步骤 & 操作\\
+%         \hline
+%         1.1 & 采集数据\\
+%         1.2 & RTCF的配置C1设为选项P1.0\\
+%         1.3 & RTCF的配置C4设为：帧类型：数据帧，跳转数：0\\
+%         1.4 & 向RTD0写入采集到的数据\\
+%         \midrule
+%         根节点步骤 & 操作 \\
+%         \hline
+%         R.1 & 当FIFO1非空时，从RTD1读取节点1发来的数据\\
+%         R.2 & RTCF的配置C3.2设为选项P3.2.0\\
+%         R.3 & RTCF的配置C4设为：帧类型：指令帧，跳转数：0\\
+%         R.4 & 向RTD2写入指令，若读取到的数据小于阈值，指令为调用函数a，否则指令为调用函数b\\
+%         \midrule
+%         节点2步骤 & 操作 \\
+%         \hline
+%         2.1 & 在收到来自根节点的指令前处于挂起状态 \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+% 如表\ref{tb:rtmq_notes_synchronize}所示，节点1按顺序执行以下步骤：
+% 步骤1.1：采集数据；
+% 步骤1.2：RTCF的配置C1设为选项P1.0；
+% 步骤1.3：RTCF的配置C4设为：帧类型：数据帧，跳转数：0；
+% 步骤1.4：向RTD0写入采集到的数据；
+% 根节点按顺序执行以下步骤：
+% 步骤R.1：当FIFO1非空时，从RTD1读取节点1发来的数据；
+% 步骤R.2：RTCF的配置C3.2设为选项P3.2.0；
+% 步骤R.3：RTCF的配置C4设为：帧类型：指令帧，跳转数：0；
+% 步骤R.4：向RTD2写入指令，若读取到的数据小于阈值，指令为“调用函数a”，否则指令为“调用函数b”；
+% 节点2在收到来自根节点的指令前，处于挂起状态。
 
 
-基于此系统，下面给出对任意节点进行非实时配置和检查的实施案例。假设上位机在实验开始前需要对节点2.3进行配置和检查。
+% 前述实施案例的原理为UART链路传递一个字节需要传递1个起始位、8个数据位和1个停止位，合计10个比特，因此传递1个通信帧的时间开销为精确的5us，解决方案A中的跨节点反馈操作的通信开销为10us。其优势在于各节点所执行的指令序列没有任何不确定性，整个反馈控制的总开销可以精确到单个时钟周期，符合实时控制的要求。
 
 
-\begin{table}
-    \centering
-    \caption[对任意节点配置的案例实施步骤]{对任意节点配置的案例实施步骤\label{tb:rtmq_notes_config}}
-    \begin{tabular}{C{3cm}|C{11cm}}
-        \toprule
-        节点 & 节点步骤操作 \\
-        \midrule
-        节点2步骤 & 操作\\
-        \hline
-        2.1 & RTCF的配置C1设为选项P1.3\\
-        2.2 & RTCF的配置C2设为选项P2.1\\
-        2.3 & RTCF的配置C3.3设为选项P3.3.1\\
-        \midrule
-        根节点步骤 & 操作 \\
-        \hline
-        R.1 & RTCF的配置C3.3设为选项P3.3.0\\
-        R.2 & RTCF的配置C4设为：帧类型：指令帧，跳转数：1\\
-        R.3 & 将所需的配置指令按顺序逐条写入RTD3\\
-        R.4 & 若FIFO3非空，则从RTD3逐个读取数据并转发给上位机，直到FIFO3为空\\
-        \midrule
-        节点2.3步骤 & 操作 \\
-        \hline
-        2.3.1 & 收到指令前处于挂起状态，其RTCF的各项配置可通过根节点发送的指令帧进行设置 \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+% \subsubsection[short]{title}
 
-如表\ref{tb:rtmq_notes_config}所示，节点2按顺序执行以下步骤：
-步骤2.1：RTCF的配置C1设为选项P1.3；
-步骤2.2：RTCF的配置C2设为选项P2.1；
-步骤2.3：RTCF的配置C3.3设为选项P3.3.1；
-根节点按顺序执行以下步骤：
-步骤R.1：RTCF的配置C3.3设为选项P3.3.0；
-步骤R.2：RTCF的配置C4设为：帧类型：指令帧，跳转数：1；
-步骤R.3：将所需的配置指令按顺序逐条写入RTD3；
-步骤R.4：若FIFO3非空，则从RTD3逐个读取数据并转发给上位机，直到FIFO3为空；
-节点2.3在收到指令前处于挂起状态，其RTCF的各项配置可通过根节点发送的指令帧进行设置，若需要节点2.3返回数据，则RTCF的正确配置为：
-配置C1设为选项P1.0；
-配置C4设为：帧类型：数据帧，跳转数：1；
-而后根节点通过向其发送指令帧，令其将所需数据写入RTD0即可。
+% 基于此系统，下面给出对任意节点进行非实时配置和检查的实施案例。假设上位机在实验开始前需要对节点2.3进行配置和检查。
 
-前述实施案例的原理为将节点2的RTCF配置为一种“透明转发”状态，即直接向节点2.3转发来自根节点的下行帧，并且直接向根节点转发来自节点2.3的上行帧。如此，对于系统中的任一节点，只需将根节点到该目标节点之间途经的所有节点都设置成这种“透明转发”状态，即可直接对该目标节点进行控制和访问。其优势在于这些配置都在实验前进行，因而不会影响实际实验任务的执行。
-当需要对整个系统中所有节点进行配置时，可以先逐个配置所有的叶节点，再逐个配置其下级节点已经全部完成配置的中间结点，以此类推，直到最后配置根节点，如此，可以保证系统中所有的节点在配置完成后，状态不会受到额外的干扰。
+
+% \begin{table}
+%     \centering
+%     \caption[对任意节点配置的案例实施步骤]{对任意节点配置的案例实施步骤\label{tb:rtmq_notes_config}}
+%     \begin{tabular}{C{3cm}|C{11cm}}
+%         \toprule
+%         节点 & 节点步骤操作 \\
+%         \midrule
+%         节点2步骤 & 操作\\
+%         \hline
+%         2.1 & RTCF的配置C1设为选项P1.3\\
+%         2.2 & RTCF的配置C2设为选项P2.1\\
+%         2.3 & RTCF的配置C3.3设为选项P3.3.1\\
+%         \midrule
+%         根节点步骤 & 操作 \\
+%         \hline
+%         R.1 & RTCF的配置C3.3设为选项P3.3.0\\
+%         R.2 & RTCF的配置C4设为：帧类型：指令帧，跳转数：1\\
+%         R.3 & 将所需的配置指令按顺序逐条写入RTD3\\
+%         R.4 & 若FIFO3非空，则从RTD3逐个读取数据并转发给上位机，直到FIFO3为空\\
+%         \midrule
+%         节点2.3步骤 & 操作 \\
+%         \hline
+%         2.3.1 & 收到指令前处于挂起状态，其RTCF的各项配置可通过根节点发送的指令帧进行设置 \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+% 如表\ref{tb:rtmq_notes_config}所示，节点2按顺序执行以下步骤：
+% 步骤2.1：RTCF的配置C1设为选项P1.3；
+% 步骤2.2：RTCF的配置C2设为选项P2.1；
+% 步骤2.3：RTCF的配置C3.3设为选项P3.3.1；
+% 根节点按顺序执行以下步骤：
+% 步骤R.1：RTCF的配置C3.3设为选项P3.3.0；
+% 步骤R.2：RTCF的配置C4设为：帧类型：指令帧，跳转数：1；
+% 步骤R.3：将所需的配置指令按顺序逐条写入RTD3；
+% 步骤R.4：若FIFO3非空，则从RTD3逐个读取数据并转发给上位机，直到FIFO3为空；
+% 节点2.3在收到指令前处于挂起状态，其RTCF的各项配置可通过根节点发送的指令帧进行设置，若需要节点2.3返回数据，则RTCF的正确配置为：
+% 配置C1设为选项P1.0；
+% 配置C4设为：帧类型：数据帧，跳转数：1；
+% 而后根节点通过向其发送指令帧，令其将所需数据写入RTD0即可。
+
+% 前述实施案例的原理为将节点2的RTCF配置为一种“透明转发”状态，即直接向节点2.3转发来自根节点的下行帧，并且直接向根节点转发来自节点2.3的上行帧。如此，对于系统中的任一节点，只需将根节点到该目标节点之间途经的所有节点都设置成这种“透明转发”状态，即可直接对该目标节点进行控制和访问。其优势在于这些配置都在实验前进行，因而不会影响实际实验任务的执行。
+% 当需要对整个系统中所有节点进行配置时，可以先逐个配置所有的叶节点，再逐个配置其下级节点已经全部完成配置的中间结点，以此类推，直到最后配置根节点，如此，可以保证系统中所有的节点在配置完成后，状态不会受到额外的干扰。
 
 
 % \section[RTMQ的重要功能外设及其FPGA实现]{RTMQ的重要功能外设及其FPGA实现}
@@ -1165,7 +1167,7 @@ RTMQ节点间的通信以帧为单位，帧包含魔术字、跳转数、帧类�
 
 % \newpage
 
-
+\newpage
 \section[章末小结]{章末小结}
 
 在量子计算实验系统中，测控系统占据着十分关键的位置。对于离子阱量子计算系统来说，它将系统中涉及到的电学、光学、真空等其余各个子系统联系起来，给出各类光电信号对离子比特进行操控以实现量子计算。为了满足量子计算发展过程中日益增高的量子测控需求，本章介绍了一套强实时、可拓展、分布式的用于量子物理实验的实时微系统——RTMQ。RTMQ是专为量子物理实验设计的一套测控系统方案，它包含了一种专门设计的用于满足实时信息处理的微处理器架构以及配套的指令集，此外还有服务于节点拓展的通信链路系统。
