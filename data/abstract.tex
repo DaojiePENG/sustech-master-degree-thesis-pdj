@@ -3,15 +3,18 @@
 % 中英文摘要和关键字
 
 \begin{abstract}
-  量子计算因其强大的计算能力和潜在的应用前景而受到广泛关注。
   % 在量子算法的配合下，量子计算机可以实现许多通过经典计算机难以实现的计算，如大素数分解、量子多体系统仿真等。
-  离子量子计算是当前最具发展前景的量子计算平台之一，它的实现需要电子学、光学、真空、测控等多种学科领域的支持。其中量子测控系统处于十分核心的地位，它将系统涉及的电子学、光学、真空等其余各个部分联系起来，给出特定的微波信号、激光信号等策略对量子比特进行调控并采集结果进行分析和处理，以实现量子计算的各种操作。随着量子计算技术的不断发展，传统测控系统以及早些年开发的量子测控系统逐渐难以适应日益增高的量子测控需求。
+  % 量子计算因其强大的计算能力和潜在的应用前景而受到广泛关注。
+  离子阱是当前最具发展前景的量子计算平台之一，它的实现需要电子学、光学、真空、测控等多种学科领域的支持。
+  % 其中测控系统处于十分核心的地位，它将系统涉及的电子学、光学、真空等其余各个部分联系起来，给出特定的微波信号、激光信号等策略对量子比特进行调控并采集结果进行分析和处理，以实现量子计算的各种操作。
+  其中测控系统处于十分核心的地位，它将离子量子计算的各个部分联系起来对量子比特进行调控并采集结果进行分析和处理，以实现量子计算的各种操作。
+  随着量子计算技术的不断发展，传统测控系统以及早些年开发的量子测控系统逐渐难以适应日益增高的量子测控需求。
 
   为应对这些新挑战，本文基于囚禁离子量子比特准备和控制的理论背景分析了量子物理实验对测控系统的实时性、拓展性、集成性等方面的切实需求；
   针对这些需求引入了一种面向离子量子计算系统的强实时、分布式、易拓展的RTMQ测控系统架构，并介绍了与之相配套的汇编指令集与多节点间实时通信链路系统；
   螺线管谐振腔是离子阱系统中一种重要的测控器件，本文使用基于HFSS软件的有限元仿真并结合实验对照的方法对其进行了仿真、实验、建模、设计等方面的优化研究，给出了设计特定频率下的高Q谐振腔的方法，同时也针对离子阱系统设计了更方便易用的谐振腔机械结构；
-  在上述基础之上，给出了一套基于RTMQ系统的测控板硬件设计及一些重要的功能外设固件设计和基于FPGA的实现，并结合实际的实验系统需求实现了离子量子计算场景下基于RTMQ测控系统的离子阱频率稳定、激光功率稳定和激光拍频稳定等几个关键子系统的搭建和测试，在此过程中也给出RTMQ系统的两个重要外设拓展——高速通用数字PID和高速通用数字IIR滤波器及其FPGA实现。
-  以上研究工作展示了RTMQ量子测控系统的有效性和优越性，极大地促进了离子量子计算系统的数字化、集成化进程，为未来大规模通用量子计算奠定了测控方面的重要基础。
+  在上述基础之上，给出了一套基于RTMQ系统的测控板硬件设计及一些重要的功能外设固件设计和基于FPGA的实现，并结合提高量子比特操作保真度相关的实际实验系统需求实现了离子量子计算场景下基于RTMQ测控系统的离子阱频率稳定、激光功率稳定和激光拍频稳定等几个关键子系统的搭建和测试，在此过程中也给出RTMQ系统的两个重要外设拓展——高速通用数字PID和高速通用数字IIR滤波器及其FPGA实现。
+  以上研究工作满足了离子量子计算的切际需求，展示了所构建的RTMQ量子测控系统的有效性和优越性，极大地促进了离子量子计算系统的数字化、集成化进程，为未来大规模通用量子计算奠定了测控方面的重要基础。
   
   % 本文重点研究了电学系统中谐振腔，创新性地开发和引入了一种可支持分布式计算的用于量子物理实验的实时微系统（RTMQ），并且基于测控系统和光电系统对用脉冲激光实现量子门的关键子系统进行了搭建和原理验证。
   % 以使用脉冲激光实现离子量子门为目标，在电学方面对微波系统中的关键器件——谐振腔进行了系统的仿真和实验研究；在测控系统方面协助开发了RTMQ系统并将其应用到了脉冲光离子量子比特门的几个关键的子系统，实现了阱频率稳定、脉冲激光拍频锁定、激光功率稳定等系统的原理和实现，用RTMQ系统及相应外设对这些系统进行了集成化、数字化的升级。
@@ -23,14 +26,22 @@
 \end{abstract}
 
 \begin{abstract*}
-  Quantum computing has attracted extensive attention due to its potentially powerful computing capabilities. With the cooperation of quantum algorithm, quantum computer can realize many calculations that are difficult to be realized by classical computers like factorization of large prime numbers, simulation of quantum many body systems. 
+  % Quantum computing(QC) has attracted widespread attention due to its powerful computing power and potential application prospects. 
+  Ion trap is one of the most promising platforms for Quantum-Computing(QC), which requires support such as electronics, optics, vacuum, measurement and control. 
+  Among them, the measurement and control system(MCS) is at the core position, which connects the rest of the systems to regulate the qubits and collect results for analysis and processing, to achieve QC. 
+  While traditional MCSs and those developed in earlier years are gradually becoming unfit for the increasing demand of QC.
+ 
+  To address these new challenges, this article analyzes the practical requirements of QC based on the theoretical background of trapped ion qubit preparation and control. 
+  And a strong real-time, distributed, and easily scalable Real Time Microsystem for Quantum physics(RTMQ) architecture is introduced, along with its instruction set and real-time communication link system for multiple nodes. 
+  The helical resonator is an important measurement and control device in ion-QC systems. This article uses finite element technique of HFSS software combined with experiments to research on its simulation, experimentation, modeling and design. A method for designing high-Q resonators at specific frequencies and a more convenient and easy-to-use mechanical structure for the resonator is provided. 
+  Based on the above foundation, a set of hardware design for the measurement and control board based on the RTMQ and some important functional peripheral firmware design and FPGA implementation are provided. 
+  Combined with the actual experimental requirements related to improving the fidelity of qubit operations, the construction and testing of several key subsystems such as ion trap frequency stability, laser power and laser beatnote frequency stability based on the RTMQ quantum MCS in the ion-QC scenario are realized. 
+  In the process, high-speed general-purpose digital PID and IIR filters and their FPGA implementations are provided as two important peripheral extensions of the RTMQ system. 
+  The above research work meets the practical needs of ion-QC, demonstrates the effectiveness and superiority of the constructed RTMQ quantum MCS, greatly promotes the digitalization and integration process of ion-QC systems, and lays an important foundation for future large-scale general-purpose QC in terms of MCS.
 
-  Ion quantum computing is one of the most promising quantum computing platforms at present. Its implementation needs the support of electronics, optics, vacuum, measurement and control and other fields. Among them, the quantum measurement and control system is in a core position. It connects the other parts of the system, such as electronics, optics, vacuum, and so on. It gives specific strategies such as microwave signal and laser signal to regulate and control the quantum bits and collect the results for analysis and processing, so as to realize various operations of quantum computing.
-
-  In this paper, a RTMQ quantum measurement and control system architecture with strong real-time, distributed and easy to expand is proposed for ion quantum computing system. The design and FPGA implementation of high-speed universal digital PID and high-speed universal digital filter are given;
-  In addition, the simulation, experiment, modeling and design of helical resonator, an important measurement and control device in the ion trap system, are optimized by using the finite element simulation and experiment method. The design method of high-Q resonator at a specific frequency and the more convenient mechanical structure design are given;
-  Based on the above, combined with the actual experimental system requirements, several key subsystems such as ion trap frequency stability, laser power stability and laser beatnote stability based on RTMQ system in the ion quantum computing scenario were built and tested, which showed the advantages of RTMQ quantum measurement and control system, greatly promoted the digitization and integration process of ion quantum computing system, and laid an important foundation for the measurement and control of large-scale universal quantum computing in the future.
-
+  % Quantum computing has attracted widespread attention due to its powerful computing power and potential application prospects. Ion quantum computing is one of the most promising quantum computing platforms currently, and its implementation requires support from various disciplines such as electronics, optics, vacuum, measurement and control. Among them, the quantum measurement and control system is at the core position, which connects the rest of the system involved in electronics, optics, vacuum, etc., and gives specific strategies such as microwave signals, laser signals to regulate the quantum bits and collect results for analysis and processing, in order to achieve various operations of quantum computing. With the continuous development of quantum computing technology, traditional measurement and control systems and those developed in earlier years are gradually becoming difficult to adapt to the increasing demand for quantum measurement and control.
+ 
+  % To address these new challenges, this article analyzes the practical requirements of quantum physics experiments for real-time, scalable, and integrated measurement and control systems based on the theoretical background of trapped ion quantum bit preparation and control. In response to these requirements, a strong real-time, distributed, and easily scalable RTMQ measurement and control system architecture for ion quantum computing systems is introduced, along with a corresponding assembly instruction set and real-time communication link system between multiple nodes. The solenoid resonator is an important measurement and control device in ion trap systems. This article uses finite element simulation based on HFSS software combined with experimental comparison methods to optimize research on simulation, experimentation, modeling, design, and other aspects. It provides a method for designing high-Q resonators at specific frequencies, and also designs a more convenient and easy-to-use mechanical structure for the resonator in the ion trap system. Based on the above foundation, a set of hardware design for the measurement and control board based on the RTMQ system and some important functional peripheral firmware design and FPGA implementation are provided. Combined with the actual experimental system requirements related to improving the fidelity of qubit operations, the construction and testing of several key subsystems such as ion trap frequency stability, laser power stability, and laser beat frequency stability based on the RTMQ measurement and control system in the ion quantum computing scenario are realized. In the process, two important peripheral extensions of the RTMQ system are also provided: high-speed general-purpose digital PID and high-speed general-purpose digital IIR filters and their FPGA implementations. The above research work meets the practical needs of ion quantum computing, demonstrates the effectiveness and superiority of the constructed RTMQ quantum measurement and control system, greatly promotes the digitalization and integration process of ion quantum computing systems, and lays an important foundation for future large-scale general-purpose quantum computing in terms of measurement and control.
 
   % Use comma as seperator when inputting
   \thusetup{
