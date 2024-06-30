@@ -1,7 +1,7 @@
 % !TeX root = ../sustechthesis-example.tex
 
 
-\chapter[RTMQ测控系统应用：离子阱频率稳定、激光功率稳定和激光拍频稳定]{RTMQ量子测控系统应用：离子阱频率稳定、激光功率稳定和激光拍频稳定\label{section:implementation}}
+\chapter[RTMQ测控系统应用：离子阱频率、激光功率和激光拍频稳定]{RTMQ量子测控系统应用：离子阱频率、激光功率和激光拍频稳定\label{section:implementation}}
 
 % 值得注意的是，RTMQ量子测控系统不仅可以完成常规的量子物理实验实时控制的需求，同时还可以不受影响地执行一些量子计算系统的实验背景环境维护这些实验背景环境原来常常需要一大堆模拟PID控制器、滤波器、放大器等等来进行建构和实现。RTMQ系统凭借其数字化的优势而可以及大地简化整个实验平台仪器的使用，使实验过程有着更强的可控性和更好的自动化水平。
 
@@ -103,7 +103,7 @@
 
 信号本身导致的保真度降低的因素主要有两类，一类是信号设置的绝对误差，另一类是信号自身的噪声。常见的噪声一般都近似为高斯分布，以激光对离子量子比特的单比特操作为例，表\ref{tb:fidelity}中给出了若干操作信号微小误差和高斯噪声影响下的单比特操作保真度计算方法。表中的计算基于较高保真度情况下的结果，也即涉及到的各类误差都为微小误差，且对于频率误差和噪声不考虑其与离子相互作用的响应情况。
 
-由激光信号自身频率误差和相位误差导致的保真度结果，其忽略高阶项后计算为：
+激光信号自身频率误差和相位误差影响下忽略高阶项后的保真度计算为：
 
 \begin{align}
     F\approx1-\frac{1-cos{\theta}}{2}\alpha^2+\mathcal{O}\left(\alpha^4\right)
@@ -111,7 +111,7 @@
 
 其中，$\theta$是目标的操作旋转角度，$\mathcal{O}\left(\alpha^4\right)$为四阶以上高阶项，一般可以忽略不计。对于频率误差，实际施加的频率为$\omega_{mw}=\omega_0+\Delta\omega_{mw}$，$\omega_0$为目标频率，$\Delta\omega_{mw}$是频率的误差，$\alpha=\Delta\omega_{mw}/\omega_R$是相对于拉比频率$\omega_R$的频率误差；对于相位误差，实际施加的相位为$\phi=\phi_{ideal}+\Delta\phi$，$\phi_{ideal}$为理想相位，$\Delta\phi$是相位的误差，$\alpha=\Delta\phi$。
 
-由激光信号自身幅度误差和时间长度误差导致的保真度结果，其忽略高阶项后计算为：
+激光信号自身幅度误差和时间长度误差影响下忽略高阶项后的保真度计算为：
 
 \begin{align}
     F\approx 1-\frac{1}{4}\theta^2\alpha^2+\mathcal{O}\left(\alpha^4\right)
@@ -120,7 +120,7 @@
 其中，$\theta$是目标的操作旋转角度，$\mathcal{O}\left(\alpha^4\right)$为四阶以上高阶项，一般可以忽略不计。对于幅度误差，实际施加的幅度为$\omega_R=\omega_{R,ideal}+\Delta\omega_R$，$\omega_{R,ideal}$是理想的拉比频率，$\Delta\omega_R$是实际幅度导致的拉比频率误差，$\alpha=\Delta\omega_R/\omega_{R,ideal}$是拉比频率的相对误差；
 对于时间误差，实际施加的时间长度为$T=T_{ideal}+\Delta T$，$T_{ideal}$是理想的时间长度，$\Delta T$是实际施加的时间长度误差，$\alpha=\Delta T/T_{ideal}$是时间长度的相对误差。
 
-由激光信号自身高斯分布的频率噪声和相位噪声，其简化后的期望保真度为：
+激光信号自身高斯分布的频率噪声和相位噪声影响下简化后的期望保真度计算为：
 
 \begin{align}
     F=\frac{1}{2}\left(1+e^{-2\alpha^2}\right) sin^4\left(\frac{\theta}{2}\right)+cos^4\left(\frac{\theta}{2}\right)+\frac{1}{2} e^{-\frac{\alpha^2}{2}} sin^2\left(\theta\right)\label{eq:frequency_noise_fidelity}
@@ -128,7 +128,7 @@
 
 其中，$\theta$是目标的操作旋转角度，对于频率噪声$\alpha=\sigma_{\omega_{mw}}/\omega_{R}$，是激光频率$\omega_{mw}$对与拉比频率$\omega_R$的相对标准差；对于相位噪声$\alpha=\sigma_{\phi}$，是激光相位$\phi$的标准差。
 
-由激光信号自身高斯分布的幅度噪声和时间长度噪声，其简化后的期望保真度为：
+激光信号自身高斯分布的幅度噪声和时间长度噪声影响下简化后的期望保真度计算为：
 
 \begin{align}
     F=\frac{1}{2}+\frac{1}{2} e^{-\frac{1}{2}\alpha^2\theta^2}\label{eq:amplitude_noise_fidelity}
@@ -136,7 +136,7 @@
 
 其中，$\theta$是目标的操作旋转角度，对于幅度噪声$\alpha=\sigma_{\omega_R}/\omega_{R,ideal}$，是激光幅度拉比频率标准差$\omega_R$对于理想拉比频率$\omega_{R,ideal}$的相对标准差；对于时间长度噪声$\alpha=\sigma_{T}/T_{ideal}$，是激光作用时间长度标准差对于理性时长$T_{ideal}$的相对标准差。
 
-通过上面的保真度计算公式，我们可以计算出不同信号质量下的单量子比特操作保真度，更多比特保真度的详细计算公式可以参考相关文献\cite[]{van_Dijk_Kawakami_Schouten_Veldhorst_Vandersypen_Babaie_Charbon_Sebastiano_2019}。作为后续离子阱频率稳定、激光功率稳定和激光拍频稳定的指引，这里简单举例说明。以激光拍频频率实现离子比特$\theta=\pi$的旋转为例，想要实现$99.9\%$以上的保真度，由公式\eqref{eq:frequency_noise_fidelity}计算可知至少需要保证激光的拍频结果的标准差对于拉比频率的相对标准差$\alpha$满足$\alpha < 3.164\times10^{-2}$。
+通过上面的保真度计算公式，我们可以计算出不同信号质量下的单量子比特操作保真度，更多比特保真度的详细计算公式可以参考相关文献\cite[]{van_Dijk_Kawakami_Schouten_Veldhorst_Vandersypen_Babaie_Charbon_Sebastiano_2019}。作为后续离子阱频率稳定、激光功率稳定和激光拍频稳定的指引，这里简单举例说明。以激光拍频频率实现离子比特$\theta=\pi$的旋转为例，想要实现$99.9\%$以上的保真度，由公式\eqref{eq:frequency_noise_fidelity}计算可知，需要保证激光的拍频结果的频率标准差对于拉比频率的相对标准差$\alpha$满足$\alpha < 3.164\times10^{-2}$。
 
 
 % 其中，$\theta$是目标的操作旋转角度，$\alpha=\sigma_{\omega_R}/\omega_{R,ideal}$是幅度$\omega_R$的相对标准差。
