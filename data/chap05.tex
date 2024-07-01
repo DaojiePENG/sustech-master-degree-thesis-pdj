@@ -580,29 +580,30 @@ PID控制器的实现可以分为模拟PID和数字PID两种方式。模拟PID�
 \begin{figure}
     \centering
     \caption[16位数字PID的FPGA实现结果与仿真结果对比]{16位数字PID的FPGA实现结果与仿真结果对比。初始系统输出$sys$和调节输出$o\_ut$都为0，参考数值$ref$为1000，$k_i=1, k_d=1$，Vivado综合输出时长为3500ns，仿真持续时间为1000$T_c$（系统仿真迭代次数）。\label{fig:pid_compare}}
-    \includegraphics[width=1.0\linewidth]{rtmq/pid_compare}
+    \includegraphics[width=0.8\linewidth]{rtmq/pid_compare}
 \end{figure}
 
 整个PID控制器使用了一个减法器、三个加法器、三个乘法器和若干寄存器。图\ref{fig:digital_pid_structure_16bits}是一个16位输入的数字PID，它的输出是32位的，该实例模块总共包含9级流水线，工作频率可达200MHz以上。对更低或者更高位数的数字PID控制器，可以通过替换相应位数的加减运算和乘法模块，并调整相应的寄存器位宽来方便地得到。
 
 
 \subsection[离子阱频率稳定原理和系统搭建]{离子阱频率稳定原理}
-\begin{figure}
-    \centering
-    \caption[基于RTMQ系统的数字PID离子阱频率稳定原理图]{基于RTMQ系统的数字PID离子阱频率稳定原理图。DDS：数字频率发生器；PID：比例微分积分控制器；ADC：模拟数字转换器；$C_1,C_2$：相位同步电容；$C_3,C_4$：射频分压电容。\label{fig:trap_frequency_lock}}
-    \includegraphics[width=1.0\linewidth]{trap_frequency_lock}
-\end{figure}
+
 
 受环境振动和温度变化影响，谐振腔的几何形状，主要是螺旋线的长度和腔体长度会发生变化，进而导致谐振腔的中心频率发生偏移。从谐振腔的S参数图\ref{fig:helical_compares}中可以看出螺线管谐振腔的Q值很大，透过峰较尖锐，即中心频率附近信号透过衰减较大。因此在输入信号频率抖动极小的情况下，受谐振腔中心频率偏移影响，信号的透过幅度将会发生较大的变化。
 K. G. Johnson等人\cite[]{Johnson_Wong_Campos_Restelli_Landsman_Neyenhuis_Mizrahi_Monroe_2016}给出了一种采用模拟系统实现的离子阱频率稳定方案，通过采样和整流施加在Paul阱电极上的高压射频信号主动地对离子阱频率进行了稳定。该方案的简化版采用了鉴频器、射频功率放大器、模拟PID控制器、电容分压器、混频器、本地振荡源等器件。采用模拟方案涉及到的器件较多、灵活性差、占用实验空间大，因此我们采用基于RTMQ数字系统的稳定方式来优化上述问题。
 
+\begin{figure}
+    \centering
+    \caption[基于RTMQ系统的数字PID离子阱频率稳定原理图]{基于RTMQ系统的数字PID离子阱频率稳定原理图。DDS：数字频率发生器；PID：比例微分积分控制器；ADC：模拟数字转换器；$C_1,C_2$：相位同步电容；$C_3,C_4$：射频分压电容。\label{fig:trap_frequency_lock}}
+    \includegraphics[width=0.9\linewidth]{trap_frequency_lock}
+\end{figure}
 
 
 基于RTMQ系统的离子阱频率稳定原理图如图\ref{fig:trap_frequency_lock}所示。射频信号通过数字PID对DDS进行并行幅度调制产生，随后经过射频功率放大器进入谐振腔耦合输入端。通过调节谐振腔耦合输入端对谐振腔进行阻抗匹配耦合，使得输出功率最大化。随后，在输出端焊接一个射频分压电路，按照100:1的分压比采集射频电压作为检测信号送入鉴频器。接着鉴频器的输出接入RTMQ板卡的16位AD转换芯片，进而转换成数字信号作为PID输入，完成整个控制回路闭环。其中，分压电路图如图\ref{fig:trap_frequency_lock}中小图所示，$C_1=C_2\approx10$uF用于同步两个输出端的射频相位；$C_3\approx0.5$pF，$C_4\approx50$pF构成理论上为$100:1$射频分压电路（实际上受到焊接电容影响测得的分压比约为$53:1$）。
 
 \begin{figure}
     \centering
-    \caption[DDS输出功率和放大器输出功率]{DDS输出功率和放大器输出功率。横坐标为DDS输出功率（单位dBm），纵坐标为测量得到的放大后的射频功率（单位dBm）。蓝色实心点是测得的数据点，数据线性拟合结果为：$y=0.9644x+32.83$，系数$a=0.9644$接近1表示两者的相关性很好，截距$b=32.83$表示功率放大器的放大数约为32.83dBm。\label{fig:helical_lock_amplifier}}
+    \caption[DDS输出功率和放大器输出功率]{DDS输出功率和放大器输出功率。横坐标为DDS输出功率（单位dBm），纵坐标为测量得到的放大后的射频功率（单位dBm）。红色空心点是测得的数据点，蓝色虚线为数据点的线性拟合，拟合结果为：$y=0.9644x+32.83$，系数$a=0.9644$接近1表示两者的相关性很好，截距$b=32.83$表示功率放大器的放大数约为32.83dBm。\label{fig:helical_lock_amplifier}}
     \includegraphics[width=0.8\linewidth]{helical_lock_amplifier}
 \end{figure}
 
@@ -610,7 +611,7 @@ K. G. Johnson等人\cite[]{Johnson_Wong_Campos_Restelli_Landsman_Neyenhuis_Mizra
 \begin{figure}
     \centering
     \caption[阱频稳定系统实验测试图]{阱频稳定系统实验测试图\label{fig:trap_frequency_lock_real}}
-    \includegraphics[width=1.0\linewidth]{trap_frequency_lock_real}
+    \includegraphics[width=0.9\linewidth]{trap_frequency_lock_real}
 \end{figure}
 
 
@@ -628,7 +629,7 @@ K. G. Johnson等人\cite[]{Johnson_Wong_Campos_Restelli_Landsman_Neyenhuis_Mizra
 
 
 
-阱频稳定系统实验测试图如图\ref{fig:trap_frequency_lock_real}所示，数据采集使用RIGOL DSG815示波器进行，采样频率为500kHz，采集谐振腔输出信号经过检波器后的幅值$V_0$数据，单位mV。图\ref{fig:trap_frequency_lock_original_compare}展示了阱频稳定本底（DDS无输出）、稳定前（ADC直连DDS调幅）、稳定后（ADC接PID后连DDS调幅）的原始测量数据，谐振腔的谐振频率为47.25MHz，各组的纵轴宽度居委50mV。从图图\ref{fig:trap_frequency_lock_original_compare}展示的结果来看，稳定前后及本地所处的幅值不完全一致。因此我们首先对结果进行归一化处理$V_{0,norm}=V_{0,original}/mean_{V_{0,original}}$来更好地对比三种情况下的输出稳定性表现，阱频稳定归一化后本底、稳定前、稳定后数据如图\ref{fig:trap_frequency_lock_normed_compare}所示，各组的纵轴宽度均为0.2。从结果中可见，稳定后的结果相对于稳定前的结果有了相对明显的改善。
+阱频稳定系统实验测试图如图\ref{fig:trap_frequency_lock_real}所示，数据采集使用RIGOL DSG815示波器进行，采样频率为500kHz，采集谐振腔输出信号经过检波器后的幅值$V_0$数据，单位mV，数字PID参数设置为：$k_p=2^5,k_i=1,k_d=0, ref=200$。图\ref{fig:trap_frequency_lock_original_compare}展示了阱频稳定本底（DDS无输出）、稳定前（ADC直连DDS调幅）、稳定后（ADC接PID后连DDS调幅）的原始测量数据，谐振腔的谐振频率为47.25MHz，各组的纵轴宽度居委50mV。从图图\ref{fig:trap_frequency_lock_original_compare}展示的结果来看，稳定前后及本地所处的幅值不完全一致。因此我们首先对结果进行归一化处理$V_{0,norm}=V_{0,original}/mean_{V_{0,original}}$来更好地对比三种情况下的输出稳定性表现，阱频稳定归一化后本底、稳定前、稳定后数据如图\ref{fig:trap_frequency_lock_normed_compare}所示，各组的纵轴宽度均为0.2。从结果中可见，稳定后的结果相对于稳定前的结果有了相对明显的改善。
 
 \begin{figure}
     \centering
@@ -643,7 +644,7 @@ K. G. Johnson等人\cite[]{Johnson_Wong_Campos_Restelli_Landsman_Neyenhuis_Mizra
 \end{figure}
 
 
-为了能更好了解稳定效果的整体表现情况，这里绘制出各组数据的阿兰方差。如图\ref{fig:trap_frequency_lock_allan_variance_compare}所示，蓝色点划线为未稳定时的幅值输出情况、实线是使用PID稳定后的幅值输出情况、虚线是幅值输出背景情况。
+为了能更好了解稳定效果的整体表现情况，这里绘制出各组数据的阿兰方差。如图\ref{fig:trap_frequency_lock_allan_variance_compare}所示，蓝色点划线为未稳定时的幅值输出情况、橙色实线是使用PID稳定后的幅值输出情况、黄色虚线是幅值输出背景情况。
 从图\ref{fig:trap_frequency_lock_allan_variance_compare}中可见，稳定后的性能在时间窗口小于$1.00\times 10^{-4}$s时，也即在100kHz以上的高频段要差于未锁定时的，可见PID稳定的调节作用在高频段引入了噪声。
 稳定后的幅值输出性能在时间窗口约为$1.00\times 10^{-4}-1.00$s之间，也即频率为10kHz到直流之间，明显优于未稳定的情况，在时间窗口大于1s时两者性能开始接近，稳定系统对该范围的信号质量能够有明显的优化。
 特别的，在时间窗口为$1.00\times 10^{-4}-6.55\times 10^-2$s之间，稳定后的性能接近背景的效果。在时间窗口为$6.55\times 10^-2$时相对于未稳定时的效果最好，有约两个量级的优化。由阱频率的计算公式\eqref{eq:trap_frequency}可知，阱频率$\omega$与谐振腔输出到阱电极上的电压幅值成正比$\omega\sim V_0$，也即在不考虑其它因素的情况下两者的相对标准$\alpha$差一致$\alpha=\Delta\sigma_{\omega}/\sigma_{\omega}\simeq\Delta\sigma_{V_0}/\sigma_{V_0}$。在单考虑在1kHz附近的噪声干扰的情况下，未锁定时其相对标准差约为$1.80\times10^{-3}$，锁定后的相对标准差约为$3.89\times10^-4$。根据保真度计算公式\eqref{eq:frequency_noise_fidelity}，其相关的保真度可由未稳定时的$99.99920\%$提高到稳定后的$99.99996\%$。
@@ -786,7 +787,7 @@ b_3=0$。
 \begin{figure}
     \centering
     \caption[IIR滤波器设计仿真和实际测试结果]{IIR滤波器设计仿真和实际测试结果\label{fig:filter_design_real1}}
-    \includegraphics[width=1.0\linewidth]{rtmq/filter_design_real1}
+    \includegraphics[width=0.8\linewidth]{rtmq/filter_design_real1}
 \end{figure}
 
 
@@ -794,7 +795,7 @@ b_3=0$。
 \begin{figure}
     \centering
     \caption[IIR滤波器考虑截断的仿真和实际测试结果]{IIR滤波器考虑截断的仿真和实际测试结果\label{fig:filter_design_real2}}
-    \includegraphics[width=1.0\linewidth]{rtmq/filter_design_real2}
+    \includegraphics[width=0.8\linewidth]{rtmq/filter_design_real2}
 \end{figure}
 
 \newpage
@@ -824,7 +825,7 @@ RTMQ测控板控制器系统工作如下：
 \begin{figure}
     \centering
     \caption[激光功率稳定系统测试图]{激光功率稳定系统测试图\label{fig:laser_stabilization_real}}
-    \includegraphics[width=1.0\linewidth]{laser_stabilization_real}
+    \includegraphics[width=0.8\linewidth]{laser_stabilization_real}
 \end{figure}
 
 
@@ -882,6 +883,7 @@ RTMQ测控板控制器系统工作如下：
 
 量子信息通常会被编码在量子系统的不同能级结构中，比如第\ref{section:yb_computation}节中介绍的镱离子的内能级。这些能级能量差一般在微波或者光学波段，其量子比特状态通常可以用外部场操纵，例如微波或光场。在能级与外部场的耦合下，可以驱动量子状态发生改变，也即实现\emph{量子比特操控}。锁模（脉冲）激光器是可以实现此目的的通用仪器，其宽带光谱同时具有射频(RF)和微波结构。这种激光器已被用于控制原子\cite[]{Hayes_Matsukevich_Maunz_Hucul_Quraishi_Olmschenk_Campbell_Mizrahi_Senko_Monroe_2010}、分子\cite[]{Peer_Shapiro_Stowe_Shapiro_Ye_2007}和固态量子系统\cite[]{Greve_Press_McMahon_Yamamoto_2013}。
 本节将首先介绍脉冲激光器及其拍频探测原理，接着给出基于RTMQ量子测控系统并结合前述通用数字PID和通用数字滤波器实现的一种简单技术来稳定脉冲激光的拍频，以便操作和控制通用量子比特系统\cite[]{ladd2010quantum}。
+不同于之前常用的拍频锁定技术\cite[]{Islam_Campbell_Choi_Clark_Conover_Debnath_Edwards_Fields_Hayes_Hucul_et_al_2014}，本方案通过使用板上集成的数字PID和数字滤波器，及大地提高了系统的稳定性和灵活性，并降低了实验的成本和空间的占用。
 
 
 \subsection[脉冲激光器及其拍频探测原理]{脉冲激光器及其拍频探测原理}
@@ -1137,7 +1139,7 @@ DDS数字对应的\emph{频率步长}为$f_{resolution}=\frac{400\textnormal{MHz
 
 使用RTMQ架构的测控板硬件设计选用了Xilinx的Artix-7系列功能最强大的FPGA芯片，并且针对离子阱量子计算实验中常用的功能集成了相应的芯片，如ADC模数转换芯片、DAC数模转换芯片、DDS数字频率生成器芯片等，同时采用了专门的时钟管理芯片为系统各功能模块提供统一的时钟管理。该测控板硬件设计能够满足RTMQ量子测控系统及其一些外设拓展固件的部署，可以很好地适用于离子量子计算实验系统。
 稳定的离子阱频率在从量子信息处理和量子模拟到原子运动的量子态的制备、原子干涉测量、和量子有限计量等方面至关重要。相较于使用模拟PID控制器的经典方案，本文使用集成了高速通用数字PID的RTMQ测控系统实现的离子阱频稳定系统在稳定性、灵活性、集成度等方面都有了大幅度的提高。
-激光在基于离子的量子计算系统中扮演着相当关键的角色，现有的大多数多离子比特的实现都是采用激光方案。因此对于激光的功率、频率等关键参数的控制对提高离子比特保真度十分重要，本章中也给出了这套RTMQ测控系统在激光功率和拍频稳定系统方面的应用案例。同时也介绍了高速通用数字IIR滤波器的设计和FPGA实现作为RTMQ系统的一种外设拓展，引入到数字控制系统中以克服激光探测中的噪声等问题。
+激光在基于离子的量子计算系统中扮演着相当关键的角色，现有的大多数多离子比特的实现都是采用激光方案。因此对于激光的功率、频率等关键参数的控制对提高离子比特保真度十分重要，本章中也给出了这套RTMQ测控系统在激光功率和拍频稳定系统方面的应用实例。同时也介绍了高速通用数字IIR滤波器的设计和FPGA实现作为RTMQ系统的一种外设拓展，引入到数字控制系统中以克服激光探测中的噪声等问题。
 
 以上结果展示了本文所研究的RTMQ量子测控系统在离子阱量子计算实验平台构建上的实用性。凭借其数字化的优势，RTMQ系统可以及大地简化整个实验平台仪器的使用，在满足量子物理实验对实时性、拓展性要求的同时，促进整个离子阱量子计算系统的数字化、集成化发展进程。
 
