@@ -330,6 +330,7 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 	C_{lout1}&=\frac{2\pi\epsilon_0 l_{out1}}{ln(D/d_0)} \label{eq:helical_lout1}\\ 
 	C_{lout2}&=\frac{2\pi\epsilon_0 l_{out2}}{ln(D_1/d_0)} \label{eq:helical_lout2}
 \end{align}
+
 其中输出线电容$C_{lout1}$（$C_{lout2}$）是长度为$l_{out1}$（$l_{out2}$）的输出线与内径为$D$（$D_1$）侧壁形成的电容。
 
 然而，在补偿输出线长效应后，频率预测仍然低于数值模拟或实验结果。经过多次尝试，我们发现主要原因是对电容$C_c$和$C_s$的高估。最近的一项研究\cite[p52,f5.3]{article_2010}给出了一个螺线管电容$C_c$的新估计公式：
@@ -340,7 +341,6 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 其中$k_c=0.717439(d/b)+0.933048(d/b)^{3/2}+0.106(d/b)^2$，$d$是螺线管的直径，$b$是螺线管的长度，$\psi$是螺距角（$\tan\psi=\tau/(\pi d)\approx 1$），$\epsilon_0$是真空介电常数。
 
 另一方面，屏蔽壁电容$C_s$在主线圈和外部屏蔽壁之间形成，与电容$C_{lout}$相同，因此同轴电容公式可用于计算$C_s$。主线圈的等效同轴线长度为$Nd_0$，单匝等效长度为$d_0$，总主线圈有$N$匝，因此屏蔽电容计算为:
-
 \begin{align}
     C_s=2\pi\epsilon_0 \frac{Nd_0}{ln(D/d')} \label{eq:helical_C_s_new}
 \end{align}
@@ -348,7 +348,6 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 其中$d'$是一个等效的线圈直径，$d'=d+\pi d_0/4$，其中$\pi d_0/4$是一个用于修正线圈边缘效应的因子。
 
 此外，实际的主线圈螺旋长度有限，匝稀疏，因此需要更新或修改文献\cite[]{Siverns_Simkins_Weidt_Hensinger_2012}中的电感计算方法。短螺旋电感估计方法可计算为：
-
 \begin{align}
     L=\frac{\mu_0 \pi (d/2)^2 }{\tau^2} (\sqrt{b^2+(d/2)^2}-d/2) \label{eq:helical_L_new}
 \end{align}
