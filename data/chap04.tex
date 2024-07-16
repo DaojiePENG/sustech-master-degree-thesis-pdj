@@ -92,7 +92,7 @@
     \includegraphics[width=1.0\linewidth]{helical/helical_experiment_test}
 \end{figure}
 
-我们选择在表\ref{tb:helical_simulation_parameters}中的2、6、9三行设置作为示例来比较HFSS模拟和实验的结果，散射参数$S_{11}$的对比结果如图\ref{fig:helical_compares}所示（中心频率平移到相互重合，以便清楚地显示$S_{11}$的差异）。结果中的中心频率差异$\Delta f(Q)=f(Q)_{exp}-f(Q)_{HFSS}$。实验测试的频率$f_0$和品质因子$Q$结果和误差棒如图\ref{fig:helical_compares_f_q}所示。误差条非常小，几乎不可见。频率的最大差异约为$0.7$ MHz。除了一个设置的$Q$因子差为$-122$，其他$Q$因子的差异约为或小于$60$。相对较大的$Q$偏差的原因可能是由于频率和电阻影响。
+我们选择在表\ref{tb:helical_simulation_parameters}中的2、6、9三行设置作为示例来比较HFSS模拟和实验的结果，散射参数$S_{11}$的对比结果如图\ref{fig:helical_compares}所示（中心频率平移到相互重合，以便清楚地显示$S_{11}$的差异）。结果中的中心频率差异$\Delta f=f_{exp}-f_{HFSS}$，Q值相对差异$\Delta Q_r=\left(Q_{exp}-Q_{HFSS}\right)/Q_{HFSS}$。实验测试的中心频率差异$\Delta f$和品质因子相对差异$\Delta Q_r$结果和误差棒如图\ref{fig:helical_compares_f_q}所示。误差棒非常小，几乎不可见。频率的最大差异约为$0.7$ MHz。除了一个设置的$\Delta Q_r$外，其它设置的品质因子相对差异$\Delta Q_r$均小于$20\%$，相对较大的$\Delta Q_r$差异的原因可能是由于加工精度、频率和电阻影响。
 频率的大小受到电感和电容的影响，电感和电容的具体值由谐振腔的几何结构和材料决定。
 电阻受材料和加工过程的影响，例如焊点电阻、金属表面氧化等。此外，我们模拟了我们之前使用的几种主线圈设计，并与实验记录相比，频率差异小于$1$ MHz，$Q$差异小于 $50$。
 
@@ -115,12 +115,12 @@
 
 \begin{figure}
     \centering
-    \caption[谐振腔仿真与实验频率和Q结果对比]{谐振腔仿真与实验频率和Q结果对比。横坐标为表中对应的序号数，（a）纵坐标为实验与仿真预测的频率结果偏差$\Delta f$（单位MHz），（b）纵坐标为实验与仿真预测的Q值结果偏差$\Delta Q$（单位1）。\label{fig:helical_compares_f_q}}
+    \caption[谐振腔仿真与实验频率和Q结果对比]{谐振腔仿真与实验频率和Q结果对比。横坐标为表中对应的序号数，（a）纵坐标为实验与仿真预测的频率结果差异$\Delta f$（单位MHz），（b）纵坐标为实验与仿真预测的品质因子相对差异$\Delta Q_r$（单位\%）。\label{fig:helical_compares_f_q}}
     \subcaptionbox[谐振腔仿真与实验频率结果对比]{谐振腔仿真与实验频率结果对比}{
         \includegraphics[width=0.48\linewidth]{helical/helical_delta_f}
     }
     \subcaptionbox[谐振腔仿真与实验Q结果对比]{谐振腔仿真与实验Q结果对比}{
-        \includegraphics[width=0.48\linewidth]{helical/helical_delta_Q}
+        \includegraphics[width=0.48\linewidth]{helical/helical_r_delta_Q}
     }
 \end{figure}
 
@@ -200,8 +200,8 @@
         \midrule
         直径$d$  & [-1,1] & $\approx$-0.606 & $\approx$ 0.4\\
         螺距$\tau$  & [0, 0.5] & $\approx$ 2.988 & $\approx$ 23.491 \\
-        线圈径向偏移 & [-2, 2] & $\approx$ -0.049 & $\approx$ 0.185\\
-        线圈轴向偏移 & [-2, 2] & $\approx$ 0.034 & $\approx$ -0.4904\\
+        线圈轴向偏移 & [-2, 2] & $\approx$ -0.049 & $\approx$ 0.185\\
+        线圈径向偏移 & [-2, 2] & $\approx$ 0.034 & $\approx$ -0.4904\\
         \bottomrule
     \end{tabular}
 \end{table}
