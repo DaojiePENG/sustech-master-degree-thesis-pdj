@@ -1,6 +1,6 @@
 % % !TeX root = ../sustechthesis-example.tex
 
-\chapter[用于离子阱系统的高Q螺线管谐振腔的仿真、优化与建模]{用于离子阱系统的螺线管谐振腔的仿真、优化与建模\label{section:helical}}
+\chapter[用于离子阱系统的高Q螺线管谐振腔的仿真、建模与优化]{用于离子阱系统的螺线管谐振腔的仿真、建模与优化\label{section:helical}}
 % \textcolor{red}{
 % 这部分将对之前谐振腔的研究进行整理和总结...
 % 除去真空环境相关的部分外，离子阱主要有两核心部分组成：螺线圈谐振腔及刀片阱。
@@ -9,7 +9,7 @@
 谐振腔是组成离子阱量子计算系统的重要部分，也是一种十分重要的射频器件。在第\ref{section:ion_trap_motion}节中，介绍了离子在离子阱中的囚禁方式和运动，其中囚禁的基础就是生成合适的囚禁势场。在离子阱量子计算实验中通常采用Paul阱来产生这种势场，它也是最具代表性的一类离子阱，利用交替电流(Alternating-Current, AC)电场来动态囚禁离子。上述交流场的频率总是落在射频(RF)范围内，而相应的电压可以达到几百伏。通常，将这种高压射频信号直接应用于Paul阱的电极是具有挑战性的，因为阱本身可以被视为纯电容器件。因此，信号发生器和阱之间的阻抗失配使得功率注入效率低下。
 
 解决上述困难的标准方法是使用螺线管谐振腔来作为信号发生器和离子阱之间的“桥梁”。一个设计合适的螺线管谐振腔既能够实现阻抗匹配的要求也能够放大施加到阱电极上的电场。同时，它还充当带通滤波器来阻断潜在的电子噪声，提高离子量子门的保真度。因此，螺线管谐振腔是离子阱系统中最关键的角色之一，对于特定频率需求范围的谐振腔来说其最关键的参数指标是它的Q值。
-本章将给出用于离子阱量子计算系统的高Q谐振腔的仿真、设计、优化与数学建模，以降低噪声提高整个系统的稳定性和离子量子比特操作的保真度\cite[]{van_Dijk_Kawakami_Schouten_Veldhorst_Vandersypen_Babaie_Charbon_Sebastiano_2019}，同时也给出一种装配和耦合更方便且更加稳定的模块化谐振腔设计。
+本章将给出用于离子阱量子计算系统的高Q谐振腔的仿真、设计、数学建模与优化，以降低噪声提高整个系统的稳定性和离子量子比特操作的保真度\cite[]{van_Dijk_Kawakami_Schouten_Veldhorst_Vandersypen_Babaie_Charbon_Sebastiano_2019}，同时也给出一种装配和耦合更方便且更加稳定的模块化谐振腔设计。
 
 % \textcolor{red}{谐振腔与量子门保真度之间的关系说明……}
 
@@ -27,8 +27,8 @@
 
 \begin{figure}
     \centering
-    \caption[谐振腔结构平面示意图]{谐振腔结构平面示意图。$H$：耦合线圈底部到主线圈底部的距离；$B$：屏蔽壳侧壁长度；$D$：屏蔽壳内筒直径；$\tau$：主线圈螺距；$d_0$：主线圈线粗；$d$：主线圈直径；$b$：主线圈总长度；$l_{out}$：输出线长度；$D_1$：输出口内直径。\label{fig:helical_structure_2d}}
     \includegraphics[width=0.5\linewidth]{helical/helical_structure_2d}
+    \caption[谐振腔结构平面示意图]{谐振腔结构平面示意图。$H$：耦合线圈底部到主线圈底部的距离；$B$：屏蔽壳侧壁长度；$D$：屏蔽壳内筒直径；$\tau$：主线圈螺距；$d_0$：主线圈线粗；$d$：主线圈直径；$b$：主线圈总长度；$l_{out}$：输出线长度；$D_1$：输出口内直径。\label{fig:helical_structure_2d}}
 \end{figure}
 
 \section[螺线管谐振腔的仿真模型]{螺线管谐振腔的仿真模型}
@@ -45,14 +45,14 @@
 
 \begin{figure}
     \centering
-    \caption[HFSS中建立的3D模型图]{HFSS中建立的3D模型图。黄色圆片表示射频输入和输出端口；橙色部分表示耦合线圈和主线圈，一般采用紫铜材质制作；绿色部分是屏蔽外筒，一般采用紫铜或者黄铜制作。\label{fig:helical_HFSS_3d}}
     \includegraphics[width=0.4\linewidth]{helical/helical_HFSS_3d}
+    \caption[HFSS中建立的3D模型图]{HFSS中建立的3D模型图。黄色圆片表示射频输入和输出端口；橙色部分表示耦合线圈和主线圈，一般采用紫铜材质制作；绿色部分是屏蔽外筒，一般采用紫铜或者黄铜制作。\label{fig:helical_HFSS_3d}}
 \end{figure}
 
 \begin{figure}
     \centering
-    \caption[HFSS中导出的3D模型表面电流密度矢量图]{HFSS中导出的3D模型表面电流密度矢量图。辅助进行谐振腔的损耗和结构设计分析。从图中可见表面电流主要分布在主线圈上，主线圈的材料和结构是决定谐振腔性能的关键。\label{fig:helical_HFSS_field}}
     \includegraphics[width=1.0\linewidth]{helical/helical_HFSS_field}
+    \caption[HFSS中导出的3D模型表面电流密度矢量图]{HFSS中导出的3D模型表面电流密度矢量图。辅助进行谐振腔的损耗和结构设计分析。从图中可见表面电流主要分布在主线圈上，主线圈的材料和结构是决定谐振腔性能的关键。\label{fig:helical_HFSS_field}}
 \end{figure}
 
 离子阱实验中的谐振频率通常在$10-100$ MHz之间，主线圈的典型直径和螺距间距分别为$50-60 $ mm和$5-8$ mm。为了测试HFSS模拟和实验之间的一致性，我们选择了三组几何设置，如表\ref{tb:helical_simulation_parameters}所示。
@@ -88,8 +88,8 @@
 
 \begin{figure}
     \centering
-    \caption[实际实验的测量方式示意图]{实际实验的测量方式示意图。网络分析仪型号为Keysight E5063A。\label{fig:helical_experiment_test}}
     \includegraphics[width=1.0\linewidth]{helical/helical_experiment_test}
+    \caption[实际实验的测量方式示意图]{实际实验的测量方式示意图。网络分析仪型号为Keysight E5063A。\label{fig:helical_experiment_test}}
 \end{figure}
 
 我们选择在表\ref{tb:helical_simulation_parameters}中的2、6、9三行设置作为示例来比较HFSS模拟和实验的结果，散射参数$S_{11}$的对比结果如图\ref{fig:helical_compares}所示（中心频率平移到相互重合，以便清楚地显示$S_{11}$的差异）。结果中的中心频率差异$\Delta f=f_{exp}-f_{HFSS}$，Q值相对差异$\Delta Q_r=\left(Q_{exp}-Q_{HFSS}\right)/Q_{HFSS}$。实验测试的中心频率差异$\Delta f$和品质因子相对差异$\Delta Q_r$结果和误差棒如图\ref{fig:helical_compares_f_q}所示。误差棒非常小，几乎不可见。频率的最大差异约为$0.7$ MHz。除了一个设置的$\Delta Q_r$外，其它设置的品质因子相对差异$\Delta Q_r$均小于$20\%$，相对较大的$\Delta Q_r$差异的原因可能是由于加工精度、频率和电阻影响。
@@ -100,7 +100,6 @@
 
 \begin{figure}
     \centering
-    \caption[谐振腔仿真与实验散射参数结果对比]{谐振腔仿真与实验散射参数$S_{11}$结果对比。其中红色实线为HFSS仿真结果，蓝色实线为实验测得的结果。横坐标为频率（单位MHz），纵坐标为幅度（单位dB）。\label{fig:helical_compares}}
     \subcaptionbox[50 MHz]{50 MHz}{
         \includegraphics[width=0.8\linewidth]{helical/helical_50MHz_final}
     }
@@ -110,18 +109,19 @@
     \subcaptionbox[75 MHz]{75 MHz}{
         \includegraphics[width=0.46\linewidth]{helical/helical_75MHz_final}
     }
+    \caption[谐振腔仿真与实验散射参数结果对比]{谐振腔仿真与实验散射参数$S_{11}$结果对比。其中红色实线为HFSS仿真结果，蓝色实线为实验测得的结果。横坐标为频率（单位MHz），纵坐标为幅度（单位dB）。\label{fig:helical_compares}}
 \end{figure}
 
 
 \begin{figure}
     \centering
-    \caption[谐振腔仿真与实验频率和Q结果对比]{谐振腔仿真与实验频率和Q结果对比。横坐标为表中对应的序号数，（a）纵坐标为实验与仿真预测的频率结果差异$\Delta f$（单位MHz），（b）纵坐标为实验与仿真预测的品质因子相对差异$\Delta Q_r$（单位\%）。\label{fig:helical_compares_f_q}}
     \subcaptionbox[谐振腔仿真与实验频率结果对比]{谐振腔仿真与实验频率结果对比}{
         \includegraphics[width=0.48\linewidth]{helical/helical_delta_f}
     }
     \subcaptionbox[谐振腔仿真与实验Q结果对比]{谐振腔仿真与实验Q结果对比}{
         \includegraphics[width=0.48\linewidth]{helical/helical_r_delta_Q}
     }
+    \caption[谐振腔仿真与实验频率和Q结果对比]{谐振腔仿真与实验频率和Q结果对比。横坐标为表中对应的序号数，（a）纵坐标为实验与仿真预测的频率结果差异$\Delta f$（单位MHz），（b）纵坐标为实验与仿真预测的品质因子相对差异$\Delta Q_r$（单位\%）。\label{fig:helical_compares_f_q}}
 \end{figure}
 
 \section[几何参数对频率和Q的影响]{几何参数对频率和Q的影响}
@@ -139,13 +139,13 @@
 这使得谐振频率的控制更容易。一项研究\cite[]{Nandi_Sikdar_Das_Ray_2022}也指出了这种类似的现象，它给出了谐振频率与主线圈长度之间的关系。螺线管谐振腔基本上与四分之一波长谐振器相同。
 \begin{figure}
     \centering
-    \caption[固定线长下改变主线圈参数的频率$f_0$变化]{固定线长下改变主线圈参数的频率$f_0$变化。（a）横坐标为主线圈直径$d$（单位mm），（b）主线圈螺距$\tau$（单位mm）；纵坐标为频率$F$（单位MHz）。\label{fig:helical_fixedwirelength}}
     \subcaptionbox[改变主线圈直径参数]{改变主线圈直径参数}{
         \includegraphics[width=0.48\linewidth]{helical/helical_fixedwirelength_1}
     }
     \subcaptionbox[改变主线圈螺距参数]{改变主线圈螺距参数}{
         \includegraphics[width=0.48\linewidth]{helical/helical_fixedwirelength_2}
     }
+    \caption[固定线长下改变主线圈参数的频率$f_0$变化]{固定线长下改变主线圈参数的频率$f_0$变化。（a）横坐标为主线圈直径$d$（单位mm），（b）主线圈螺距$\tau$（单位mm）；纵坐标为频率$F$（单位MHz）。\label{fig:helical_fixedwirelength}}
 \end{figure}
 
 在我们的模拟中，主要线圈几何形状设置了两个限制，即固定的总导线长度$l_{total}$和固定的输出线高度$h$:
@@ -164,13 +164,13 @@
 
 \begin{figure}
     \centering
-    \caption[螺线管谐振腔$f_0$、$Q$值等高图]{螺线管谐振腔$f_0$、$Q$值等高图。横坐标为主线圈直径$d$（单位mm），纵坐标为主线圈螺距$\tau$（单位mm）\label{fig:helical_contour}}
     \subcaptionbox[螺线管谐振腔$f_0$值等高图]{螺线管谐振腔$f_0$值等高图\label{fig:helical_contour_f}}{
         \includegraphics[width=0.48\linewidth]{helical/helical_contour_f}
     }
     \subcaptionbox[螺线管谐振腔$Q$值等高图]{螺线管谐振腔$Q$值等高图\label{fig:helical_contour_Q}}{
         \includegraphics[width=0.48\linewidth]{helical/helical_contour_Q}
     }
+    \caption[螺线管谐振腔$f_0$、$Q$值等高图]{螺线管谐振腔$f_0$、$Q$值等高图。横坐标为主线圈直径$d$（单位mm），纵坐标为主线圈螺距$\tau$（单位mm）\label{fig:helical_contour}}
 \end{figure}
 
 在图\ref{fig:helical_contour_f}中，频率$f_0$在绝大部分地方随着$\tau$的减小而减小。随着主线圈直径$d$的增加，电感$L$会先慢慢增加（当$d$较小时）然后减小（当$d$较大时）。同时，$C_c$和$C_s$单调地增加。因此在这个过程中频率会先急剧下降然后慢慢下降。参考频率计算公式\eqref{eq:helical_f_equation}和文献\cite[]{Siverns_Simkins_Weidt_Hensinger_2012,Macalpine_Schildknecht_1959}中的电感$L$和电容$C = C_c +C_s$计算公式:
@@ -211,20 +211,20 @@
 
 \begin{figure}
     \centering
-    \caption[谐振腔仿真与实验结果对比——主线圈轴向偏移]{谐振腔仿真与实验结果对比——主线圈轴向偏移。\label{fig:helical_bias_axial}}
     \includegraphics[width=0.8\linewidth]{helical/helical_bias_axial}
+    \caption[谐振腔仿真与实验结果对比——主线圈轴向偏移]{谐振腔仿真与实验结果对比——主线圈轴向偏移。\label{fig:helical_bias_axial}}
 \end{figure}
 
 \begin{figure}
     \centering
-    \caption[谐振腔仿真与实验结果对比——主线圈径向偏移（垂直于接地端）]{谐振腔仿真与实验结果对比——主线圈径向偏移（垂直于接地端）。\label{fig:helical_bias_radial_gndalong}}
     \includegraphics[width=0.8\linewidth]{helical/helical_bias_radial_gndalong}
+    \caption[谐振腔仿真与实验结果对比——主线圈径向偏移（垂直于接地端）]{谐振腔仿真与实验结果对比——主线圈径向偏移（垂直于接地端）。\label{fig:helical_bias_radial_gndalong}}
 \end{figure}
 
 \begin{figure}
     \centering
-    \caption[谐振腔仿真与实验结果对比——主线圈径向偏移（垂直于接地端）]{谐振腔仿真与实验结果对比——主线圈径向偏移（垂直于接地端）。\label{fig:helical_bias_radial_gndperpendicular}}
     \includegraphics[width=0.8\linewidth]{helical/helical_bias_radial_gndperpendicular}
+    \caption[谐振腔仿真与实验结果对比——主线圈径向偏移（垂直于接地端）]{谐振腔仿真与实验结果对比——主线圈径向偏移（垂直于接地端）。\label{fig:helical_bias_radial_gndperpendicular}}
 \end{figure}
 
 
@@ -245,23 +245,23 @@
 
 
 \subsection[输出线参数的影响]{输出线参数的影响\label{section:helical_output_wire}}
-在我们的模拟中，我们发现输出导线长度对谐振$f,\ Q$有很大的影响。与之前的固定线长情况不同，这里我们不再做公式\eqref{eq:helical_fixed_constraints_1}和公式\eqref{eq:helical_fixed_constraints_2}的约束。
+在我们的模拟中，我们发现输出导线长度对谐振$f,\ Q$有很大的影响。与之前的固定线长情况不同，这里我们不再做式\eqref{eq:helical_fixed_constraints_1}和式\eqref{eq:helical_fixed_constraints_2}的约束。
 主线圈直径及其螺距保持在相同的长度，独立改变输出导线$l_{out}$的总长度，其中$l_{out} = l_{lout1} + l_{lout2}$。
 $l_{out1}$和$l_{out2}$分别是屏蔽外壳中的输出线和连接器馈通部分的输出线，如图\ref{fig:helical_lout_2}所示。
 
 
 \begin{figure}
     \centering
-    \caption[输出线部分示意图]{输出线部分示意图。$l_{out1}$：输出线在屏蔽壳内部分的长度；$C_{lout1}$：输出线在屏蔽壳内部分的电容；$l_{out2}$：输出线在输出端口内部分的长度；$C_{lout2}$：输出线在输出端口内部分的电容；$D$：屏蔽壳内直径；$D_1$：输出端内直径。\label{fig:helical_lout_2}}
     \includegraphics[width=0.5\linewidth]{helical/helical_lout_2}
+    \caption[输出线部分示意图]{输出线部分示意图。$l_{out1}$：输出线在屏蔽壳内部分的长度；$C_{lout1}$：输出线在屏蔽壳内部分的电容；$l_{out2}$：输出线在输出端口内部分的长度；$C_{lout2}$：输出线在输出端口内部分的电容；$D$：屏蔽壳内直径；$D_1$：输出端内直径。\label{fig:helical_lout_2}}
 \end{figure}
 
-仿真结果如图\ref{fig:helical_lout_1}所示。随着输出导线长度的增加，谐振频率下降。$Q$随着谐振频率的减小而减小，两者成正比，与公式\eqref{eq:helical_Q_equation}具有相同的关系。这主要是输出线引入额外电容而对电阻和电感影响较小导致的。
+仿真结果如图\ref{fig:helical_lout_1}所示。随着输出导线长度的增加，谐振频率下降。$Q$随着谐振频率的减小而减小，两者成正比，与式\eqref{eq:helical_Q_equation}具有相同的关系。这主要是输出线引入额外电容而对电阻和电感影响较小导致的。
 
 \begin{figure}
     \centering
-    \caption[输出线部分影响]{输出线部分影响。横坐标为输出线长$l_{out}$（单位mm），蓝色‘*’标和‘+’标分别为仿真和实验的频率$F$（单位MHz，对应左侧纵坐标），橙色‘o’标和‘x’标分别为仿真和实验的品质因子$Q$（单位1，对应右侧纵坐标）。\label{fig:helical_lout_1}}
     \includegraphics[width=0.8\linewidth]{helical/helical_lout_1}
+    \caption[输出线部分影响]{输出线部分影响。横坐标为输出线长$l_{out}$（单位mm），蓝色‘*’标和‘+’标分别为仿真和实验的频率$F$（单位MHz，对应左侧纵坐标），橙色‘o’标和‘x’标分别为仿真和实验的品质因子$Q$（单位1，对应右侧纵坐标）。\label{fig:helical_lout_1}}
 \end{figure}
 
 为了验证仿真结果，我们进行了输出导线长度切割实验，测量了输出导线长度和器件谐振频率$f_0$和$Q$。结果如图\ref{fig:helical_lout_1}所示。实验与模拟的频率差约为$2$ MHz，实验测量的$Q$数据比模拟低约$150$。为了在同一图中绘制$ Q $数据，实验$ Q $数据偏移了$ 100$。除了偏移之外，频率$f_0$和$ Q $都与其对应的数据一致。该结果再次表明了仿真结果的可信度。
@@ -271,8 +271,8 @@ $l_{out1}$和$l_{out2}$分别是屏蔽外壳中的输出线和连接器馈通部
 \subsection[屏蔽外壳参数的影响]{屏蔽外壳参数的影响}
 \begin{figure}
     \centering
-    \caption[屏蔽外壳的影响]{屏蔽外壳的影响，横坐标为屏蔽壳内直径$D$（单位mm），纵坐标为频率$F$（单位MHz）。蓝色实线和‘*’标点为频率（单位MHz，对应左侧纵坐标），橙色虚线和‘o’标点为品质因子Q（单位1，对应右侧纵坐标）。\label{fig:helical_shield_diameter}}
     \includegraphics[width=0.8\linewidth]{helical/helical_shield_diameter}
+    \caption[屏蔽外壳的影响]{屏蔽外壳的影响，横坐标为屏蔽壳内直径$D$（单位mm），纵坐标为频率$F$（单位MHz）。蓝色实线和‘*’标点为频率（单位MHz，对应左侧纵坐标），橙色虚线和‘o’标点为品质因子Q（单位1，对应右侧纵坐标）。\label{fig:helical_shield_diameter}}
 \end{figure}
 
 铜屏蔽外壳完成了电流回路，定义了螺旋谐振腔中的电磁场边界条件。屏蔽外壳和主线圈形成电容$C_s$，因此屏蔽的直径对谐振频率有影响。屏蔽外壳可以屏蔽和减少电磁场辐射耗散，因此谐振器将具有高$Q$因子。在这里，通过数值模拟研究了屏蔽外壳直径$ D $对频率$f_0$和$ Q $因子的影响。结果如图\ref{fig:helical_shield_diameter}所示，当屏蔽直径$ D $增加时，频率$f_0$和$ Q $因子都会增加。频率变化很小，而$ Q $因子首先快速增长，然后逐渐减慢。频率的微弱增加是由于侧壁电容随着屏蔽外壳$D$的增大而减小。$Q$因子的增加是因为屏蔽直径越大，电场强度越小，屏蔽电流越小，电阻相等，耗散越小。因此为了获得更大的$Q$，在合理的设备尺寸下将首选较大的屏蔽直径。
@@ -285,8 +285,8 @@ $l_{out1}$和$l_{out2}$分别是屏蔽外壳中的输出线和连接器馈通部
 
 \begin{figure}
     \centering
-    \caption[耦合线圈的影响]{耦合线圈的影响。$\Delta h$：耦合线圈和主线圈之间的距离（单位mm）；$d$：耦合线圈的直径（单位mm）；$\tau$：耦合线圈的螺距（单位mm）。\label{fig:helical_primary_coil}}
     \includegraphics[width=0.8\linewidth]{helical/helical_primary_coil}
+    \caption[耦合线圈的影响]{耦合线圈的影响。$\Delta h$：耦合线圈和主线圈之间的距离（单位mm）；$d$：耦合线圈的直径（单位mm）；$\tau$：耦合线圈的螺距（单位mm）。\label{fig:helical_primary_coil}}
 \end{figure}
 
 为了研究主线圈形状效应，我们在其他参数满足表\ref{tb:helical_simulation_parameters}中第9行的情况下，模拟了各种耦合线圈尺寸(耦合线圈直径$d_1$和螺距$\tau_1$)及其轴向位置，并试图满足阻抗匹配。
@@ -300,15 +300,15 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 谐振腔的实际使用离不开一个十分重要的过程，即阻抗匹配，我们一般称为耦合。经验上来看，我们知道可以通过移动耦合线圈和主线圈之间的距离或者改变耦合线圈的形状来实现耦合。一般来说实践上我们更倾向于改变耦合线圈和主线圈之间的距离的方式来实现耦合，存在一个最优距离使得匹配最佳，两者的距离太近或者太远都无法实现最佳匹配。只有在最佳匹配的时候射频功率透过谐振腔的传输率才能达到最大。在耦合的过程中谐振腔的最佳耦合频率会发生微小的偏移，而Q值则会发生较大的变化。值得注意的是，我们发现耦合过程中最佳耦合频率点和Q值的变化并不像最佳耦合点一样有最有值，如图\ref{fig:helical_coupling_delta}所示，它们是随着耦合距离单调变化的。也就是说，在最佳耦合点左右两侧，虽然透过率都会下降，但是两侧的Q值却是大不相同的。从图\ref{fig:helical_coupling_delta}中可见最佳匹配点左右两侧的Q值差能达到一倍之多，这给我们带来的启示是：我们可以通过牺牲一定的射频功率透过率来获得更高的Q值或者相反。
 \begin{figure}
     \centering
-    \caption[谐振腔耦合过程特性]{谐振腔耦合过程特性。横坐标为耦合线圈到主线圈的距离$\Delta h$，左侧和右侧的纵坐标分别是品质因子数值（单位1）和散射系数值（单位dB）。其中蓝色‘o’标线是谐振腔的品质因子Q，红色‘*’标线是相应的最佳耦合时的反射系数最小值$S_{11}^{min}$，绿色‘o’标线是相应的最佳耦合时的透射系数最大值$S_{21}^{max}$。\label{fig:helical_coupling_delta}}
     \includegraphics[width=0.8\linewidth]{helical/helical_coupling_delta}
+    \caption[谐振腔耦合过程特性]{谐振腔耦合过程特性。横坐标为耦合线圈到主线圈的距离$\Delta h$，左侧和右侧的纵坐标分别是品质因子数值（单位1）和散射系数值（单位dB）。其中蓝色‘o’标线是谐振腔的品质因子Q，红色‘*’标线是相应的最佳耦合时的反射系数最小值$S_{11}^{min}$，绿色‘o’标线是相应的最佳耦合时的透射系数最大值$S_{21}^{max}$。\label{fig:helical_coupling_delta}}
 \end{figure}
 
 从上面的耦合过程结果来看，耦合线圈距离主线圈距离越远的情况下Q值越高。也就是说两者相互‘影响’越小的情况下Q值会越高。这个影响实际上就是等效的阻抗带来的耗散，为了验证这一点我们进行了另一组仅改变耦合线圈电阻值的实验，结果如图\ref{fig:helical_coupling_rin}所示。从图\ref{fig:helical_coupling_rin}中可以看出，随着耦合线圈电阻值的增加，Q值逐渐下降，同时也伴随着最佳耦合频率的偏移。不难发现，增加耦合线圈电阻值的过程这个结果跟图\ref{fig:helical_coupling_delta}中耦合线圈与主线圈距离的减小过程的结果是相互对应的。
 \begin{figure}
     \centering
-    \caption[谐振腔耦合过程特性]{谐振腔耦合过程特性。横坐标为耦合线圈的阻值$R$，左侧和右侧的纵坐标分别是品质因子数值（单位1）和散射系数值（单位dB）。其中蓝色‘o’标线是谐振腔的品质因子Q，红色‘*’标线是相应的最佳耦合时的反射系数最小值$S_{11}^{min}$，绿色‘o’标线是相应的最佳耦合时的透射系数最大值$S_{21}^{max}$。\label{fig:helical_coupling_rin}}
     \includegraphics[width=0.8\linewidth]{helical/helical_coupling_rin}
+    \caption[谐振腔耦合过程特性]{谐振腔耦合过程特性。横坐标为耦合线圈的阻值$R$，左侧和右侧的纵坐标分别是品质因子数值（单位1）和散射系数值（单位dB）。其中蓝色‘o’标线是谐振腔的品质因子Q，红色‘*’标线是相应的最佳耦合时的反射系数最小值$S_{11}^{min}$，绿色‘o’标线是相应的最佳耦合时的透射系数最大值$S_{21}^{max}$。\label{fig:helical_coupling_rin}}
 \end{figure}
 
 
@@ -321,8 +321,8 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 
 \begin{figure}
     \centering
-    \caption[LCR电路模型]{LCR电路模型。$L$表示谐振腔的电感，主要包括耦合线圈和主线圈的电感；$R$表示整个谐振腔的电阻；$C$表示谐振腔的电容，$C_x$表示谐振腔内部结构的电容，$C_{lout}$表示谐振腔输出线引入的电容。\label{fig:helical_RLC_circuit1}}
     \includegraphics[width=0.8\linewidth]{helical/helical_RLC_circuit1}
+    \caption[LCR电路模型]{LCR电路模型。$L$表示谐振腔的电感，主要包括耦合线圈和主线圈的电感；$R$表示整个谐振腔的电阻；$C$表示谐振腔的电容，$C_x$表示谐振腔内部结构的电容，$C_{lout}$表示谐振腔输出线引入的电容。\label{fig:helical_RLC_circuit1}}
 \end{figure}
 
 因此，输出线电容被添加到LCR电路模型中，如图\ref{fig:helical_RLC_circuit1}所示。总等效电容可视为传统电容CT和输出线总电容$C_{lout}$的总。传统的电容部分与以往的研究相同，而输出线和外部屏蔽将形成同轴电容:
@@ -355,7 +355,6 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 
 \begin{figure}
     \centering
-    \caption[三种理论模型的预测效果比较]{三种理论模型的预测效果比较。左、中、右图分别是30 MHz、50 MHz、75 MHz附近频率设置的模型与参考表中偏差的结果的频数统计图。作为参考，每幅图上方给出了所有偏差的均值和其标准差。\label{fig:helical_freqmodelcompare}}
     \subcaptionbox[HUST模型结果]{HUST模型结果\label{fig:helical_freqmodelcompare_hust}}{
         \includegraphics[width=0.55\linewidth]{helical/helical_freqmodelcompare_hust}
     }
@@ -365,6 +364,7 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
     \subcaptionbox[SUST模型结果]{SUST模型结果\label{fig:helical_freqmodelcompare_sust}}{
         \includegraphics[width=0.55\linewidth]{helical/helical_freqmodelcompare_sust}
     }
+    \caption[三种理论模型的预测效果比较]{三种理论模型的预测效果比较。左、中、右图分别是30 MHz、50 MHz、75 MHz附近频率设置的模型与参考表中偏差的结果的频数统计图。作为参考，每幅图上方给出了所有偏差的均值和其标准差。\label{fig:helical_freqmodelcompare}}
 
 \end{figure}
 
@@ -394,7 +394,7 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 %     \includegraphics[width=0.33\linewidth]{helical/helical_freqmodelcompare_sust}
 % \end{figure}
 
-直方图结果表明：对于$75$ MHz组，本文中的模型的均值和标准差（SUST）在三个模型中都是最小的，预测的准确性是最好的。对于 $50$ MHz组，SUST和HUST模型之间的平均偏差值和标准偏差值基本相似。它们都预测了比Sussex模型更准确的谐振频率。对于$30$ MHz组，HUST频率预测的平均值最小，SUST模型准确率次之，但它们都优于Sussex模型。HUST和SUST模型的标准偏差相似，但它们都优于Sussex模型。需要注意的是，在$30$ MHz组中，由于主线圈线长度约束，所有$56$种可能组合中只有$11$个可行数据，参见公式\eqref{eq:helical_fixed_constraints_1}和\eqref{eq:helical_fixed_constraints_2}，因此结果可能会波动和偏差很大。
+直方图结果表明：对于$75$ MHz组，本文中的模型的均值和标准差（SUST）在三个模型中都是最小的，预测的准确性是最好的。对于 $50$ MHz组，SUST和HUST模型之间的平均偏差值和标准偏差值基本相似。它们都预测了比Sussex模型更准确的谐振频率。对于$30$ MHz组，HUST频率预测的平均值最小，SUST模型准确率次之，但它们都优于Sussex模型。HUST和SUST模型的标准偏差相似，但它们都优于Sussex模型。需要注意的是，在$30$ MHz组中，由于主线圈线长度约束，所有$56$种可能组合中只有$11$个可行数据，参见式\eqref{eq:helical_fixed_constraints_1}和\eqref{eq:helical_fixed_constraints_2}，因此结果可能会波动和偏差很大。
 
 在上述结果中，对于$30-80$ MHz频率范围内的情况，本文提出的LCR模型提高了预测精度。输出线效应（参见第\ref{section:helical_output_wire}节）作为对分布式电容效应的替代解释，给出了更简单直观的物理解释。
 
@@ -407,8 +407,8 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 
 \begin{figure}
     \centering
-    \caption[旧版的谐振腔设计]{旧版的谐振腔设计，有机械冲突、耦合方式较差。\label{fig:helical_old_design}}
     \includegraphics[width=1.0\linewidth]{helical/helical_old_design}
+    \caption[旧版的谐振腔设计]{旧版的谐振腔设计，有机械冲突、耦合方式较差。\label{fig:helical_old_design}}
 \end{figure}
 \subsection[易装配易耦合的新版谐振腔]{易装配易耦合的新版谐振腔}
 新的易装配易耦合的模块化谐振腔设计如图\ref{fig:helical_new_design}所示。它解决了现有技术对主线圈的安装较为不便、对主线圈固定的稳定性差、对次级线圈耦合部分缺乏灵活调节的问题。新的设计主要包括以下结构：
@@ -426,14 +426,14 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 与现有技术相比，本设计设计更为合理，元件装配更加方便，谐振耦合更加精细快捷，谐振腔长时工作的稳定性更高。
 \begin{figure}
     \centering
-    \caption[易装配易耦合的谐振腔设计]{易装配易耦合的谐振腔设计\label{fig:helical_new_design}}
     \includegraphics[width=1.0\linewidth]{helical/helical_new_design}
+    \caption[易装配易耦合的谐振腔设计]{易装配易耦合的谐振腔设计\label{fig:helical_new_design}}
 \end{figure}
 
 \begin{figure}
     \centering
-    \caption[易装配易耦合的谐振腔设计实物图]{易装配易耦合的谐振腔设计实物图\label{fig:helical_new_design_real}}
     \includegraphics[width=1.0\linewidth]{helical/helical_new_design_real}
+    \caption[易装配易耦合的谐振腔设计实物图]{易装配易耦合的谐振腔设计实物图\label{fig:helical_new_design_real}}
 \end{figure}
 
 

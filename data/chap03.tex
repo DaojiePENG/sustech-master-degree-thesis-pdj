@@ -47,8 +47,8 @@
 
 \begin{figure}
     \centering
-    \caption[RTMQ实时量子测控系统架构示意图]{RTMQ实时量子测控系统架构示意图\label{fig:rtmq_nodes_and_leaves_structure}}
     \includegraphics[width=0.9\linewidth]{rtmq/rtmq_nodes_and_leaves_structure}
+    \caption[RTMQ实时量子测控系统架构示意图]{RTMQ实时量子测控系统架构示意图\label{fig:rtmq_nodes_and_leaves_structure}}
 \end{figure}
 
 RTMQ架构主要用于开发基于FPGA或ASIC的兼具通用计算和高精度时序控制能力的微系统。系统的整体结构为树状结构，如图\ref{fig:rtmq_nodes_and_leaves_structure}所示，系统包含一个根节点，多个中间结点和多个叶节点；根节点通过网络、USB等方式与控制计算机相连。
@@ -57,8 +57,8 @@ RTMQ架构主要用于开发基于FPGA或ASIC的兼具通用计算和高精度�
 
 \begin{figure}
     \centering
-    \caption[RTMQ实时量子测控系统架构节点示意图]{RTMQ实时量子测控系统架构节点示意图\label{fig:rtmq_board_overal_structure}}
     \includegraphics[width=0.6\linewidth]{rtmq/rtmq_board_overal_structure}
+    \caption[RTMQ实时量子测控系统架构节点示意图]{RTMQ实时量子测控系统架构节点示意图\label{fig:rtmq_board_overal_structure}}
 \end{figure}
 
 各个节点都由测控硬件板卡构成，一般而言一个板卡具有如图\ref{fig:rtmq_board_overal_structure}所示的结构，板卡上的FPGA或ASIC包含一个RTMQ节点，RTMQ节点通过控制FPGA或ASIC的输入输出与数模/模数转换等各类功能芯片进行交互以实现所需功能，同时通过实时通信链路与其上级和下级节点连接。
@@ -73,8 +73,8 @@ RTMQ架构主要用于开发基于FPGA或ASIC的兼具通用计算和高精度�
 
 \begin{figure}
     \centering
-    \caption[RTMQ实时量子测控系统架构节点内部模块示意图]{RTMQ实时量子测控系统架构节点内部模块示意图\label{fig:rtmq_board_inner_structure}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_board_inner_structure}
+    \caption[RTMQ实时量子测控系统架构节点内部模块示意图]{RTMQ实时量子测控系统架构节点内部模块示意图\label{fig:rtmq_board_inner_structure}}
 \end{figure}
 
 RTMQ架构中包含的微处理器可受指令控制进入挂起状态，而挂起状态可受计时器或触发管理模块的控制恢复正常运行，如此，微处理器的指令流便可以按一定的时间间隔对齐或与外部信号对齐。同时，节点中的系统外设和功能外设的行为受关联寄存器的读写控制，即微处理器的指令与系统各模块的功能和时序有严格的对应关系。因此，该架构可实现实时控制与通用计算在指令流层面的结合。
@@ -506,8 +506,8 @@ RTMQ节点之间的通信是以帧作为单位的，帧涵盖了魔术字、跳�
 
 \begin{figure}
     \centering
-    \caption[链路管理模块内部逻辑结构图]{链路管理模块内部逻辑结构图\label{fig:rtmq_link_module}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_link_module}
+    \caption[链路管理模块内部逻辑结构图]{链路管理模块内部逻辑结构图\label{fig:rtmq_link_module}}
 \end{figure}
 
 % 每个RTMQ节点包含一个链路管理模块，用于实现节点间的通信逻辑功能，其功能如表\ref{tb:rtmq_link_module}所示，具体功能的实现依赖链路管理模块的若干子模块。如图\ref{fig:rtmq_link_module}所示，

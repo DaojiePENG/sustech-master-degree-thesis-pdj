@@ -130,7 +130,7 @@
 
 其中，$\theta$是目标的操作旋转角度，对于幅度噪声$\alpha=\sigma_{\Omega_R}/\omega_{R,ideal}$，是激光幅度拉比频率标准差$\Omega_R$对于理想拉比频率$\omega_{R,ideal}$的相对标准差；对于时间长度噪声$\alpha=\sigma_{T}/T_{ideal}$，是激光作用时间长度标准差对于理性时长$T_{ideal}$的相对标准差。
 
-通过上面的保真度计算公式，我们可以计算出不同信号质量下的单量子比特操作保真度，更多比特保真度的详细计算公式可以参考相关文献\cite[]{van_Dijk_Kawakami_Schouten_Veldhorst_Vandersypen_Babaie_Charbon_Sebastiano_2019}。作为后续离子阱频率稳定、激光功率稳定和激光拍频稳定的指引，这里简单举例说明。以激光拍频频率实现离子比特$\theta=\pi$的旋转为例，想要实现$99.9\%$以上的保真度，由公式\eqref{eq:frequency_noise_fidelity}计算可知，需要保证激光的拍频结果的频率标准差对于拉比频率的相对标准差$\alpha$满足$\alpha < 3.164\times10^{-2}$。
+通过上面的保真度计算公式，我们可以计算出不同信号质量下的单量子比特操作保真度，更多比特保真度的详细计算公式可以参考相关文献\cite[]{van_Dijk_Kawakami_Schouten_Veldhorst_Vandersypen_Babaie_Charbon_Sebastiano_2019}。作为后续离子阱频率稳定、激光功率稳定和激光拍频稳定的指引，这里简单举例说明。以激光拍频频率实现离子比特$\theta=\pi$的旋转为例，想要实现$99.9\%$以上的保真度，由式\eqref{eq:frequency_noise_fidelity}计算可知，需要保证激光的拍频结果的频率标准差对于拉比频率的相对标准差$\alpha$满足$\alpha < 3.164\times10^{-2}$。
 
 
 % 其中，$\theta$是目标的操作旋转角度，$\alpha=\sigma_{\omega_R}/\omega_{R,ideal}$是幅度$\omega_R$的相对标准差。
@@ -165,7 +165,7 @@
 
 \subsection[RTMQ测控板的硬件架构和芯片选型]{RTMQ测控板的硬件架构和芯片选型}
 
-RTMQ测控板硬件设计架构如图\ref{fig:rtmq_board_structure}所示，RTMQ架构的实现是基于FPGA的，本设计选用XILINX Artix-7 XC7A200T-2FBG676I\cite[]{7_Series_FPGAs_2020}型号FPGA芯片，它提供了丰富的片上资源，包括215360个查找表逻辑单元、740个DSP48E1数字信号处理单元、13140 Kb的RAM存储块以及300个用户IO口。这些片上资源足够实现RTMQ核心及其相应的系统外设、功能外设和外设拓展。
+RTMQ测控板硬件设计架构如图\ref{fig:rtmq_board_structure}所示，RTMQ架构的实现是基于FPGA的，本设计选用XILINX Artix-7 XC7A200T-2FBG676I\cite[]{7_Series_FPGAs_2020}型号FPGA芯片，它提供了丰富的片上资源，包括215360个查找表逻辑单元、740个DSP48E1数字信号处理单元、13140 kb的RAM存储块以及300个用户IO口。这些片上资源足够实现RTMQ核心及其相应的系统外设、功能外设和外设拓展。
 
 对于实时系统的构建，测控板中的FPGA芯片及各个功能芯片之间的时钟同步十分重要，为此本设计采用专门的时钟管理芯片为板上各个设备提供统一的时钟管理。测控板所采用Texas Instruments公司的LMK04832\cite[]{lmk04832_2018}型号时钟管理芯片，它可以输出的时钟频率最高可达3255 MHz，并且可以同时输出14个独立的时钟，其输出的本地噪声即使在3200 MHz的高频上也低于-156 dBc/Hz，十分适合用来构建高性能的时钟树。
 
@@ -179,8 +179,8 @@ RTMQ测控板硬件设计架构如图\ref{fig:rtmq_board_structure}所示，RTMQ
 
 \begin{figure}
     \centering
-    \caption[RTMQ测控板硬件设计架构]{RTMQ测控板硬件设计架构。\label{fig:rtmq_board_structure}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_board_structure}
+    \caption[RTMQ测控板硬件设计架构]{RTMQ测控板硬件设计架构。\label{fig:rtmq_board_structure}}
 \end{figure}
 
 
@@ -190,8 +190,8 @@ RTMQ测控板实物如图\ref{fig:rtmq_board_hardware}所示，基于此硬件�
 
 \begin{figure}
     \centering
-    \caption[RTMQ测控板去壳单板实物图]{RTMQ测控板去壳单板实物图\label{fig:rtmq_board_hardware}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_board_hardware}
+    \caption[RTMQ测控板去壳单板实物图]{RTMQ测控板去壳单板实物图\label{fig:rtmq_board_hardware}}
 \end{figure}
 
 \newpage
@@ -253,8 +253,8 @@ UART即通用异步收发器(Universal Asynchronous Receiver/Transmitter)，是�
 
 \begin{figure}
     \centering
-    \caption[RTMQ功能外设UART模块的设计结构图]{RTMQ功能外设UART模块的设计结构图\label{fig:rtmq_uart_structure}}
     \includegraphics[width=0.8\linewidth]{rtmq/rtmq_uart_structure}
+    \caption[RTMQ功能外设UART模块的设计结构图]{RTMQ功能外设UART模块的设计结构图\label{fig:rtmq_uart_structure}}
 \end{figure}
 
 \begin{table}
@@ -276,8 +276,8 @@ UART即通用异步收发器(Universal Asynchronous Receiver/Transmitter)，是�
 
 \begin{figure}
     \centering
-    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图（Vivado）\label{fig:rtmq_uart}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_uart}
+    \caption[RTMQ功能外设UART模块的FPGA实现结构图]{RTMQ功能外设UART模块的FPGA实现结构图（Vivado）\label{fig:rtmq_uart}}
 \end{figure}
 
 % \begin{table}
@@ -315,16 +315,16 @@ SPI是一种高速、全双工、同步的通信总线，它常用于EEPROM、Fl
 
 \begin{figure}
     \centering
-    \caption[SPI主从设备连接图]{SPI主从设备连接图。\label{fig:rtmq_spi_connection1}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_spi_connection1}
+    \caption[SPI主从设备连接图]{SPI主从设备连接图。\label{fig:rtmq_spi_connection1}}
 \end{figure}
 
 SPI是一种主从通信协议，只有一个主设备通过片选选择不同的从设备。主设备和多个从设备的连接如图\ref{fig:rtmq_spi_connection1}所示，每一个传输周期内SPI主设备与被片选到的SPI从设备（SSn）通过移位寄存器交换数据，在此过程中的通信时钟SCLK统一由SPI主设备产生并分发给各个SPI从设备。根据时钟空闲时的电平高低和采样发生在上升沿还是下降沿SPI可以有四种通信模式，几种模式之间没有本质区别，但要注意主从设备进行SPI通讯时要确保它们的传输模式设置相同。
 
 \begin{figure}
     \centering
-    \caption[SPIMaster模块设计结构图]{SPIMaster模块设计结构图\label{fig:rtmq_spi_master_structure}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_spi_master_structure}
+    \caption[SPIMaster模块设计结构图]{SPIMaster模块设计结构图\label{fig:rtmq_spi_master_structure}}
 \end{figure}
 
 \begin{table}
@@ -350,8 +350,8 @@ SPI是一种主从通信协议，只有一个主设备通过片选选择不同�
 
 \begin{figure}
     \centering
-    \caption[RTMQ功能外设SPIMaster模块的实现结构图]{RTMQ功能外设SPIMaster模块的实现结构图（Vivado）\label{fig:rtmq_spi}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_spi}
+    \caption[RTMQ功能外设SPIMaster模块的实现结构图]{RTMQ功能外设SPIMaster模块的实现结构图（Vivado）\label{fig:rtmq_spi}}
 \end{figure}
 
 
@@ -373,8 +373,8 @@ AD9910芯片管理模块主要负责对AD9910芯片的复位、参数刷新、�
 
 \begin{figure}
     \centering
-    \caption[AD9910芯片管理模块设计结构图]{AD9910芯片管理模块设计结构图\label{fig:rtmq_ad9910_structure}}
     \includegraphics[width=0.8\linewidth]{rtmq/rtmq_ad9910_structure}
+    \caption[AD9910芯片管理模块设计结构图]{AD9910芯片管理模块设计结构图\label{fig:rtmq_ad9910_structure}}
 \end{figure}
 
 
@@ -402,8 +402,8 @@ AD9910芯片管理模块主要负责对AD9910芯片的复位、参数刷新、�
 
 \begin{figure}
     \centering
-    \caption[AD9910芯片管理模块的实现结构图]{AD9910芯片管理模块的实现结构图（Vivado）\label{fig:rtmq_ad9910}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_ad9910}
+    \caption[AD9910芯片管理模块的实现结构图]{AD9910芯片管理模块的实现结构图（Vivado）\label{fig:rtmq_ad9910}}
 \end{figure}
 
 AD9910芯片管理模块设计结构如图\ref{fig:rtmq_ad9910_structure}所示，它的输入有算术逻辑单元控制总线alu\_out、来自AD9910的并口时钟pda\_clk、来自AD9910的同步时钟syn\_clk、并口调制数据p\_dat，DDS控制信号cdds，输出包括时钟相位检测reg\_cmn、SPI通信复位信号io\_rst、主机复位信号m\_rst、并口调制数据pdat、并口使能信号tx\_en、配置刷新信号io\_upd、配置策略选择prof、并口数据类型pf。
@@ -418,8 +418,8 @@ ADC芯片管理模块只需要将来自ADC的数据进行缓存和寄存使之�
 
 \begin{figure}
     \centering
-    \caption[ADC芯片管理模块的设计结构图]{ADC芯片管理模块的设计结构图。\label{fig:rtmq_adc_structure}}
     \includegraphics[width=0.7\linewidth]{rtmq/rtmq_adc_structure}
+    \caption[ADC芯片管理模块的设计结构图]{ADC芯片管理模块的设计结构图。\label{fig:rtmq_adc_structure}}
 \end{figure}
 
 
@@ -442,8 +442,8 @@ ADC芯片管理模块只需要将来自ADC的数据进行缓存和寄存使之�
 
 \begin{figure}
     \centering
-    \caption[ADC芯片管理模块的FPGA实现结构图]{ADC芯片管理模块的FPGA实现结构图（Vivado）\label{fig:rtmq_adc}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_adc}
+    \caption[ADC芯片管理模块的FPGA实现结构图]{ADC芯片管理模块的FPGA实现结构图（Vivado）\label{fig:rtmq_adc}}
 \end{figure}
 
 
@@ -518,8 +518,8 @@ FPGA的硬件资源有限，而乘法器这样的器件往往会占用大量的�
 
 \begin{figure}
     \centering
-    \caption[数字PID结构示意图]{数字PID结构示意图。MULT：乘法器模块；Reg：寄存器模块；ADD：加法器模块；SUB：减法器模块；LIM：限幅器模块；$i\_yt, o\_ut$：输入和输出信号；$i\_rf$：参考值输入；$i\_k0, i\_k1, i\_k2$：增量表达下的PID控制参数；$i\_shift$：输出右移位数；$i\_min, i\_max$：输出最小最大限幅。\label{fig:rtmq_pid_structure}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_pid_structure}
+    \caption[数字PID结构示意图]{数字PID结构示意图。MULT：乘法器模块；Reg：寄存器模块；ADD：加法器模块；SUB：减法器模块；LIM：限幅器模块；$i\_yt, o\_ut$：输入和输出信号；$i\_rf$：参考值输入；$i\_k0, i\_k1, i\_k2$：增量表达下的PID控制参数；$i\_shift$：输出右移位数；$i\_min, i\_max$：输出最小最大限幅。\label{fig:rtmq_pid_structure}}
 \end{figure}
 
 离散化后的PID表达式为：
@@ -555,8 +555,8 @@ FPGA的硬件资源有限，而乘法器这样的器件往往会占用大量的�
 
 \begin{figure}
     \centering
-    \caption[16位数字PID的FPGA实现结构图]{16位数字PID的FPGA实现结构图（Vivado）\label{fig:digital_pid_structure_16bits}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_pid}
+    \caption[16位数字PID的FPGA实现结构图]{16位数字PID的FPGA实现结构图（Vivado）\label{fig:digital_pid_structure_16bits}}
 \end{figure}
 
 \begin{table}
@@ -587,23 +587,23 @@ FPGA的硬件资源有限，而乘法器这样的器件往往会占用大量的�
 
 \begin{figure}
     \centering
-    \caption[16位数字PID的FPGA实现结果与仿真结果对比]{16位数字PID的FPGA实现结果与仿真结果对比。初始系统输出$sys$和调节输出$o\_ut$都为0，参考数值$ref$为1000，$k_i=1, k_d=1$，Vivado行为仿真时长为3500 ns，仿真持续时间为1000$T_c$（系统仿真迭代次数）。\label{fig:pid_compare}}
     \includegraphics[width=0.8\linewidth]{rtmq/pid_compare}
+    \caption[16位数字PID的FPGA实现结果与仿真结果对比]{16位数字PID的FPGA实现结果与仿真结果对比。初始系统输出$sys$和调节输出$o\_ut$都为0，参考数值$ref$为1000，$k_i=1, k_d=1$，Vivado行为仿真时长为3500 ns，仿真持续时间为1000$T_c$（系统仿真迭代次数）。\label{fig:pid_compare}}
 \end{figure}
 
-整个PID控制器使用了一个减法器、三个加法器、三个乘法器和若干寄存器。图\ref{fig:digital_pid_structure_16bits}是一个16位输入的数字PID，它的输出是32位的，该实例模块总共包含9级流水线，工作频率可达200MHz以上。对更低或者更高位数的数字PID控制器，可以通过替换相应位数的加减运算和乘法模块，并调整相应的寄存器位宽来方便地得到。
+整个PID控制器使用了一个减法器、三个加法器、三个乘法器和若干寄存器。图\ref{fig:digital_pid_structure_16bits}是一个16位输入的数字PID，它的输出是32位的，该实例模块总共包含9级流水线，工作频率可达200 MHz以上。对更低或者更高位数的数字PID控制器，可以通过替换相应位数的加减运算和乘法模块，并调整相应的寄存器位宽来方便地得到。
 
 
 \subsection[离子阱频率稳定原理和系统搭建]{离子阱频率稳定原理}
 
 
 受环境振动和温度变化影响，谐振腔的几何形状，主要是螺旋线的长度和腔体长度会发生变化，进而导致谐振腔的中心频率发生偏移。从谐振腔的S参数图\ref{fig:helical_compares}中可以看出螺线管谐振腔的Q值很大，透过峰较尖锐，即中心频率附近信号透过衰减较大。因此在输入信号频率抖动极小的情况下，受谐振腔中心频率偏移影响，信号的透过幅度将会发生较大的变化。
-K. G. Johnson等人\cite[]{Johnson_Wong_Campos_Restelli_Landsman_Neyenhuis_Mizrahi_Monroe_2016}给出了一种采用模拟系统实现的离子阱频率稳定方案，通过采样和整流施加在Paul阱电极上的高压射频信号主动地对离子阱频率进行了稳定。该方案的简化版采用了鉴频器、射频功率放大器、模拟PID控制器、电容分压器、混频器、本地振荡源等器件。采用模拟方案涉及到的器件较多、灵活性差、占用实验空间大，因此我们采用基于RTMQ数字系统的稳定方式来优化上述问题。
+Johnson等人\cite[]{Johnson_Wong_Campos_Restelli_Landsman_Neyenhuis_Mizrahi_Monroe_2016}给出了一种采用模拟系统实现的离子阱频率稳定方案，通过采样和整流施加在Paul阱电极上的高压射频信号主动地对离子阱频率进行了稳定。该方案的简化版采用了鉴频器、射频功率放大器、模拟PID控制器、电容分压器、混频器、本地振荡源等器件。采用模拟方案涉及到的器件较多、灵活性差、占用实验空间大，因此我们采用基于RTMQ数字系统的稳定方式来优化上述问题。
 
 \begin{figure}
     \centering
-    \caption[基于RTMQ系统的数字PID离子阱频率稳定原理图]{基于RTMQ系统的数字PID离子阱频率稳定原理图。DDS：数字频率发生器；PID：比例微分积分控制器；ADC：模拟数字转换器；$C_1,C_2$：相位同步电容；$C_3,C_4$：射频分压电容。\label{fig:trap_frequency_lock}}
     \includegraphics[width=0.9\linewidth]{trap_frequency_lock}
+    \caption[基于RTMQ系统的数字PID离子阱频率稳定原理图]{基于RTMQ系统的数字PID离子阱频率稳定原理图。DDS：数字频率发生器；PID：比例微分积分控制器；ADC：模拟数字转换器；$C_1,C_2$：相位同步电容；$C_3,C_4$：射频分压电容。\label{fig:trap_frequency_lock}}
 \end{figure}
 
 
@@ -611,15 +611,15 @@ K. G. Johnson等人\cite[]{Johnson_Wong_Campos_Restelli_Landsman_Neyenhuis_Mizra
 
 \begin{figure}
     \centering
-    \caption[DDS输出功率和放大器输出功率]{DDS输出功率和放大器输出功率。横坐标为DDS输出功率（单位dBm），纵坐标为测量得到的放大后的射频功率（单位dBm）。红色空心点是测得的数据点，蓝色虚线为数据点的线性拟合，拟合结果为：$y=0.9644x+32.83$，系数$a=0.9644$接近1表示两者的相关性很好，截距$b=32.83$表示功率放大器的放大数约为32.83 dBm。\label{fig:helical_lock_amplifier}}
     \includegraphics[width=0.8\linewidth]{helical_lock_amplifier}
+    \caption[DDS输出功率和放大器输出功率]{DDS输出功率和放大器输出功率。横坐标为DDS输出功率（单位dBm），纵坐标为测量得到的放大后的射频功率（单位dBm）。红色空心点是测得的数据点，蓝色虚线为数据点的线性拟合，拟合结果为：$y=0.9644x+32.83$，系数$a=0.9644$接近1表示两者的相关性很好，截距$b=32.83$表示功率放大器的放大数约为32.83 dBm。\label{fig:helical_lock_amplifier}}
 \end{figure}
 
 
 \begin{figure}
     \centering
-    \caption[阱频稳定系统实验测试图]{阱频稳定系统实验测试图\label{fig:trap_frequency_lock_real}}
     \includegraphics[width=0.8\linewidth]{trap_frequency_lock_real}
+    \caption[阱频稳定系统实验测试图]{阱频稳定系统实验测试图\label{fig:trap_frequency_lock_real}}
 \end{figure}
 
 
@@ -631,8 +631,8 @@ K. G. Johnson等人\cite[]{Johnson_Wong_Campos_Restelli_Landsman_Neyenhuis_Mizra
 
 \begin{figure}
     \centering
-    \caption[阱频稳定本底、稳定前、稳定后原始数据]{阱频稳定本底、稳定前、稳定后原始数据。横坐标：时间（单位s），纵坐标：输出幅度（单位V）。\label{fig:trap_frequency_lock_original_compare}}
     \includegraphics[width=0.8\linewidth]{trap_frequency_lock_original_compare}
+    \caption[阱频稳定本底、稳定前、稳定后原始数据]{阱频稳定本底、稳定前、稳定后原始数据。横坐标：时间（单位s），纵坐标：输出幅度（单位V）。\label{fig:trap_frequency_lock_original_compare}}
 \end{figure}
 
 
@@ -641,21 +641,21 @@ K. G. Johnson等人\cite[]{Johnson_Wong_Campos_Restelli_Landsman_Neyenhuis_Mizra
 
 \begin{figure}
     \centering
-    \caption[阱频稳定归一化后本底、稳定前、稳定后数据]{阱频稳定归一化后本底、稳定前、稳定后数据。横坐标：时间（单位s），纵坐标：输出幅度（单位1）。\label{fig:trap_frequency_lock_normed_compare}}
     \includegraphics[width=0.8\linewidth]{trap_frequency_lock_normed_compare}
+    \caption[阱频稳定归一化后本底、稳定前、稳定后数据]{阱频稳定归一化后本底、稳定前、稳定后数据。横坐标：时间（单位s），纵坐标：输出幅度（单位1）。\label{fig:trap_frequency_lock_normed_compare}}
 \end{figure}
 
 \begin{figure}
     \centering
-    \caption[阱频稳定归一化后本底、稳定前、稳定后数据阿兰方差。]{阱频稳定归一化后本底、稳定前、稳定后数据阿兰方差。数据采样频率：500kHz，横坐标：窗口长度（单位s），纵坐标：阿兰方差（单位1）。\label{fig:trap_frequency_lock_allan_variance_compare}}
     \includegraphics[width=0.8\linewidth]{trap_frequency_lock_allan_variance_compare}
+    \caption[阱频稳定归一化后本底、稳定前、稳定后数据阿兰方差。]{阱频稳定归一化后本底、稳定前、稳定后数据阿兰方差。数据采样频率：500kHz，横坐标：窗口长度（单位s），纵坐标：阿兰方差（单位1）。\label{fig:trap_frequency_lock_allan_variance_compare}}
 \end{figure}
 
 
 为了能更好了解稳定效果的整体表现情况，这里绘制出各组数据的阿兰方差。如图\ref{fig:trap_frequency_lock_allan_variance_compare}所示，蓝色点划线为未稳定时的幅值输出情况、橙色实线是使用PID稳定后的幅值输出情况、黄色虚线是幅值输出背景情况。
 从图\ref{fig:trap_frequency_lock_allan_variance_compare}中可见，稳定后的性能在时间窗口小于$1.00\times 10^{-4}$ s时，也即在100 kHz以上的高频段要差于未锁定时的，可见PID稳定的调节作用在高频段引入了噪声。
 稳定后的幅值输出性能在时间窗口约为$1.00\times 10^{-4}-1.00$ s之间，也即频率为10 kHz到直流之间，明显优于未稳定的情况，在时间窗口大于1s时两者性能开始接近，稳定系统对该范围的信号质量能够有明显的优化。
-特别的，在时间窗口为$1.00\times 10^{-4}-6.55\times 10^-2$ s之间，稳定后的性能接近背景的效果。在时间窗口为$6.55\times 10^-2$ s时相对于未稳定时的效果最好，有约两个量级的优化。由阱频率的计算公式\eqref{eq:trap_frequency}可知，阱频率$\omega$与谐振腔输出到阱电极上的电压幅值成正比$\omega\sim V_0$，也即在不考虑其它因素的情况下两者的相对标准差$\alpha$一致：$\alpha=\Delta\sigma_{\omega}/\sigma_{\omega}\simeq\Delta\sigma_{V_0}/\sigma_{V_0}$。在单考虑在1 kHz附近的噪声干扰的情况下，未锁定时其相对标准差约为$1.80\times10^{-3}$，锁定后的相对标准差约为$3.89\times10^{-4}$。根据保真度计算公式\eqref{eq:frequency_noise_fidelity}，这一因素对于角度翻转$\theta=\pi$的单量子比特操作保真度的影响从稳定前的$7.9943\times10^{-6}$降低到了稳定后的$0.3734\times10^{-6}$。
+特别的，在时间窗口为$1.00\times 10^{-4}-6.55\times 10^-2$ s之间，稳定后的性能接近背景的效果。在时间窗口为$6.55\times 10^-2$ s时相对于未稳定时的效果最好，有约两个量级的优化。由阱频率的计算式\eqref{eq:trap_frequency}可知，阱频率$\omega$与谐振腔输出到阱电极上的电压幅值成正比$\omega\sim V_0$，也即在不考虑其它因素的情况下两者的相对标准差$\alpha$一致：$\alpha=\Delta\sigma_{\omega}/\sigma_{\omega}\simeq\Delta\sigma_{V_0}/\sigma_{V_0}$。在单考虑在1 kHz附近的噪声干扰的情况下，未锁定时其相对标准差约为$1.80\times10^{-3}$，锁定后的相对标准差约为$3.89\times10^{-4}$。根据保真度计算式\eqref{eq:frequency_noise_fidelity}，这一因素对于角度翻转$\theta=\pi$的单量子比特操作保真度的影响从稳定前的$7.9943\times10^{-6}$降低到了稳定后的$0.3734\times10^{-6}$。
 
 % $1-99.99920\%$降低到了稳定后的$1-99.99996\%$。
 % 然而，PID稳定的调节作用在高频段引入了噪声，稳定后的性能在100kHz以上的高频段要差于未锁定时的。
@@ -727,20 +727,20 @@ FIR滤波器的优点是具有线性相位、稳定性好、容易实现等，�
 以四阶为例，通用四阶IIR滤波器的结构框图如图\ref{fig:rtmq_iir_structure}所示，图中$a_0-a_3, b_0-b_3$为IIR滤波器的可配置系数，主要用到的模块有寄存器、Booth乘法器、超前进位加法器等。
 \begin{figure}
     \centering
-    \caption[IIR滤波器设计结构框图]{IIR滤波器设计结构框图。MULT：Booth乘法器模块；Reg：寄存器模块；ADD：超前进位加法器模块；$i\_filter, o\_filter$：滤波器输入输出信号；$i\_factor\_a,i\_factor\_b$：IIR滤波器参数集合$a\_0-a\_3, b\_0-b\_3$输入。\label{fig:rtmq_iir_structure}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_iir_structure}
+    \caption[IIR滤波器设计结构框图]{IIR滤波器设计结构框图。MULT：Booth乘法器模块；Reg：寄存器模块；ADD：超前进位加法器模块；$i\_filter, o\_filter$：滤波器输入输出信号；$i\_factor\_a,i\_factor\_b$：IIR滤波器参数集合$a\_0-a\_3, b\_0-b\_3$输入。\label{fig:rtmq_iir_structure}}
 \end{figure}
 
 
 \subsubsection[高速通用数字IIR滤波器的FPGA实现]{数字IIR滤波器的FPGA实现}
 
-根据图\ref{fig:rtmq_iir_structure}给出的结构图和公式\eqref{eq:iir_filter}，可以将其在FPGA中进行实现。该模块的输入为滤波器输入i\_filter，输出为滤波器输出o\_filter，此外还有可外部配置的输出加权参数i\_factor\_a和输入加权参数i\_factor\_b。
+根据图\ref{fig:rtmq_iir_structure}给出的结构图和式\eqref{eq:iir_filter}，可以将其在FPGA中进行实现。该模块的输入为滤波器输入i\_filter，输出为滤波器输出o\_filter，此外还有可外部配置的输出加权参数i\_factor\_a和输入加权参数i\_factor\_b。
 滤波器的输入i\_filter经过四级寄存器用于记录x的四级历史输入，分别输出为x[n]、x[n-1]、x[n-2]、x[n-3]；随后分别与i\_factor\_b携带的四个参数b\_0、b\_1、b\_2、b\_3相乘得到输入x的加权中间输出，再经过两级加法器得到输入x的加权和输出add\_x。对于滤波器的输出o\_filter也经过四级寄存器记录滤波器的四级历史输出，分别输出y[n]、y[n-1]、y[n-2]、y[n-3]；随后分别与i\_factor\_a携带的四个参数a\_0、a\_1、a\_2、a\_3相乘得到输出y的加权中间输出，再经过两级加法器得到输出y的加权和输出add\_y。最后再用一个加法器将add\_x和add\_y相加得到滤波器的最终输出o\_filter。其中i\_factor\_b和i\_factor\_a是滤波器设计的参数，可以根据事先设计好的滤波器形状通过RTMQ微处理器进行外部配置。为了和RTMQ微处理器匹配，该滤波器为有符号整数运算，输入为32位有符号数，输出为32位有符号数。数字IIR滤波器在FPGA中的实现结果的结构图如图\ref{fig:iir_filter_vivado}所示，其模块端口定义如表\ref{tb:rtmq_iir_filter}所示。
 
 \begin{figure}
     \centering
-    \caption[IIR滤波器实现结果的结构图]{IIR滤波器实现结果的结构图（Vivado）\label{fig:iir_filter_vivado}}
     \includegraphics[width=1.0\linewidth]{rtmq/rtmq_iir_filter}
+    \caption[IIR滤波器实现结果的结构图]{IIR滤波器实现结果的结构图（Vivado）\label{fig:iir_filter_vivado}}
 \end{figure}
 
 需要注意的是
@@ -809,8 +809,8 @@ b\_3=0$。
 
 \begin{figure}
     \centering
-    \caption[IIR滤波器设计仿真和实际测试结果]{IIR滤波器设计仿真和实际测试结果\label{fig:filter_design_real1}}
     \includegraphics[width=0.8\linewidth]{rtmq/filter_design_real1_1}
+    \caption[IIR滤波器设计仿真和实际测试结果]{IIR滤波器设计仿真和实际测试结果\label{fig:filter_design_real1}}
 \end{figure}
 
 带宽的测量采用外部射频源输出一系列频率到板上ADC（16位），然后将ADC的输出作为IIR滤波器的输入，采集ADC输入的数字信号幅值$o_{adc}$和滤波器输出的数字信号幅值$o_{filter}$，将两者的幅值相比得到滤波器增益$G=o_{filter}/o_{adc}$，进而绘制出测量得到的滤波器形状。实际测量得到的滤波器形状和MATLAB中模拟运算得到的滤波器形状结果如图\ref{fig:filter_design_real1}所示，滤波器的硬件实现和理论设计仿真的频谱形状基本一致。不过其设计的理论-3 dB截止频率（12.5 kHz）和数字滤波器实际的-3 dB截止频率（13.17 kHz）仍有部分的差异；在频率大于500 kHz，衰减小于-60 dB以后两者存在较大偏离，其原因主要有一下几方面：
@@ -844,8 +844,8 @@ b\_3=0$。
 
 \begin{figure}
     \centering
-    \caption[激光功率外部稳定]{激光功率外部稳定。HWP：半波片，PBS：偏振片，PS（B）：光功率分束器，AOM：声光调制器，PD：光功率探测器，ADC：数模转换器，IIR：无限冲激响应滤波器（配置为低通），PID：比例微分积分控制器，DDS：数字频率生成器、PA：功率放大器、PS（RF）：射频功率分束器。\label{fig:laser_stabilization0}}
     \includegraphics[width=1.0\linewidth]{laser_stabilization0}
+    \caption[激光功率外部稳定]{激光功率外部稳定。HWP：半波片，PBS：偏振片，PS（B）：光功率分束器，AOM：声光调制器，PD：光功率探测器，ADC：数模转换器，IIR：无限冲激响应滤波器（配置为低通），PID：比例微分积分控制器，DDS：数字频率生成器、PA：功率放大器、PS（RF）：射频功率分束器。\label{fig:laser_stabilization0}}
 \end{figure}
 
 整个过程如下，首先激光器产生激光经过透镜和反光镜组将激光变换到要求的光斑大小和入射位置；接着使用半波片（HWP）将光转化为垂直和水平偏振成分；接着使用偏振分束器将偏振光提纯为匹配AOM偏振需求的光；随后使用光功率分配器分出一部分激光用于构成反馈回路，另一部分光经过控制回路控制的AOM调制后成为可用的功率稳定激光；激光经过AOM后会产生若干级衍射光，起中主要能量集中在0级和1级衍射光上，我们可以选择其中一路来进行探测和稳定（这里选择1级光）；将1级光经过光功率分束镜一部分作为测试监测，另一部分用于反馈控制回路中。控制器采用基于RTMQ板卡数字系统实现，主要器件为ADC、PID、IIR、DDS，除此之外还需要功率放大器（PA）和射频功率分配器（可选，如果只有一路则不用，实际使用中可以分出多路来调控多路AOM）。
@@ -859,8 +859,8 @@ RTMQ测控板控制器系统工作如下：
 
 \begin{figure}
     \centering
-    \caption[激光功率稳定系统测试图]{激光功率稳定系统测试图\label{fig:laser_stabilization_real}}
     \includegraphics[width=0.8\linewidth]{laser_stabilization_real}
+    \caption[激光功率稳定系统测试图]{激光功率稳定系统测试图\label{fig:laser_stabilization_real}}
 \end{figure}
 
 通过调节射频功率的大小可以控制AOM1级光和0级光的功率分布，在合理范围内，射频功率越大1级光分得的功率越高。数字PID根据1级衍射光的功率变化控制DDS输出不同功率的射频信号，从而实现对1级衍射激光的稳定控制。对于整个控制回路，一般来说只需要分出两路如AOM0和AOM1，一路AOM0用来做功率稳定的反馈回路，另一路AOM1用来做工作光，然后可以拓展地在另一路后面添加光功率分配镜来获得更多路的稳定光，如附录图\ref{fig:laser_stabilization}所示。
@@ -874,14 +874,14 @@ RTMQ测控板控制器系统工作如下：
 
 \begin{figure}
     \centering
-    \caption[激光功率外部稳定原始数据]{激光功率外部稳定本底、稳定前、稳定后原始数据。横坐标：时间（单位um），纵坐标：功率（单位W）。\label{fig:laser_stabilization_data}}
     \includegraphics[width=0.8\linewidth]{laser_stabilization_data}
+    \caption[激光功率外部稳定原始数据]{激光功率外部稳定本底、稳定前、稳定后原始数据。横坐标：时间（单位um），纵坐标：功率（单位W）。\label{fig:laser_stabilization_data}}
 \end{figure}
 
 \begin{figure}
     \centering
-    \caption[激光功率外部稳定归一化后数据]{激光功率外部稳定归一化后本底、稳定前、稳定后数据。横坐标：时间（单位um），纵坐标：功率（单位W）。\label{fig:laser_stabilization_data0}}
     \includegraphics[width=0.8\linewidth]{laser_stabilization_data0}
+    \caption[激光功率外部稳定归一化后数据]{激光功率外部稳定归一化后本底、稳定前、稳定后数据。横坐标：时间（单位um），纵坐标：功率（单位W）。\label{fig:laser_stabilization_data0}}
 \end{figure}
 
 
@@ -893,17 +893,17 @@ RTMQ测控板控制器系统工作如下：
 
 \begin{figure}
     \centering
-    \caption[激光功率外部稳定阿兰方差对比数据]{激光功率外部稳定归一化后稳定前、稳定后数据阿兰方差。数据采样频率：3 Hz，横坐标：窗口长度（单位s），纵坐标：阿兰方差（单位1）。蓝色虚线为没有稳定情况下的功率阿兰方差，橙色实线是稳定后的功率阿兰方差。\label{fig:laser_stabilization_data2}}
     \includegraphics[width=0.8\linewidth]{laser_stabilization_data2}
+    \caption[激光功率外部稳定阿兰方差对比数据]{激光功率外部稳定归一化后稳定前、稳定后数据阿兰方差。数据采样频率：3 Hz，横坐标：窗口长度（单位s），纵坐标：阿兰方差（单位1）。蓝色虚线为没有稳定情况下的功率阿兰方差，橙色实线是稳定后的功率阿兰方差。\label{fig:laser_stabilization_data2}}
 \end{figure}
 
-一般来说可以通过计算两组数据归一化后的方差之比可以粗略地获得稳定效果，方差越小稳定性越高。经计算稳定前后激光功率数据的方差比为$\frac{\sigma_{unstable}}{\sigma_{stabled}}\approx 9.17$。整体上经过激光功率稳定系统后，稳定前好了约9倍。为了能够更加直观地评估稳定的效果，我们将归一化后的所有数据点绘制出统计柱状图（由于本底的归一化不具有参考价值因此这里省略），结果如图\ref{fig:laser_stabilization_data1}所示。由公式\eqref{eq:amplitude_noise_fidelity}计算可知，激光幅度的相对标准差$\alpha$由$7.49135\times 10^{-3}$降低到$0.81685\times 10^{-3}$时，其对于角度翻转$\theta=\pi$的单量子比特操作保真度的影响可以由$1.3845\times 10^{-4}$降低到$0.0165\times 10^{-4}$，效果十分显著。
+一般来说可以通过计算两组数据归一化后的方差之比可以粗略地获得稳定效果，方差越小稳定性越高。经计算稳定前后激光功率数据的方差比为$\frac{\sigma_{unstable}}{\sigma_{stabled}}\approx 9.17$。整体上经过激光功率稳定系统后，稳定前好了约9倍。为了能够更加直观地评估稳定的效果，我们将归一化后的所有数据点绘制出统计柱状图（由于本底的归一化不具有参考价值因此这里省略），结果如图\ref{fig:laser_stabilization_data1}所示。由式\eqref{eq:amplitude_noise_fidelity}计算可知，激光幅度的相对标准差$\alpha$由$7.49135\times 10^{-3}$降低到$0.81685\times 10^{-3}$时，其对于角度翻转$\theta=\pi$的单量子比特操作保真度的影响可以由$1.3845\times 10^{-4}$降低到$0.0165\times 10^{-4}$，效果十分显著。
 % $1-99.9862\%$降低到$1-99.9998\%$，效果十分显著。
 
 \begin{figure}
     \centering
-    \caption[激光功率外部稳定柱状图对比数据]{激光功率外部稳定归一化后本底、稳定前、稳定后数据柱状图。横坐标：归一化后的激光功率数值（单位1），纵坐标：频数（单位1）。\label{fig:laser_stabilization_data1}}
     \includegraphics[width=0.8\linewidth]{laser_stabilization_data1}
+    \caption[激光功率外部稳定柱状图对比数据]{激光功率外部稳定归一化后本底、稳定前、稳定后数据柱状图。横坐标：归一化后的激光功率数值（单位1），纵坐标：频数（单位1）。\label{fig:laser_stabilization_data1}}
 \end{figure}
 
 
@@ -960,7 +960,7 @@ RTMQ测控板控制器系统工作如下：
 \end{align}    
 \end{footnotesize}
 
-针对公式\eqref{eq:pt_res1}分别考虑$n,m$的几类可能情况，原方程可化为：
+针对式\eqref{eq:pt_res1}分别考虑$n,m$的几类可能情况，原方程可化为：
 \begin{footnotesize}
 \begin{align}
     P(t)=&\sum_{n=m=-\infty}^{\infty}E_n E_m^*
@@ -990,7 +990,7 @@ RTMQ测控板控制器系统工作如下：
 \end{footnotesize}
 
 
-公式\eqref{eq:pt_res3}的乘积展开有四项，分别为：
+式\eqref{eq:pt_res3}的乘积展开有四项，分别为：
 \begin{footnotesize}
 \begin{align}
     P(t)=&RES1+RES2+RES3+RES4\\
@@ -1005,7 +1005,7 @@ RTMQ测控板控制器系统工作如下：
 \end{align}
 \end{footnotesize}
 
-其中RES1和RES4是单路脉冲光自相互作用的结果项，RES2和RES3是两路单路脉冲相互作用的结果项。RES1和RES4这种单路脉冲光自相互作用的探测结果前面公式\eqref{eq:pt_res2}已经讨论过了，结果可以直接类似写出如下：
+其中RES1和RES4是单路脉冲光自相互作用的结果项，RES2和RES3是两路单路脉冲相互作用的结果项。RES1和RES4这种单路脉冲光自相互作用的探测结果前面式\eqref{eq:pt_res2}已经讨论过了，结果可以直接类似写出如下：
 
 \begin{align}
     RES1=P_{1to1}(t)=&\sum_{n_1=m_1=-\infty}^{\infty}E_{n_1}^2 + \sum_{n_1>m_1=-\infty}^{\infty}2E_{n_1} E_{m_1} \cos\left((n_1-m_1)\omega_{rep1}t\right)\label{eq:final_res1}\\
@@ -1044,7 +1044,7 @@ RTMQ测控板控制器系统工作如下：
 \end{align}
 \end{footnotesize}
 
-同理，RES3的计算可以相应地得到。若记$\Delta\omega=\omega_{02}-\omega_{01},\ \Delta k=k_2-k_1,\ \Delta\phi=\phi_2-\phi_1$，则RES2最后的结果与公式\eqref{eq:final_res2}类似，结果如下：
+同理，RES3的计算可以相应地得到。若记$\Delta\omega=\omega_{02}-\omega_{01},\ \Delta k=k_2-k_1,\ \Delta\phi=\phi_2-\phi_1$，则RES2最后的结果与式\eqref{eq:final_res2}类似，结果如下：
 \begin{small}
 \begin{align}
     RES3=P_{2to1}(t)=&\left\{\sum_{n_1=m_2=-\infty}^{\infty}kE_{n_1}^2+\sum_{n_1>m_2=-\infty}^{\infty}2E_{n_1}E_{m_2}\cos((n_1-m_2)\omega_{rep}t)\right\}\notag\\
@@ -1052,7 +1052,7 @@ RTMQ测控板控制器系统工作如下：
 \end{align}    
 \end{small}
 
-最后，两路来自同一脉冲束的光作用的探测结果$P(t)$可以由公式\eqref{eq:final_res1}公式\eqref{eq:final_res2}公式\eqref{eq:final_res3}公式\eqref{eq:final_res4}结果共同写出：
+最后，两路来自同一脉冲束的光作用的探测结果$P(t)$可以由式\eqref{eq:final_res1}、式\eqref{eq:final_res2}、式\eqref{eq:final_res3}、式\eqref{eq:final_res4}结果共同写出：
 \begin{small}
 \begin{align}
     P(t)=&\sum_{i=1}^{4}RES_i\\
@@ -1084,8 +1084,8 @@ RTMQ测控板控制器系统工作如下：
 
 \begin{figure}
     \centering
-    \caption[脉冲激光拍频稳定系统框图]{脉冲激光拍频稳定系统框图。AOM：声光调制器；PD：光功率探测器；DDS：数字频率生成器；PID：比例积分微分控制器；IIR：频率低通滤波器；ADC：模拟数字转化器。\label{fig:beat_note_stabilization}}
     \includegraphics[width=1.0\linewidth]{beat_note_stabilization}
+    \caption[脉冲激光拍频稳定系统框图]{脉冲激光拍频稳定系统框图。AOM：声光调制器；PD：光功率探测器；DDS：数字频率生成器；PID：比例积分微分控制器；IIR：频率低通滤波器；ADC：模拟数字转化器。\label{fig:beat_note_stabilization}}
 \end{figure}
 
 图\ref{fig:frequency_comb}显示了由快速光电二极管测量的光束的微波频段光谱，由每个单独光束的激光重复率$\nu_{rep}$分隔，以及经AOM调制后组合光束的$\nu_{rep}\pm |\Delta \nu_M|$分隔的附加拍频边带，其中$|\Delta \nu_M|=|\nu_{M1}-\nu_{M2}|$。
@@ -1096,16 +1096,16 @@ RTMQ测控板控制器系统工作如下：
 
 \begin{figure}
     \centering
-    \caption[脉冲激光频率梳]{在频谱分析仪中看到的脉冲激光频率梳。激光频率梳由每个单独光束的激光重复率$\nu_{rep}$分隔，以及经AOM调制后组合光束的$\nu_{rep}\pm |\Delta \nu_M|$分隔的附加拍频边带，其中$|\Delta \nu_M|=|\nu_{M1}-\nu_{M2}|$。由于微波传输线、滤波器及网分自身频率特性等作用，观察到的频率梳并非理想形状。\label{fig:frequency_comb}}
     \includegraphics[width=0.8\linewidth]{frequency_comb}
+    \caption[脉冲激光频率梳]{在频谱分析仪中看到的脉冲激光频率梳。激光频率梳由每个单独光束的激光重复率$\nu_{rep}$分隔，以及经AOM调制后组合光束的$\nu_{rep}\pm |\Delta \nu_M|$分隔的附加拍频边带，其中$|\Delta \nu_M|=|\nu_{M1}-\nu_{M2}|$。由于微波传输线、滤波器及网分自身频率特性等作用，观察到的频率梳并非理想形状。\label{fig:frequency_comb}}
 \end{figure}
 
 其中$n$是某个整数，$\nu_{sb}$在频率梳的带宽内。注意采用拉曼跃迁的方式操控时（第\ref{section:raman_transition}节），如图\ref{fig:raman_transition1}所示，激光载波包络相位不需要稳定\cite[]{Peer_Shapiro_Stowe_Shapiro_Ye_2007}，尽管也有类似的方式可以完成\cite[]{Koke_Grebing_Frei_Anderson_Assion_Steinmeyer_2010}。
 
 \begin{figure}
     \centering
-    \caption[受激拉曼跃迁示意图]{受激拉曼跃迁示意图。$\ket{e}$：上级激发态能级；$\ket{a},\ket{b}$：编码量子信息的高低能级；$\nu_{ab}$：编码量子信息的能级能隙；$\nu_{a}$：$\ket{e}$能级与$\ket{b}$能级的能隙；$\nu_a^L$：$\ket{a}$能级与虚拟能级的能隙；$\nu_b^L$：$\ket{b}$能级与虚拟能级的能隙。\label{fig:raman_transition1}}
     \includegraphics[width=0.6\linewidth]{raman_transition1}
+    \caption[受激拉曼跃迁示意图]{受激拉曼跃迁示意图。$\ket{e}$：上级激发态能级；$\ket{a},\ket{b}$：编码量子信息的高低能级；$\nu_{ab}$：编码量子信息的能级能隙；$\nu_{a}$：$\ket{e}$能级与$\ket{b}$能级的能隙；$\nu_a^L$：$\ket{a}$能级与虚拟能级的能隙；$\nu_b^L$：$\ket{b}$能级与虚拟能级的能隙。\label{fig:raman_transition1}}
 \end{figure}
 
 驱动量子比特需要梳齿之间的光学相干性在量子比特操作的毫秒或更快的时间尺度上保持，这对于锁模（脉冲）激光源来说很容易实现\cite[]{Hayes_Matsukevich_Maunz_Hucul_Quraishi_Olmschenk_Campbell_Mizrahi_Senko_Monroe_2010}。然而，由于激光腔长中的热应变或其它机械应变，激光重复频率会产生漂移[$\nu_{rep}=\nu_{rep}(t)$]，导致施加的边带频率$\nu_{sb}$也跟着漂移，进一步地对量子比特驱动也将偏离共振。因此需要一定的措施来稳定用于操控量子比特的边带频率。
@@ -1122,16 +1122,16 @@ RTMQ测控板控制器系统工作如下：
 
 \begin{figure}
     \centering
-    \caption[脉冲激光拍频稳定实验系统图]{脉冲激光拍频稳定实验系统图\label{fig:beat_note_stabilization_real}}
     \includegraphics[width=1.0\linewidth]{beat_note_stabilization_real}
+    \caption[脉冲激光拍频稳定实验系统图]{脉冲激光拍频稳定实验系统图\label{fig:beat_note_stabilization_real}}
 \end{figure}
 
-脉冲激光拍频稳定系统实物如图\ref{fig:beat_note_stabilization_real}所示。激光拍频稳定的结果如图\ref{fig:beat_note_stabilization_signal}所示，图中展示了在12.39 GHz附近的一个稳定的拍频边带。实验中可以利用此类似这样的稳定后的边带与离子进行相互作用，进而实现对离子量子比特的调控。值得一提的是，尽管系统稳定是针对某一级（例如157级）频率梳齿的边带进行稳定的，实际上整个频率梳齿的边带都会一定程度上被稳定下来。不过由于锁模（脉冲）激光重复频率的长期漂动，距离目标稳定边带越远的边带稳定效果越差。根据实验观测355脉冲激光在12.39 GHz附近的拍频结果未稳定前标准差约为15 kHz左右，稳定后的标准差约为100 Hz左右，稳定性有了约150倍的提高。镱离子的典型拉比频率约为8.33 MHz，结合公式\eqref{eq:frequency_noise_fidelity}计算可知，其对于角度翻转$\theta=\pi$的单量子比特操作保真度的影响从完全不能用的约$49.9233\%$降低到了约$0.0144\%$。
+脉冲激光拍频稳定系统实物如图\ref{fig:beat_note_stabilization_real}所示。激光拍频稳定的结果如图\ref{fig:beat_note_stabilization_signal}所示，图中展示了在12.39 GHz附近的一个稳定的拍频边带。实验中可以利用此类似这样的稳定后的边带与离子进行相互作用，进而实现对离子量子比特的调控。值得一提的是，尽管系统稳定是针对某一级（例如157级）频率梳齿的边带进行稳定的，实际上整个频率梳齿的边带都会一定程度上被稳定下来。不过由于锁模（脉冲）激光重复频率的长期漂动，距离目标稳定边带越远的边带稳定效果越差。根据实验观测355脉冲激光在12.39 GHz附近的拍频结果未稳定前标准差约为15 kHz左右，稳定后的标准差约为100 Hz左右，稳定性有了约150倍的提高。镱离子的典型拉比频率约为8.33 kHz，结合式\eqref{eq:frequency_noise_fidelity}计算可知，其对于角度翻转$\theta=\pi$的单量子比特操作保真度的影响从完全不能用的约$49.9233\%$降低到了约$0.0144\%$。
 % 降低到了约$1-99.942\%$。
 \begin{figure}
     \centering
-    \caption[脉冲激光拍频稳定12.39 GHz附近稳定边带结果]{脉冲激光拍频稳定12.39 GHz附近稳定边带结果\label{fig:beat_note_stabilization_signal}}
     \includegraphics[width=1.0\linewidth]{beat_note_stabilization_signal}
+    \caption[脉冲激光拍频稳定12.39 GHz附近稳定边带结果]{脉冲激光拍频稳定12.39 GHz附近稳定边带结果\label{fig:beat_note_stabilization_signal}}
 \end{figure}
 
 \subsubsection[拍频稳定系统的可锁频率范围]{拍频稳定系统的可锁频率范围}
@@ -1162,10 +1162,10 @@ DDS数字对应的\emph{频率步长}为$f_{resolution}=\frac{400\textnormal{MHz
 
 \begin{figure}
     \centering
+    \includegraphics[width=0.8\linewidth]{beat_note_resolution_shift}
     \caption[频率调制字位移数vs调制精度
     ]{频率调制字位移数vs调制精度。频率调制字位移数与调制精度两者满足关系$f_{precision}=f_{resolution}\times2^{N_{shift}}$。
     \label{fig:beat_note_resolution_shift}}
-    \includegraphics[width=0.8\linewidth]{beat_note_resolution_shift}
 \end{figure}
 
 
@@ -1178,8 +1178,8 @@ DDS数字对应的\emph{频率步长}为$f_{resolution}=\frac{400\textnormal{MHz
 
 \begin{figure}
     \centering
-    \caption[脉冲激光拍频稳定可锁频率幅度测试]{脉冲激光拍频稳定可锁频率幅度测试。蓝色虚线给出了前7个数据点关于公式$f(x)=a\times e^{b\times x}+c$的拟合结果，结果为：a=21.54，95\%置信区间（4.323，38.76）；b=0.7487 ，95\%置信区间（0.5666,0.9308）；c=-18.03，95\%置信区间（-56.06，20）。\label{fig:beat_note_lockable_range_bits}}
     \includegraphics[width=0.8\linewidth]{beat_note_lockable_range_bits}
+    \caption[脉冲激光拍频稳定可锁频率幅度测试]{脉冲激光拍频稳定可锁频率幅度测试。蓝色虚线给出了前7个数据点关于公式$f(x)=a\times e^{b\times x}+c$的拟合结果，结果为：a=21.54，95\%置信区间（4.323，38.76）；b=0.7487 ，95\%置信区间（0.5666,0.9308）；c=-18.03，95\%置信区间（-56.06，20）。\label{fig:beat_note_lockable_range_bits}}
 \end{figure}
 
 
@@ -1194,7 +1194,9 @@ DDS数字对应的\emph{频率步长}为$f_{resolution}=\frac{400\textnormal{MHz
 
 使用RTMQ架构的测控板硬件设计选用了Xilinx的Artix-7系列功能最强大的FPGA芯片，并且针对离子阱量子计算实验中常用的功能集成了相应的芯片，如ADC模数转换芯片、DAC数模转换芯片、DDS数字频率生成器芯片等，同时采用了专门的时钟管理芯片为系统各功能模块提供统一的时钟管理。该测控板硬件设计能够满足RTMQ量子测控系统及其一些外设拓展固件的部署，可以很好地适用于离子量子计算实验系统。
 稳定的离子阱频率在从量子信息处理和量子模拟到原子运动的量子态的制备、原子干涉测量、和量子有限计量等方面至关重要。相较于使用模拟PID控制器的经典方案，本文使用集成了高速通用数字PID的RTMQ测控系统实现的离子阱频稳定系统在稳定性、灵活性、集成度等方面都有了大幅度的提高。
+以单比特$\theta=\pi$的翻转操作为例，本方案可以将1kHz附近的噪声对保真度的影响从稳定前的$7.9943\times10^{-6}$降低到了稳定后的$0.3734\times10^{-6}$。
 激光在基于离子的量子计算系统中扮演着相当关键的角色，现有的大多数多离子比特的实现都是采用激光方案。因此对于激光的功率、频率等关键参数的控制对提高离子比特保真度十分重要，本章中也给出了这套RTMQ测控系统在激光功率和拍频稳定系统方面的应用实例。同时也介绍了高速通用数字IIR滤波器的设计和FPGA实现作为RTMQ系统的一种外设拓展，引入到数字控制系统中以克服激光探测中的噪声等问题。
+本方案可以将激光幅度对于角度翻转$\theta=\pi$的单量子比特操作保真度的影响由$1.3845\times 10^{-4}$降低到$0.0165\times 10^{-4}$，将激光拍频频率对于角度翻转$\theta=\pi$的单量子比特操作保真度的影响从完全不能用的约$49.9233\%$降低到了约$0.0144\%$。
 
 以上结果展示了本文所研究的RTMQ量子测控系统在离子阱量子计算实验平台构建上的实用性。凭借其数字化的优势，RTMQ系统可以及大地简化整个实验平台仪器的使用，在满足量子物理实验对实时性、可拓展性要求的同时，促进整个离子阱量子计算系统的数字化、集成化发展进程。
 
