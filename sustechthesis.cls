@@ -885,7 +885,7 @@
     \def\appendixname{附录}%
     \def\indexname{索引}%
     \def\thu@acknowledgements@name{致\quad 谢}%
-    \def\thu@conclusion@name{结\quad 论}%
+    \def\thu@conclusion@name{总结和展望}%
     \ifthu@degree@bachelor
       \def\contentsname{目\quad 录}%
       \def\listfigurename{插图索引}%
