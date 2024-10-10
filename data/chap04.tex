@@ -294,7 +294,7 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 \newpage
 \section[螺线管谐振腔的数学建模]{螺线管谐振腔的数学建模\label{section:helical_theory_model}}
 
-螺线管谐振腔的集总电路模型可以解释和预测器件的行为。一个好的电路模型可以帮助研究人员轻松地设计具有特定属性的设备。在这里，对于螺线管谐振腔，谐振频率和较高的Q因子是最重要的两个指标。首先，对于谐振频率，假设额外的输出导线长度电容是频率误差发生的主要原因，如第\ref{section:helical_output_wire}节所述。
+螺线管谐振腔的集总电路模型可以解释和预测器件的行为。一个好的电路模型可以帮助研究人员轻松地设计具有特定属性的设备。在这里，对于螺线管谐振腔，谐振频率和较高的Q因子是最重要的两个指标。首先，对于谐振频率，假设额外的输出导线长度电容是频率误差发生的主要原因，如第\ref{section:helical_output_wire}小节所述。
 
 \begin{figure}
     \centering
@@ -302,7 +302,7 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
     \caption[LCR电路模型]{LCR电路模型。$L$表示谐振腔的电感，主要包括耦合线圈和主线圈的电感；$R$表示整个谐振腔的电阻；$C$表示谐振腔的电容，$C_x$表示谐振腔内部结构的电容，$C_{lout}$表示谐振腔输出线引入的电容。\label{fig:helical_RLC_circuit1}}
 \end{figure}
 
-因此，输出线电容被添加到LCR电路模型中，如图\ref{fig:helical_RLC_circuit1}。总等效电容可视为传统电容CT和输出线总电容$C_{lout}$的总。传统的电容部分与以往的研究相同，而输出线和外部屏蔽将形成同轴电容:
+因此，输出线电容被添加到LCR电路模型中，如图\ref{fig:helical_RLC_circuit1}。总等效电容可视为传统电容$C_x$和输出线总电容$C_{lout}$的总和。传统的电容部分与以往的研究相同，而输出线和外部屏蔽将形成同轴电容$C_{lout}$:
 \begin{align} 
 	C_{lout}&=C_{lout1}+C_{lout2} \label{eq:helical_lout}\\ 
 	C_{lout1}&=\frac{2\pi\epsilon_0 l_{out1}}{ln(D/d_0)} \label{eq:helical_lout1}\\ 
@@ -316,13 +316,13 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 \end{align}
 其中$k_c=0.717439(d/b)+0.933048(d/b)^{3/2}+0.106(d/b)^2$，$d$是螺线管的直径，$b$是螺线管的长度，$\psi$是螺距角($\tan\psi=\tau/(\pi d)\approx 1$)，$\epsilon_0$是真空介电常数。
 
-另一方面，屏蔽壁电容$C_s$在主线圈和外部屏蔽壁之间形成，与电容$C_{lout}$相同，因此同轴电容公式可用于计算$C_s$。主线圈的等效同轴线长度为$Nd_0$，单匝等效长度为$d_0$，总主线圈有$N$匝，因此屏蔽电容计算为:
+另一方面，屏蔽壁电容$C_s$在主线圈和外部屏蔽壁之间形成，与电容$C_{lout}$相同，因此同轴电容公式可用于计算$C_s$。主线圈的等效同轴线长度为$Nd_0$，单匝等效长度为$d_0$，总主线圈有$N$匝，因此屏蔽电容$C_s$计算为:
 \begin{align}
     C_s=2\pi\epsilon_0 \frac{Nd_0}{ln(D/d')} \label{eq:helical_C_s_new}
 \end{align}
 其中$d'$是一个等效的线圈直径，$d'=d+\pi d_0/4$，其中$\pi d_0/4$是一个用于修正线圈边缘效应的因子。
 
-此外，实际的主线圈螺旋长度有限，匝稀疏，因此需要更新或修改文献\cite[]{Siverns_Simkins_Weidt_Hensinger_2012}中的电感计算方法。短螺旋电感估计方法可计算为：
+此外，实际的主线圈螺旋长度有限，匝稀疏，因此需要更新或修改文献\cite[]{Siverns_Simkins_Weidt_Hensinger_2012}中的电感$L$计算方法。短螺旋电感估计方法可计算为：
 \begin{align}
     L=\frac{\mu_0 \pi (d/2)^2 }{\tau^2} (\sqrt{b^2+(d/2)^2}-d/2) \label{eq:helical_L_new}
 \end{align}
@@ -345,13 +345,13 @@ $x$轴和$y$轴分别为直径$d_1$和俯仰$\tau_1$，$z$轴为耦合线圈达�
 最后，通过更新上述所有估计的方法，得到了一个新的频率预测模型。随后比较了频率预测模型、Sussex模型\cite[]{Siverns_Simkins_Weidt_Hensinger_2012}、SUST模型(本文)和 HUST模型\cite[]{Deng_Sun_Yuan_Xu_Zhang_Lu_Luo_2014}的准确性。
 基于数值模拟结果，通过统计直方图对模型的有效性和准确性进行比较和评估，如图14(c)。频率误差的平均值和标准差越小，精度越好，误差离散越小。
 所有的模型都与仿真的结果为标准做比较。
-图\ref{fig:helical_freqmodelcompare}中的每一个数据结果都是一些列可行的$d,\tau$参数组合的模型预测和仿真结果的差值$\delta f=f_{model}-f_{HFSS}$，最终绘制出误差的统计分布。
+图\ref{fig:helical_freqmodelcompare}中的每一个数据结果都是一系列可行的$d,\tau$参数组合的模型预测和仿真结果的差值$\delta f=f_{model}-f_{HFSS}$，最终绘制出误差的统计分布。
 针对不同的谐振频率组计算和模拟一系列离散的$d,\tau$参数(与表\ref{tb:helical_simulation_parameters}$30$ MHz、$50$ MHz、$75$ MHz)。$d$的样本在$20-80$ mm的范围内，步长为$10$ mm；$\tau$的样本在$4-18$ mm的范围内，步长为$2$ mm。
 平均偏差和标准偏差都在每个图的顶部标记。平均值是一个有符号值，表示模型的整体频率预测效果。标准差表示频率误差的离散程度。
 
 直方图结果表明：对于$75$ MHz组，本文中的模型的均值和标准差(SUST)在三个模型中都是最小的，预测的准确性是最好的。对于 $50$ MHz组，SUST和HUST模型之间的平均偏差值和标准偏差值基本相似。它们都预测了比Sussex模型更准确的谐振频率。对于$30$ MHz组，HUST频率预测的平均值最小，SUST模型准确率次之，但它们都优于Sussex模型。HUST和SUST模型的标准偏差相似，但它们都优于Sussex模型。需要注意的是，在$30$ MHz组中，由于主线圈线长度约束，所有$56$种可能组合中只有$11$个可行数据，参见式\eqref{eq:helical_fixed_constraints_1}和\eqref{eq:helical_fixed_constraints_2}，因此结果可能会波动和偏差很大。
 
-在上述结果中，对于$30-80$ MHz频率范围内的情况，本文提出的LCR模型提高了预测精度。输出线效应(参见第\ref{section:helical_output_wire}节)作为对分布式电容效应的替代解释，给出了更简单直观的物理解释。
+在上述结果中，对于$30-80$ MHz频率范围内的情况，本文提出的LCR模型提高了预测精度。输出线效应(参见第\ref{section:helical_output_wire}小节)作为对分布式电容效应的替代解释，给出了更简单直观的物理解释。
 
 \section[螺线管谐振腔的机械结构优化]{螺线管谐振腔的机械结构优化}
 
