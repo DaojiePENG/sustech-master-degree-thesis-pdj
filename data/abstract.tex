@@ -3,13 +3,14 @@
 % 中英文摘要和关键字
 
 \begin{abstract}
-  % 离子阱是当前最具发展前景的量子计算平台之一，它的实现需要电子学、光学、真空、测控等多种学科领域的支持。
-  随着量子计算技术的不断发展，传统测控系统逐渐难以适应量子测控对实时性、拓展性等的需求，在离子阱系统中设计准确稳定的高Q螺线管谐振腔也存在挑战。为应对这些挑战，本文面向离子阱量子计算实验系统：
+  离子阱是当前最具发展前景的量子计算平台之一，它的实现需要电子学、光学、真空等多种学科领域的支持。
+  随着量子计算技术的不断发展，量子系统对电子学中的模拟系统，如高Q谐振腔的稳定性，和数字系统，如测控系统的实时性、拓展性等产生了更高的需求。为应对这些挑战，本文面向离子阱量子计算实验系统：
 
-  基于囚禁离子量子比特制备和控制的理论背景，分析了量子物理实验对测控系统的实时性、可拓展性、集成性等方面的切实需求；针对这些需求引入了一种面向离子量子计算系统的强实时、分布式、易拓展的用于量子物理实验的实时微系统(Real Time Microsystem for Quantum physics, RTMQ)架构，以及与之相配套的汇编指令集与多节点间实时通信链路系统。
+  基于囚禁离子量子比特制备和控制的理论背景，分析了量子物理实验对测控系统的实时性、可拓展性、集成性、稳定性等方面的切实需求；针对这些需求引入了一种面向离子量子计算系统的强实时、分布式、易拓展的用于量子物理实验的实时微系统(Real Time Microsystem for Quantum physics, RTMQ)架构，以及与之相配套的汇编指令集与多节点间实时通信链路系统。
+
   为了更准确高效地设计出稳定的高Q螺线管谐振腔，使用HFSS对谐振腔进行了有限元仿真并验证了仿真-实验结果一致性，分析了4项几何结构参数对其性能的影响并阐述了其耦合过程的特性；建立了谐振腔的数学模型并总结了设计特定频率下的高Q谐振腔的方法；给出了1种用于离子阱系统的易装配耦合的谐振腔优化设计。
-  为满足量子测控的实验需求，设计制作了1套基于FPGA的32位RTMQ测控板硬件及6个重要固件，单板集成了2路32位DDS、2路16位ADC、2路16位DAC，提供64路GPIO和32对CPCI LVDS用户接口；并用Verilog语言设计了UART、SPI、AD9910、ADC等4个芯片管理固件以及RTMQ系统的2个重要功能拓展固件——32位高速通用数字PID和32位高速通用数字IIR滤波器，板上工作频率分别可达200 MHz和25 MHz。
-  为了对RTMQ测控板卡进行了测试，结合螺线管谐振腔搭建了离子阱频率稳定、激光幅度稳定和激光拍频稳定等3个离子阱关键子的系统；理论计算表明，可将相关噪声对单比特$\theta=\pi$翻转操作保真度的影响分别由稳定前的$7.994\times10^{-6}$、$1.385\times 10^{-4}$、$4.992\times 10^{-1}$，降低到了稳定后的$3.734\times10^{-7}$、$1.646\times 10^{-6}$、$1.440\times 10^{-4}$，验证了本套RTMQ量子测控系统的有效性和优越性。
+
+  为满足量子测控的实验需求，设计制作了1套基于FPGA的32位RTMQ测控板硬件，单板集成了2路32位DDS、2路16位ADC、2路16位DAC，提供64路GPIO和32对CPCI LVDS用户接口；并用Verilog语言设计了4个芯片管理固件以及RTMQ系统的2个重要功能拓展固件——32位高速数字PID和32位高速数字IIR滤波器，板上工作频率分别可达200 MHz和25 MHz。为了对RTMQ测控板卡进行了测试，结合谐振腔搭建了离子阱频率稳定、激光幅度稳定和激光拍频稳定等3个离子阱关键子的系统；理论计算表明，可将相关噪声对单比特$\theta=\pi$翻转操作保真度的影响分别降低约$-13$ dB、$-19$ dB和$-35$ dB，验证了本套RTMQ量子测控系统的有效性和优越性。
   % \begin{enumerate}
   %   \item 引入和分析了RTMQ（Real Time Microsystem for Quantum physics）测控系统架构。基于囚禁离子量子比特制备和控制的理论背景，分析了量子物理实验对测控系统的实时性、可拓展性、集成性等方面的切实需求；针对这些需求引入了一种面向离子量子计算系统的强实时、分布式、易拓展的RTMQ测控系统架构，以及与之相配套的汇编指令集与多节点间实时通信链路系统；
   %   \item 对螺线管谐振腔进行了系统研究。使用HFSS对谐振腔进行了有限元仿真并验证了仿真-实验结果一致性，分析了4项几何结构参数对其性能的影响并阐述了其耦合过程的特性，建立了谐振腔的数学模型并总结了设计特定频率下的高Q谐振腔的方法，给出了1种用于离子阱系统的易装配耦合的谐振腔优化设计。
@@ -17,7 +18,7 @@
   %   \item 搭建了3个离子阱关键子的系统对RTMQ测控板卡进行了测试。使用这套RTMQ测控系统搭建和测试了离子阱频率稳定、激光幅度稳定和激光拍频稳定等3个离子阱关键子系统。将相关噪声对单比特$\theta=\pi$翻转操作保真度的影响分别由稳定前的$7.994\times10^{-6}$、$1.385\times 10^{-4}$、$4.992\times 10^{-1}$，降低到了稳定后的$3.734\times10^{-7}$、$1.646\times 10^{-6}$、$1.440\times 10^{-4}$，验证了RTMQ量子测控系统的有效性和优越性。
   % \end{enumerate}
   
-  % 以上研究工作满足了离子量子计算的切际需求，展示了所构建的RTMQ量子测控系统的有效性和优越性，促进了离子量子计算系统的数字化、集成化进程，为未来大规模通用量子计算做了测控方面的重要准备。
+  以上研究工作满足了离子量子计算的切际需求，促进了离子量子计算系统的数字化、集成化进程，为未来大规模通用量子计算做了重要准备。
 
   % 关键词用“英文逗号”分隔，输出时会自动处理为正确的分隔符
   \thusetup{
@@ -27,14 +28,18 @@
 
 \begin{abstract*}
   % Ion trap is a promising platform for Quantum-Computing (QC), which requires support of measurement and control system (MCS). 
-  With the development of Quantum-Computing (QC), traditional measurement and control system (MCS) are becoming unfit for the increasing demand of QC on realtime and extension. It is also challenging to design high-Q resonator in ion trap QC. To address these new challenges, this thesis: 
+  Ion trap is a promising platform for Quantum-Computing (QC), which requires support from disciplines such as electronics, optics and vacuum.
+  With the development of QC, it raises higher demands for stability of analog systems, such as high-Q resonators, and the real-time and scalability of digital systems, such as measurement-control systems (MCS) in electronics. To address these new challenges, this thesis: 
 
   % Analyzes the Real Time Microsystem for Quantum physics (RTMQ) architecture 
-  Based on the theoretical background of ion trap QC, the practical requirements of QC on the real-time, scalability, integration and other aspects of the MCS are analyzed; According to these requirements, a strong real-time, distributed and easy to expand Real Time Microsystem for Quantum physics (RTMQ) architecture for QC is introduced, as well as the assembly instruction set and multi node real-time communication link system.
+  Based on the theoretical background of ion trap QC, the requirements of QC on the real-time, scalability, integration and other aspects of the MCS are analyzed; According to these requirements, a strong real-time, distributed and easy to expand Real Time Microsystem for Quantum physics (RTMQ) architecture is introduced, as well as the assembly instruction set and multi node real-time communication link system.
+
   To better design the high-Q helical resonator, the simulation of the resonator is carried out using HFSS, and the consistency of the sim-exp results is verified. The influence of four geometric parameters on its performance is analyzed, and the features of its coupling process are described. The mathematical model of the resonator is established, and the method of designing a high-Q resonator at a specific frequency is summarized. An optimized design of the resonator for easy assembly and coupling for ion trap QC is given.
-  A set of 32-bit RTMQ board hardware and six firmware are designed and manufactured based on FPGA. The board integrates 2 32-bit DDS, 2 16-bit ADC, 2 16-bit DAC, and provides 64 GPIO and 32 pairs of CPCI LVDS. 4 chip management firmware (UART, SPI, AD9910, ADC) and 2 important function expansion firmware (32-bit high-speed universal digital PID and 32-bit high-speed universal digital IIR filter) of RTMQ system are designed with Verilog. The on-board operating frequencies can reach 200 MHz and 25 MHz respectively.
-  3 ion trap QC key subsystems, including frequency stabilization, laser amplitude stabilization and laser beatnote frequency stabilization, were built to test the RTMQ board with the resonator. Theoretically, the influence of corresponding noise on the fidelity of single bit $\theta=\pi$ flip operation was reduced from $7.994\times10 ^ {-6}$, $1.385\times 10 ^ {-4}$, $4.992\times 10 ^ {-1}$ before stabilization to $3.734\times10 ^ {-7}$, $1.646\times 10 ^ {-6}$, $1.440\times 10^ {-4}$ verifying the merits of RTMQ board.
+
+  A set of 32-bit RTMQ board hardware and six firmware are designed and manufactured based on FPGA which integrates 2 32-bit DDS, 2 16-bit ADC, 2 16-bit DAC, and provides 64 GPIO and 32 pairs of CPCI LVDS. 4 chip management and 2 important function expansion firmware (32-bit high-speed PID and 32-bit IIR filter) of RTMQ system are designed with Verilog, which can operate at 200 MHz and 25 MHz respectively. 3 ion trap QC key subsystems, including trap frequency, laser amplitude and laser beatnote frequency stabilization, were built to test the RTMQ board with the resonator. Theoretically, the influence of corresponding noise on the fidelity of single bit $\theta=\pi$ operation was reduced by $-13$ dB, $-19$ dB and $-35$ dB, verifying the merits of RTMQ board.
   
+  The above research meets the needs of ion trap QC, demonstrates the effectiveness and superiority of the constructed RTMQ, promotes the digitalization and integration process of future QC systems.
+
   % \begin{enumerate}
   %   \item Analyzes the Real Time Microsystem for Quantum physics (RTMQ) architecture. Based on the theoretical background of ion trap QC, the practical requirements of QC on the real-time, scalability, integration and other aspects of the MCS are analyzed; According to these requirements, a strong real-time, distributed and easy to expand RTMQ MCS architecture for ion trap QC is introduced, as well as the assembly instruction set and multi node real-time communication link system;
   %   \item The helical resonator is studied systematically. The simulation of the resonator is carried out using HFSS, and the consistency of the sim-exp results is verified. The influence of four geometric parameters on its performance is analyzed, and the features of its coupling process are described. The mathematical model of the resonator is established, and the method of designing a high-Q resonator at a specific frequency is summarized. An optimized design of the resonator for easy assembly and coupling for ion trap QC is given.
